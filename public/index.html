@@ -194,6 +194,17 @@
     text-transform:uppercase;opacity:.8;margin-top:16px;}
   .mkt-sub{font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:var(--dim);margin-top:8px;}
   .mkt-sub b{color:var(--ink);font-weight:600;}
+  /* Notation souveraine : trois agences côte à côte, couleur selon investment
+     grade (vert) ou spéculatif (rouge), avec la perspective en dessous. */
+  .mkt-cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--dim);margin-top:14px;margin-bottom:6px;}
+  .ratings{display:flex;gap:1px;background:var(--rule);border:1px solid var(--rule);}
+  .rating{flex:1;background:var(--panel);padding:10px 6px;text-align:center;}
+  .rk{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);}
+  .rg{font-family:var(--display);font-weight:600;font-size:19px;margin-top:4px;letter-spacing:-.01em;line-height:1;}
+  .rg.ig{color:#1E7A46;} .rg.spec{color:#B4462A;} .rg.none{color:var(--dim);font-size:16px;}
+  .ro{font-family:var(--mono);font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;margin-top:4px;}
+  .ro-positive{color:#1E7A46;} .ro-negative{color:#B4462A;} .ro-stable{color:var(--dim);}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -389,6 +400,7 @@ let selected = null;
 let panelTab = "identity";        // onglet actif du panneau, mémorisé entre pays
 let ident = {};                   // fiches d'identité locales (countries.json), par ISO
 let yields = { countries:{} };    // rendements 10 ans + spreads (yields.json), par ISO
+let ratings = { countries:{} };   // notations S&P/Moody's/Fitch (ratings.json), par ISO
 
 // Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
 // milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
@@ -461,31 +473,63 @@ function sparkChart(hist, year0, fmt){
   </div>`;
 }
 
-// Bloc Marchés : rendement souverain 10 ans, sa courbe, et l'écart vs US Treasury.
-// N'affiche rien si le pays n'a pas de données de marché (hors OCDE).
+// Investment grade : au-dessus du seuil (BBB−/Baa3), le pays est "de qualité".
+const IG_SPFITCH = new Set(["AAA","AA+","AA","AA-","A+","A","A-","BBB+","BBB","BBB-"]);
+const IG_MOODY = new Set(["Aaa","Aa1","Aa2","Aa3","A1","A2","A3","Baa1","Baa2","Baa3"]);
+const isIG = (g, moody) => (moody ? IG_MOODY : IG_SPFITCH).has(g);
+const OUT_LABEL = { positive:{fr:"positive",en:"positive"}, negative:{fr:"négative",en:"negative"}, stable:{fr:"stable",en:"stable"} };
+
+function ratingCell(label, grade, outlook, moody){
+  if (!grade) return `<div class="rating"><div class="rk">${label}</div><div class="rg none">—</div></div>`;
+  const cls = isIG(grade, moody) ? "ig" : "spec";
+  const out = outlook && OUT_LABEL[outlook]
+    ? `<div class="ro ro-${outlook}">${OUT_LABEL[outlook][lang]}</div>` : "";
+  return `<div class="rating"><div class="rk">${label}</div><div class="rg ${cls}">${esc(grade)}</div>${out}</div>`;
+}
+
+// Bloc Marchés : rendement souverain 10 ans + écart vs US Treasury, et la
+// notation souveraine des trois agences. S'affiche dès qu'une des deux existe.
 function renderMarkets(iso){
   const y = yields.countries?.[iso];
-  if (!y || typeof y.yield !== "number") return "";
-  const benchIso = yields.benchmark?.iso;
-  const spread = y.spread == null ? null
-    : iso === benchIso ? "ref"
-    : (y.spread >= 0 ? "+" : "−") + Math.abs(Math.round(y.spread * 100)) + (lang === "fr" ? " pb" : " bp");
-  const sub = spread === "ref"
-    ? `<div class="mkt-sub">${lang==="fr"?"référence des spreads":"spread benchmark"}</div>`
-    : spread != null
-      ? `<div class="mkt-sub">${lang==="fr"?"Écart vs US Treasury":"Spread vs US Treasury"} · <b>${spread}</b></div>`
-      : "";
-  const chart = y.hist ? sparkChart(y.hist, y.hist0, "pct") : "";
-  return `<div class="blocktitle">${lang==="fr"?"Marchés":"Markets"}</div>
-    <div class="macro">
-      <div class="cell wide">
+  const r = ratings.countries?.[iso];
+  const hasYield = y && typeof y.yield === "number";
+  if (!hasYield && !r) return "";
+
+  const srcs = [];
+  let body = "";
+
+  if (hasYield){
+    const benchIso = yields.benchmark?.iso;
+    const spread = y.spread == null ? null
+      : iso === benchIso ? "ref"
+      : (y.spread >= 0 ? "+" : "−") + Math.abs(Math.round(y.spread * 100)) + (lang === "fr" ? " pb" : " bp");
+    const sub = spread === "ref"
+      ? `<div class="mkt-sub">${lang==="fr"?"référence des spreads":"spread benchmark"}</div>`
+      : spread != null
+        ? `<div class="mkt-sub">${lang==="fr"?"Écart vs US Treasury":"Spread vs US Treasury"} · <b>${spread}</b></div>`
+        : "";
+    body += `<div class="macro"><div class="cell wide">
         <div class="k">${lang==="fr"?"Rendement 10 ans":"10-year yield"}</div>
         <div class="v">${y.yield.toFixed(2).replace('.',',')}<small>%</small></div>
-        ${chart}
+        ${y.hist ? sparkChart(y.hist, y.hist0, "pct") : ""}
         ${sub}
-      </div>
-    </div>
-    <div class="macro-src">${lang==="fr"?"Source : OCDE, via FRED":"Source: OECD, via FRED"}</div>`;
+      </div></div>`;
+    srcs.push("OCDE/FRED");
+  }
+
+  if (r){
+    body += `<div class="mkt-cap">${lang==="fr"?"Notation souveraine":"Sovereign rating"}</div>
+      <div class="ratings">
+        ${ratingCell("S&amp;P", r.sp, r.spO, false)}
+        ${ratingCell("Moody's", r.moody, r.moodyO, true)}
+        ${ratingCell("Fitch", r.fitch, r.fitchO, false)}
+      </div>`;
+    srcs.push(lang==="fr"?"Wikipédia":"Wikipedia");
+  }
+
+  return `<div class="blocktitle">${lang==="fr"?"Marchés":"Markets"}</div>
+    ${body}
+    <div class="macro-src">${lang==="fr"?"Sources : ":"Sources: "}${srcs.join(" · ")}</div>`;
 }
 
 function renderMacro(iso){
@@ -638,6 +682,13 @@ async function boot(){
   try {
     const r = await fetch("./yields.json");
     if(r.ok) yields = await r.json();
+  } catch {}
+
+  // Notations souveraines (S&P/Moody's/Fitch) — données locales issues de
+  // Wikipédia. Absentes pour les pays non notés : le bloc ne s'affiche pas.
+  try {
+    const r = await fetch("./ratings.json");
+    if(r.ok) ratings = await r.json();
   } catch {}
 
   const nCountries = Object.keys(macro.countries || {}).length;
