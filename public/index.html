@@ -169,6 +169,12 @@
   .cell .y{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px;letter-spacing:.04em;}
   .cell.wide{grid-column:1 / -1;}
   .trend-up{color:#1E7A46;} .trend-down{color:#B4462A;}
+  /* Mini-courbe d'historique (15 ans) sous chaque valeur. */
+  .spark{display:block;width:100%;height:30px;margin:9px 0 3px;overflow:visible;}
+  .spark-line{fill:none;stroke:var(--indigo);stroke-width:1.5;
+    stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;}
+  .spark-zero{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke;}
+  .spark-dot{fill:var(--accent);}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -386,6 +392,29 @@ const fmtVal = (ind) =>
 const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH",
                      "GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 
+// Mini-courbe (sparkline) : trace la série d'un indicateur en SVG. Ligne de
+// zéro pointillée si la série passe du négatif au positif (utile pour la
+// croissance, le solde budgétaire…), et un point sur la dernière valeur.
+function sparkline(hist){
+  if (!Array.isArray(hist)) return "";
+  const pts = hist.map((v, i) => [i, v]).filter(([, v]) => typeof v === "number" && isFinite(v));
+  if (pts.length < 2) return "";
+  const W = 132, H = 34, P = 4;
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  if (y0 === y1){ y0 -= 1; y1 += 1; }
+  const sx = i => (P + (i - xmin) / ((xmax - xmin) || 1) * (W - 2 * P)).toFixed(1);
+  const sy = v => ((H - P) - (v - y0) / ((y1 - y0) || 1) * (H - 2 * P)).toFixed(1);
+  const d = pts.map(([i, v], k) => (k ? "L" : "M") + sx(i) + "," + sy(v)).join(" ");
+  const last = pts[pts.length - 1];
+  const zero = (y0 < 0 && y1 > 0)
+    ? `<line class="spark-zero" x1="${P}" y1="${sy(0)}" x2="${W - P}" y2="${sy(0)}"/>` : "";
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">`
+    + `${zero}<path class="spark-line" d="${d}"/>`
+    + `<circle class="spark-dot" cx="${sx(last[0])}" cy="${sy(last[1])}" r="2.4"/></svg>`;
+}
+
 function renderMacro(iso){
   const m = macro.countries?.[iso];
   if(!m || !m.indicators || !Object.keys(m.indicators).length){
@@ -400,6 +429,7 @@ function renderMacro(iso){
     return `<div class="cell${wide}">
       <div class="k">${esc(IND_LABELS[k]?.[lang] || d.label)}</div>
       <div class="v${trend}">${fmtVal(d)}</div>
+      ${d.hist ? sparkline(d.hist) : ""}
       <div class="y">${d.year} · ${esc(d.source)}</div>
     </div>`;
   }).join("");

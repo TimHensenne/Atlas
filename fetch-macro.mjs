@@ -67,6 +67,19 @@ function latest(series) {
   return null;
 }
 
+// Nombre d'années d'historique conservées par indicateur (pour les mini-courbes).
+const HISTN = 15;
+
+// Historique : les HISTN dernières années observées (≤ année courante).
+// Renvoie { hist0, hist:[...] } (valeurs, avec null pour les trous) ou null.
+function history(series) {
+  if (!series) return null;
+  const years = Object.keys(series).map(Number).filter((y) => y <= YEAR_MAX).sort((a, b) => a - b);
+  if (!years.length) return null;
+  const slice = years.slice(-HISTN);
+  return { hist0: slice[0], hist: slice.map((y) => (series[y] != null ? series[y] : null)) };
+}
+
 async function run() {
   let sources = {};
   try { sources = JSON.parse(await readFile(new URL("./sources.json", import.meta.url))); } catch {}
@@ -91,8 +104,9 @@ async function run() {
     let missingKey = false;
 
     for (const [code, label, fmt, key] of INDIC) {
-      const d = latest(raw[code]?.[iso3]);
-      if (d) indicators[code] = { label, fmt, ...d, source: "FMI" };
+      const s = raw[code]?.[iso3];
+      const d = latest(s);
+      if (d) indicators[code] = { label, fmt, ...d, source: "FMI", ...(history(s) || {}) };
       else if (key) missingKey = true;
     }
 
@@ -122,7 +136,7 @@ async function run() {
 
   await mkdir(new URL("./public/", import.meta.url), { recursive: true });
   await writeFile(new URL("./public/macro.json", import.meta.url),
-    JSON.stringify({ generatedAt: new Date().toISOString(), fx, countries: out }, null, 2));
+    JSON.stringify({ generatedAt: new Date().toISOString(), fx, countries: out }));
 
   console.log(`\n  ✓ macro.json écrit`);
   console.log(`    ${full} pays complets affichés · ${partial} écartés (données clés manquantes)`);
