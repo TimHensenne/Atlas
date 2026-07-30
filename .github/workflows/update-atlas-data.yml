@@ -1,14 +1,17 @@
 # À placer dans ton dépôt sous : .github/workflows/update-atlas-data.yml
-# Régénère public/countries.json (population live Banque mondiale) sans serveur.
+# Régénère TOUTES les données d'Atlas (FMI + fiches pays…) sans serveur.
+# Pour ajouter une source à l'avenir : crée fetch-XXX.mjs (qui écrit dans
+# public/), puis ajoute « && node fetch-XXX.mjs » au script "data" du
+# package.json. Ce workflow n'a JAMAIS besoin d'être modifié.
 name: Mise à jour des données Atlas
 
 on:
   schedule:
     - cron: "0 6 1 * *"     # le 1er de chaque mois à 06:00 UTC
-  workflow_dispatch: {}      # + bouton « Run workflow » manuel dans l'onglet Actions
+  workflow_dispatch: {}      # + bouton « Run workflow » manuel
 
 permissions:
-  contents: write            # autorise le commit du fichier régénéré
+  contents: write
 
 jobs:
   update:
@@ -22,13 +25,13 @@ jobs:
 
       - run: npm install
 
-      - name: Régénérer les fiches pays
-        run: node fetch-identity.mjs
+      - name: Régénérer toutes les données
+        run: npm run data
 
-      - name: Committer si la donnée a changé
+      - name: Committer si une donnée a changé
         run: |
           git config user.name  "atlas-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/countries.json
-          git diff --staged --quiet || git commit -m "chore: maj population (auto, Banque mondiale)"
+          git add -A
+          git diff --staged --quiet || git commit -m "chore: maj des données (auto)"
           git push
