@@ -1,0 +1,34 @@
+# À placer dans ton dépôt sous : .github/workflows/update-atlas-data.yml
+# Régénère public/countries.json (population live Banque mondiale) sans serveur.
+name: Mise à jour des données Atlas
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"     # le 1er de chaque mois à 06:00 UTC
+  workflow_dispatch: {}      # + bouton « Run workflow » manuel dans l'onglet Actions
+
+permissions:
+  contents: write            # autorise le commit du fichier régénéré
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - name: Régénérer les fiches pays
+        run: node fetch-identity.mjs
+
+      - name: Committer si la donnée a changé
+        run: |
+          git config user.name  "atlas-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/countries.json
+          git diff --staged --quiet || git commit -m "chore: maj population (auto, Banque mondiale)"
+          git push

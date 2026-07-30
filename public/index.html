@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Atlas · Marchés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Carte marine par grand jour : papier, eau pâle, encre indigo. */
+    --paper:#F4F5F0; --panel:#FFFFFF;
+    --ocean:#DCE7F0; --land:#C4CCD6; --land-hi:#9AA6B6;
+    --ink:#131A2E; --dim:#5E6B84;
+    --indigo:#24357C; --indigo-hi:#3B54C4; --accent:#E23A2E; --accent-line:#B02419;
+    --rule:rgba(19,26,46,.13); --rule-soft:rgba(19,26,46,.07);
+    --ctrl:rgba(255,255,255,.92); --shadow:rgba(19,26,46,.14); --topbar-bg:var(--paper);
+    --display:'Bricolage Grotesque',system-ui,sans-serif;
+    --body:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',monospace;
+  }
+  /* ── Mode nuit : carte marine de nuit. Mer profonde, terres ardoise, pays
+     couverts en bleu lumineux qui ressort, sélection rouge vif. Frontières
+     assurées par --paper (sombre) sur des terres plus claires. ── */
+  :root[data-theme="dark"]{
+    --paper:#0C1522; --panel:#202E44;
+    --ocean:#081321; --land:#33445B; --land-hi:#45587A;
+    --ink:#F5F8FE; --dim:#A0AEC4;
+    --indigo:#5B74EC; --indigo-hi:#7E93F6; --accent:#F1503F; --accent-line:#B02419;
+    --rule:rgba(233,237,245,.16); --rule-soft:rgba(233,237,245,.07);
+    --ctrl:rgba(32,46,68,.95); --shadow:rgba(0,0,0,.45);
+    --topbar-bg:var(--panel);   /* barre = teinte chrome, nettement plus claire que la mer */
+  }
+  /* Transition douce au changement de thème (désactivée si mouvement réduit). */
+  body,.topbar,.panel,.cell,.reports a,.results,#tip,.soon,.zoomctl button,.ocean-bg,.macro{
+    transition:background-color .25s ease,border-color .25s ease,color .25s ease,fill .25s ease;}
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+    display:flex;flex-direction:column;}
+
+  /* Sur grand écran, la page ne défile jamais : seul le panneau défile.
+     Sur mobile le panneau passe sous la carte, donc la page redevient scrollable. */
+  @media(min-width:900px){ body{overflow:hidden;} }
+
+  .topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:none;
+    background:var(--topbar-bg);
+    padding:16px 24px;border-bottom:1px solid var(--rule);}
+  .brand{flex:none;}
+  .wordmark{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--indigo);text-transform:uppercase;}
+  /* Tous les outils vivent à droite, dans un seul groupe. L'espacement passe
+     par le gap du conteneur — plus aucun margin-left bricolé sur les éléments. */
+  .tools{display:flex;align-items:center;gap:10px;margin-left:auto;
+    flex-wrap:wrap;justify-content:flex-end;}
+  .stamp{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim);
+    text-transform:uppercase;}
+  /* Devise et langue partagent exactement le même gabarit de bouton. */
+  .fx,.lang,.theme{display:flex;border:1px solid var(--rule);}
+  .fx button,.lang button,.theme button{background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
+    font-family:var(--mono);font-size:11px;padding:5px 10px;line-height:1;color:var(--dim);
+    transition:background .15s ease,color .15s ease;}
+  .fx button:last-child,.lang button:last-child,.theme button:last-child{border-right:0;}
+  .fx button.on,.lang button.on,.theme button.on{background:var(--indigo);color:#FFF;}
+  .fx button:hover:not(.on),.lang button:hover:not(.on),.theme button:hover:not(.on){background:var(--ocean);color:var(--ink);}
+  .theme button{font-size:13px;padding:4px 9px;}
+  .fx button:focus-visible,.lang button:focus-visible,.theme button:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px;}
+  /* Mobile : les outils passent en pleine largeur sous la marque, la recherche
+     s'étire pour occuper la place. La barre ne se disloque plus. */
+  @media(max-width:640px){
+    .tools{width:100%;margin-left:0;justify-content:flex-start;}
+    .search{flex:1 1 auto;}
+    .search input{width:100%;}
+  }
+
+  .search{position:relative;}
+  .search input{font-family:var(--body);font-size:13px;width:190px;padding:6px 10px;
+    background:var(--panel);border:1px solid var(--rule);color:var(--ink);outline:none;
+    transition:border-color .15s ease;}
+  .search input:focus{border-color:var(--indigo);}
+  .search input::placeholder{color:var(--dim);}
+  .results{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:30;
+    background:var(--panel);border:1px solid var(--rule);box-shadow:0 4px 14px rgba(19,26,46,.14);
+    max-height:280px;overflow-y:auto;}
+  .results:empty{display:none;}
+  .results button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;border-bottom:1px solid var(--rule-soft);cursor:pointer;
+    padding:9px 11px;font-family:var(--body);font-size:13px;color:var(--ink);
+    transition:background .12s ease;}
+  .results button:last-child{border-bottom:0;}
+  .results button:hover,.results button.hi{background:var(--ocean);}
+  .results .riso{font-family:var(--mono);font-size:11px;color:var(--indigo);min-width:22px;}
+  .results .rdot{width:7px;height:7px;border-radius:2px;background:var(--indigo);margin-left:auto;}
+  .results .empty2{padding:10px 11px;font-size:12.5px;color:var(--dim);}
+
+  .stage{display:flex;flex:1;min-height:0;flex-direction:column;}
+  @media(min-width:900px){.stage{flex-direction:row;}}
+
+  .mapcol{flex:1;min-width:0;min-height:0;padding:8px 12px 16px;display:flex;flex-direction:column;}
+  .mapwrap{position:relative;flex:1;min-height:340px;display:flex;}
+  #map{flex:1;width:100%;height:100%;min-height:0;display:block;touch-action:none;cursor:grab;background:var(--ocean);}
+  #map.dragging{cursor:grabbing;}
+  .ocean-bg{fill:var(--ocean);}
+  .sphere{fill:var(--ocean);stroke:var(--rule);stroke-width:.8;vector-effect:non-scaling-stroke;}
+  .grat{fill:none;stroke:var(--rule-soft);stroke-width:.5;vector-effect:non-scaling-stroke;}
+  .country{fill:var(--land);stroke:var(--paper);stroke-width:.5;cursor:pointer;
+    transition:fill .16s ease;outline:none;vector-effect:non-scaling-stroke;}
+  .country:hover,.country:focus-visible{fill:var(--land-hi);}
+  .country:focus-visible{stroke:var(--ink);stroke-width:1.2;}
+  .country.covered{fill:var(--indigo);}
+  .country.covered:hover,.country.covered:focus-visible{fill:var(--indigo-hi);}
+  /* Pays sélectionné : simple changement de couleur (rouge vif). Pas de contour
+     épais — il garde le fin liseré commun à tous les pays. */
+  .country.on,
+  .country.covered.on{fill:var(--accent);}
+  .country.on:hover,.country.covered.on:hover{fill:var(--accent);}
+
+  /* commandes de zoom */
+  .zoomctl{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;}
+  .zoomctl button{width:34px;height:34px;background:var(--ctrl);color:var(--ink);
+    border:1px solid var(--rule);font-family:var(--mono);font-size:16px;line-height:1;
+    cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s ease;
+    box-shadow:0 1px 2px var(--shadow);}
+  .zoomctl button:hover{background:var(--ocean);}
+  .zoomctl button:focus-visible{outline:2px solid var(--indigo);outline-offset:1px;}
+  .zoomctl .reset{display:grid;place-items:center;}
+  .zoomctl .reset svg{display:block;}
+
+  .legend{display:flex;gap:18px;padding:10px 6px 0;flex:none;font-family:var(--mono);font-size:10px;
+    letter-spacing:.08em;color:var(--dim);text-transform:uppercase;}
+  .dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:7px;vertical-align:1px;}
+
+  #tip{position:fixed;pointer-events:none;z-index:20;background:var(--panel);color:var(--ink);
+    border:1px solid var(--rule);padding:5px 9px;font-size:12px;display:none;
+    gap:8px;align-items:center;transform:translate(10px,-130%);
+    box-shadow:0 2px 6px rgba(19,26,46,.12);}
+  #tip b{font-family:var(--mono);font-weight:500;color:var(--indigo);font-size:11px;}
+
+  .panel{border-top:1px solid var(--rule);background:var(--panel);
+    padding:22px 24px 32px;display:flex;flex-direction:column;gap:18px;}
+  @media(min-width:900px){.panel{width:390px;flex:none;border-top:none;
+    border-left:1px solid var(--rule);overflow-y:auto;overscroll-behavior:contain;}}
+  .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+  .phead > div{min-width:0;}
+  /* Drapeau : cadre 4:3 uniforme pour tous (flag-icons normalise Suisse, Vatican
+     et le fanion du Népal au même format). Le fond panneau apparaît dans les
+     zones transparentes du Népal ; le liseré définit les bords des drapeaux
+     clairs (Japon…). */
+  .flag{flex:none;width:48px;height:36px;object-fit:cover;
+    border:1px solid var(--rule);border-radius:3px;background:var(--panel);
+    box-shadow:0 1px 2px var(--shadow);}
+  .iso{font-family:var(--mono);font-size:38px;font-weight:500;color:var(--indigo);
+    line-height:.9;letter-spacing:-.03em;}
+  .cname{font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:-.02em;line-height:1.1;}
+  .csub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
+    text-transform:uppercase;margin-top:6px;}
+
+  /* ── bloc données macro ── */
+  .macro{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
+    border:1px solid var(--rule);}
+  .cell{background:var(--panel);padding:12px 14px;}
+  .cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);
+    text-transform:uppercase;}
+  .cell .v{font-family:var(--display);font-weight:600;font-size:21px;letter-spacing:-.02em;
+    margin-top:5px;line-height:1;}
+  .cell .v small{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--dim);
+    letter-spacing:0;margin-left:3px;}
+  .cell .y{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px;letter-spacing:.04em;}
+  .cell.wide{grid-column:1 / -1;}
+  .trend-up{color:#1E7A46;} .trend-down{color:#B4462A;}
+  /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
+  .ptabs{display:flex;border:1px solid var(--rule);}
+  .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    padding:9px 6px;color:var(--dim);transition:background .15s ease,color .15s ease;}
+  .ptabs button:last-child{border-right:0;}
+  .ptabs button.on{background:var(--indigo);color:#FFF;}
+  .ptabs button:hover:not(.on){background:var(--ocean);color:var(--ink);}
+  .ptabs button:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px;}
+  /* Valeurs de la fiche d'identité : du texte, donc plus petit et en police de
+     lecture (le grand affichage est réservé aux chiffres macro). */
+  .macro.identity .v{font-family:var(--body);font-weight:600;font-size:15px;
+    letter-spacing:0;line-height:1.3;}
+
+  .reports{display:flex;gap:8px;flex-wrap:wrap;}
+  .reports a{flex:1;min-width:130px;text-decoration:none;border:1px solid var(--rule);
+    padding:11px 13px;transition:background .15s ease,border-color .15s ease;}
+  .reports a:hover{background:var(--ocean);border-color:var(--indigo);}
+  .reports .rk{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--dim);
+    text-transform:uppercase;}
+  .reports .rt{font-family:var(--body);font-size:13px;color:var(--ink);margin-top:4px;font-weight:600;}
+  .reports .ra{color:var(--indigo);}
+
+  .blocktitle{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim);
+    text-transform:uppercase;margin:4px 0 -6px;display:flex;align-items:center;gap:8px;}
+  .blocktitle::after{content:"";flex:1;height:1px;background:var(--rule);}
+
+  .soon{border:1px dashed var(--rule);padding:13px 15px;font-size:12.5px;color:var(--dim);
+    display:flex;align-items:center;gap:8px;}
+  .soon b{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--indigo);
+    border:1px solid var(--indigo);padding:2px 6px;text-transform:uppercase;}
+
+  .empty{border:1px dashed var(--rule);padding:18px;font-size:13.5px;
+    line-height:1.55;color:var(--dim);}
+  .empty code{font-family:var(--mono);font-size:12px;color:var(--indigo);}
+  .hint{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
+    text-transform:uppercase;margin:auto;}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+<script>
+  /* Applique le thème AVANT le premier rendu (pas de flash blanc au chargement) :
+     préférence sauvegardée sinon réglage système. */
+  (function(){
+    try{
+      var s = localStorage.getItem('atlas-theme');
+      var dark = s ? s === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="eyebrow" id="eyebrow">Marchés</div>
+    <div class="wordmark">Atlas</div>
+  </div>
+  <div class="tools">
+    <div class="stamp" id="stamp">—</div>
+    <div class="fx" id="fx" role="group" aria-label="Devise" hidden>
+      <button type="button" data-cur="USD" class="on" aria-pressed="true">$ USD</button>
+      <button type="button" data-cur="EUR" aria-pressed="false">€ EUR</button>
+    </div>
+    <div class="search">
+      <input type="text" id="search" autocomplete="off" spellcheck="false" aria-label="Rechercher un pays">
+      <div class="results" id="results"></div>
+    </div>
+    <div class="lang" id="lang" role="group" aria-label="Langue">
+      <button type="button" data-lang="fr" class="on" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <div class="theme" id="theme" role="group" aria-label="Thème">
+      <button type="button" data-theme-set="light" aria-label="Mode jour" title="Jour">☀</button>
+      <button type="button" data-theme-set="dark" aria-label="Mode nuit" title="Nuit">☾</button>
+    </div>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="mapcol">
+    <div class="mapwrap">
+      <div class="hint" id="loading">Chargement du fond de carte…</div>
+      <svg id="map" viewBox="0 0 900 440" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="Carte du monde cliquable" hidden></svg>
+      <div class="zoomctl" id="zoomctl" hidden>
+        <button id="zin"   type="button" aria-label="Zoomer">+</button>
+        <button id="zout"  type="button" aria-label="Dézoomer">−</button>
+        <button id="zreset" class="reset" type="button" aria-label="Réinitialiser le zoom" title="Vue d'origine"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
+      </div>
+    </div>
+    <div class="legend" id="legend" hidden>
+      <span><i class="dot" style="background:var(--indigo)"></i><span id="lg-cov">Pays couverts</span></span>
+      <span><i class="dot" style="background:var(--land)"></i><span id="lg-not">Pas encore de sources</span></span>
+    </div>
+  </div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<div id="tip"><b></b><span></span></div>
+
+<script type="module">
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+/* ══════════════════════════════════════════════════════════════
+   i18n — pour ajouter une langue, ajoute une clé (ex. "nl") à chaque
+   entrée, et une entrée dans LANGS. Rien d'autre à toucher.
+   ══════════════════════════════════════════════════════════════ */
+const LANGS = [["fr","FR"],["en","EN"]];
+let lang = "fr";
+
+const I18N = {
+  eyebrow:        { fr:"Marchés",                    en:"Markets" },
+  choose:         { fr:"Choisis un pays",            en:"Choose a country" },
+  chooseHint:     { fr:"Clique sur un pays de la carte pour voir ses indicateurs économiques : PIB, croissance, inflation, dette, chômage…",
+                    en:"Click a country on the map to see its economic indicators: GDP, growth, inflation, debt, unemployment…" },
+  covered:        { fr:"Pays couverts",              en:"Covered countries" },
+  notYet:         { fr:"Sans données",               en:"No data" },
+  reports:        { fr:"Rapports pays",              en:"Country reports" },
+  imfProfile:     { fr:"Profil pays",                en:"Country profile" },
+  wbData:         { fr:"Données pays",               en:"Country data" },
+  soonBadge:      { fr:"bientôt",                    en:"soon" },
+  searchPlaceholder:{ fr:"Rechercher un pays…",      en:"Search a country…" },
+  noMatch:        { fr:"Aucun pays",                 en:"No country" },
+  countriesWord:  { fr:"pays",                       en:"countries" },
+  tabIdent:       { fr:"Identité",                   en:"Identity" },
+  tabEco:         { fr:"Économie",                   en:"Economics" },
+  idUnavail:      { fr:"Fiche indisponible.",        en:"Profile unavailable." },
+};
+
+// libellés de la fiche d'identité (REST Countries)
+const IDENT_LABELS = {
+  capital:    { fr:"Capitale",   en:"Capital" },
+  currency:   { fr:"Monnaie",    en:"Currency" },
+  population: { fr:"Population",  en:"Population" },
+  area:       { fr:"Superficie", en:"Area" },
+  languages:  { fr:"Langues",    en:"Languages" },
+  calling:    { fr:"Indicatif",  en:"Calling code" },
+};
+
+// libellés des indicateurs macro, par code
+const IND_LABELS = {
+  "NGDPD":       { fr:"PIB",               en:"GDP" },
+  "NGDPDPC":     { fr:"PIB par habitant",  en:"GDP per capita" },
+  "NGDP_RPCH":   { fr:"Croissance",        en:"Growth" },
+  "PCPIPCH":     { fr:"Inflation",         en:"Inflation" },
+  "GGXWDG_NGDP": { fr:"Dette publique",    en:"Public debt" },
+  "GGXCNL_NGDP": { fr:"Solde budgétaire",  en:"Budget balance" },
+  "BCA_NGDPD":   { fr:"Balance courante",  en:"Current account" },
+  "LUR":         { fr:"Chômage",           en:"Unemployment" },
+};
+
+const t = (key) => (I18N[key]?.[lang]) ?? I18N[key]?.fr ?? key;
+
+const ISO2 = {"100":"BG","104":"MM","108":"BI","112":"BY","116":"KH","120":"CM","124":"CA","140":"CF","144":"LK","148":"TD","152":"CL","156":"CN","170":"CO","178":"CG","180":"CD","188":"CR","191":"HR","192":"CU","196":"CY","203":"CZ","204":"BJ","208":"DK","214":"DO","218":"EC","222":"SV","226":"GQ","231":"ET","232":"ER","233":"EE","238":"FK","242":"FJ","246":"FI","250":"FR","254":"GF","262":"DJ","266":"GA","268":"GE","270":"GM","275":"PS","276":"DE","288":"GH","300":"GR","304":"GL","320":"GT","324":"GN","328":"GY","332":"HT","340":"HN","344":"HK","348":"HU","352":"IS","356":"IN","360":"ID","364":"IR","368":"IQ","372":"IE","376":"IL","380":"IT","384":"CI","388":"JM","392":"JP","398":"KZ","400":"JO","404":"KE","408":"KP","410":"KR","414":"KW","417":"KG","418":"LA","422":"LB","426":"LS","428":"LV","430":"LR","434":"LY","440":"LT","442":"LU","450":"MG","454":"MW","458":"MY","466":"ML","478":"MR","484":"MX","496":"MN","498":"MD","499":"ME","504":"MA","508":"MZ","512":"OM","516":"NA","524":"NP","528":"NL","540":"FR","548":"VU","554":"NZ","558":"NI","562":"NE","566":"NG","578":"NO","586":"PK","591":"PA","598":"PG","600":"PY","604":"PE","608":"PH","616":"PL","620":"PT","624":"GW","626":"TL","630":"PR","634":"QA","642":"RO","643":"RU","646":"RW","682":"SA","686":"SN","688":"RS","694":"SL","702":"SG","703":"SK","704":"VN","705":"SI","706":"SO","710":"ZA","716":"ZW","724":"ES","728":"SS","729":"SD","732":"EH","740":"SR","748":"SZ","752":"SE","756":"CH","760":"SY","762":"TJ","764":"TH","768":"TG","780":"TT","784":"AE","788":"TN","792":"TR","795":"TM","800":"UG","804":"UA","807":"MK","818":"EG","826":"GB","834":"TZ","840":"US","854":"BF","858":"UY","860":"UZ","862":"VE","887":"YE","894":"ZM","004":"AF","008":"AL","012":"DZ","024":"AO","032":"AR","036":"AU","040":"AT","031":"AZ","044":"BS","048":"BH","050":"BD","051":"AM","052":"BB","056":"BE","064":"BT","068":"BO","070":"BA","072":"BW","076":"BR","084":"BZ","090":"SB","096":"BN","016":"AS","020":"AD","028":"AG","060":"BM","086":"IO","092":"VG","132":"CV","136":"KY","158":"TW","174":"KM","184":"CK","212":"DM","234":"FO","239":"GS","248":"AX","258":"FR","260":"FR","296":"KI","308":"GD","316":"GU","334":"HM","336":"VA","438":"LI","446":"MO","462":"MV","470":"MT","480":"MU","492":"MC","500":"MS","520":"NR","531":"CW","533":"AW","534":"SX","570":"NU","574":"NF","580":"MP","583":"FM","584":"MH","585":"PW","612":"PN","652":"FR","654":"SH","659":"KN","660":"AI","662":"LC","663":"FR","666":"FR","670":"VC","674":"SM","678":"ST","690":"SC","776":"TO","796":"TC","831":"GG","832":"JE","833":"IM","850":"VI","876":"FR","882":"WS"};
+
+// États de facto que Natural Earth livre sans code ISO (id null). On les
+// rattache à l'État qui les administre, comme Google Maps : le Somaliland à
+// la Somalie. Le Kosovo, lui, a un code d'usage (XK) et ses propres données.
+const DEFACTO = { "Somaliland":"SO", "Kosovo":"XK" };
+
+// Le seul point de vérité pour « quel pays est cette forme ? ». D'abord le code
+// ISO du fond de carte, sinon la table des États de facto, sinon aucun.
+const isoOf = (d) => ISO2[d.id] || DEFACTO[d.properties?.name] || null;
+
+function buildFeatures(topo, name){
+  const {scale:[sx,sy], translate:[tx,ty]} = topo.transform;
+  const arcs = topo.arcs.map(arc => {
+    let x=0, y=0;
+    return arc.map(([dx,dy]) => { x+=dx; y+=dy; return [x*sx+tx, y*sy+ty]; });
+  });
+  const arcAt = i => (i<0 ? arcs[~i].slice().reverse() : arcs[i]);
+  const ring = idx => idx.reduce((pts,i,k) => pts.concat(k>0 ? arcAt(i).slice(1) : arcAt(i)), []);
+  return topo.objects[name].geometries.map((g,i) => ({
+    type:"Feature", id: g.id != null ? g.id : "nd" + i, properties:g.properties||{},
+    geometry:{ type:g.type,
+      coordinates: g.type==="Polygon" ? g.arcs.map(ring) : g.arcs.map(p => p.map(ring)) }
+  }));
+}
+
+const el = id => document.getElementById(id);
+const fmtTime = iso => iso
+  ? new Date(iso).toLocaleTimeString("fr-BE",{hour:"2-digit",minute:"2-digit"})
+  : "—";
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let macro = { countries:{} };
+
+// Un pays est "couvert" (indigo, cliquable) dès qu'il a des données macro.
+const hasContent = (iso) => !!(iso && macro.countries?.[iso]);
+let currency = "USD";  // devise d'affichage, bascule globale
+let selected = null;
+let panelTab = "identity";        // onglet actif du panneau, mémorisé entre pays
+let ident = {};                   // fiches d'identité locales (countries.json), par ISO
+
+// Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
+// milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
+const fmtMoney = (usd, unit) => {
+  const rate = macro.fx?.usdToEur;
+  const eur = currency === "EUR" && rate;
+  let v = eur ? usd * rate : usd;
+  const sym = eur ? " €" : " $";
+  if (unit === "Md") v = v * 1e9;   // ramène en unités pour choisir l'échelle
+  if (v >= 1e12) return `${(v/1e12).toFixed(2)}`.replace('.',',') + " T" + sym;
+  if (v >= 1e9)  return `${(v/1e9).toFixed(0)}` + " Md" + sym;
+  if (v >= 1e6)  return `${(v/1e6).toFixed(1)}`.replace('.',',') + " M" + sym;
+  return Math.round(v).toLocaleString("fr-BE") + sym;
+};
+const fmtVal = (ind) =>
+  ind.fmt === "moneyMd" ? fmtMoney(ind.value, "Md")
+  : ind.fmt === "money" ? fmtMoney(ind.value, "")
+  : `${ind.value >= 0 ? "" : ""}${ind.value.toFixed(1).replace('.',',')}<small>%</small>`;
+
+// Ordre d'affichage : le PIB en grand, puis les taux deux par deux.
+const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH",
+                     "GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
+
+function renderMacro(iso){
+  const m = macro.countries?.[iso];
+  if(!m || !m.indicators || !Object.keys(m.indicators).length){
+    return `<div class="soon"><b>${t("soonBadge")}</b> ${lang==="fr"?"Données économiques indisponibles pour ce pays.":"No economic data available for this country."}</div>`;
+  }
+  const ind = m.indicators;
+  const cells = MACRO_ORDER.filter(k => ind[k]).map((k, i) => {
+    const d = ind[k];
+    const wide = k === "NGDPD" ? " wide" : "";
+    const trend = d.fmt === "pct" && (k === "NGDP_RPCH")
+      ? (d.value >= 0 ? " trend-up" : " trend-down") : "";
+    return `<div class="cell${wide}">
+      <div class="k">${esc(IND_LABELS[k]?.[lang] || d.label)}</div>
+      <div class="v${trend}">${fmtVal(d)}</div>
+      <div class="y">${d.year} · ${esc(d.source)}</div>
+    </div>`;
+  }).join("");
+
+  const rep = m.links ? `
+    <div class="blocktitle">${t("reports")}</div>
+    <div class="reports">
+      ${m.links.imf ? `<a href="${esc(m.links.imf)}" target="_blank" rel="noopener">
+        <div class="rk">FMI</div><div class="rt">${t("imfProfile")} <span class="ra">→</span></div></a>` : ""}
+      ${m.links.worldbank ? `<a href="${esc(m.links.worldbank)}" target="_blank" rel="noopener">
+        <div class="rk">Banque mondiale</div><div class="rt">${t("wbData")} <span class="ra">→</span></div></a>` : ""}
+    </div>` : "";
+
+  return `<div class="macro">${cells}</div>${rep}`;
+}
+
+const esc = (s) => String(s).replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+
+// ── Fiche d'identité (données locales countries.json, aucune API externe) ──
+function renderIdentity(iso){
+  const d = iso && ident[iso];
+  if (!d) return `<div class="soon"><b>${t("soonBadge")}</b> ${t("idUnavail")}</div>`;
+  const fmt = new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB");
+  const rows = [
+    ["capital",    lang === "fr" ? (d.capFr || d.cap) : d.cap],
+    ["currency",   lang === "fr" ? (d.curFr || d.cur) : d.cur],
+    ["population", d.pop != null ? fmt.format(d.pop) : null],
+    ["area",       d.area != null ? fmt.format(Math.round(d.area)) + " km²" : null],
+    ["languages",  lang === "fr" ? (d.langFr || d.lang) : d.lang, true],
+    ["calling",    d.call],
+  ];
+  const cells = rows.filter(([, v]) => v).map(([k, v, wide]) => `
+    <div class="cell${wide ? " wide" : ""}">
+      <div class="k">${IDENT_LABELS[k][lang]}</div>
+      <div class="v">${esc(String(v))}</div>
+    </div>`).join("");
+  return cells ? `<div class="macro identity">${cells}</div>`
+              : `<div class="soon"><b>${t("soonBadge")}</b> ${t("idUnavail")}</div>`;
+}
+
+function renderPanel(){
+  const p = el("panel");
+  if(!selected){
+    p.innerHTML = `<div class="cname">${t("choose")}</div>
+      <div class="empty">${t("chooseHint")}</div>`;
+    return;
+  }
+  const name = macro.countries?.[selected.iso]?.name || selected.name;
+  const flag = selected.iso
+    ? `<img class="flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${selected.iso.toLowerCase()}.svg" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : "";
+  const body = panelTab === "identity" ? renderIdentity(selected.iso) : renderMacro(selected.iso);
+
+  p.innerHTML = `
+    <div class="phead">
+      <div>
+        <div class="cname">${esc(name)}</div>
+      </div>
+      ${flag}
+    </div>
+    <div class="ptabs" role="tablist">
+      <button type="button" role="tab" data-tab="identity"  aria-selected="${panelTab==="identity"}"  class="${panelTab==="identity"?"on":""}">${t("tabIdent")}</button>
+      <button type="button" role="tab" data-tab="economics" aria-selected="${panelTab==="economics"}" class="${panelTab==="economics"?"on":""}">${t("tabEco")}</button>
+    </div>
+    ${body}
+  `;
+  p.scrollTop = 0;
+}
+
+// Bascule d'onglet (délégation : le panneau est reconstruit à chaque rendu).
+el("panel").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tab]");
+  if (!b) return;
+  panelTab = b.dataset.tab;
+  renderPanel();
+});
+
+async function boot(){
+  try {
+    const r = await fetch("./macro.json");
+    if(r.ok) macro = await r.json();
+  } catch {}
+
+  // Fiches d'identité (capitale, monnaie, population…) — données locales, sans
+  // API externe. Chargement non bloquant : si absent, l'onglet Identité affiche
+  // simplement « indisponible ».
+  try {
+    const r = await fetch("./countries.json");
+    if(r.ok) ident = await r.json();
+  } catch {}
+
+  const nCountries = Object.keys(macro.countries || {}).length;
+  function renderStamp(){
+    const loc = lang === "fr" ? "fr-BE" : "en-GB";
+    const gen = macro.generatedAt;
+    el("stamp").textContent = gen
+      ? `${new Date(gen).toLocaleString(loc,{day:"2-digit",month:"short"})} · ${nCountries} ${t("countriesWord")}`
+      : `${nCountries} ${t("countriesWord")}`;
+  }
+  renderStamp();
+
+  let topo;
+  try {
+    const r = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json");
+    if(!r.ok) throw new Error();
+    topo = await r.json();
+  } catch {
+    el("loading").textContent = "Le fond de carte n'a pas pu être chargé. Vérifie ta connexion et recharge.";
+    return;
+  }
+
+  const features = buildFeatures(topo,"countries").filter(f => f.id !== "010");
+
+  // Index de recherche : tout pays de la carte, qu'il soit couvert ou non.
+  const searchable = features.map(f => {
+    const iso = isoOf(f);
+    const nameEn = f.properties.name || "";
+    // nom français : priorité au nom de macro.json (déjà en FR), sinon carte
+    const nameFr = (iso && macro.countries?.[iso]?.name) || nameEn;
+    return { iso, nameEn, nameFr, covered: hasContent(iso), feature: f };
+  }).filter(x => x.nameEn || x.nameFr);
+
+  // Nom d'affichage d'un pays de la carte, selon la langue active :
+  // macro.json (déjà en FR) → nom anglais de la carte.
+  // Lit `lang` à chaque appel : le tooltip suit la bascule FR/EN sans re-render.
+  const nameByFeatureId = new Map(searchable.map(x => [x.feature.id, x]));
+  const mapName = (d) => {
+    const x = nameByFeatureId.get(d.id);
+    if (!x) return d.properties.name || "—";
+    return (lang === "en" ? x.nameEn : x.nameFr) || x.nameFr || x.nameEn || "—";
+  };
+
+  // ── CARTE PLATE INFINIE (Mercator, façon Google Maps) ──
+  // Le monde est projeté à plat et dessiné en TROIS copies côte à côte. Le
+  // déplacement et le zoom se font par transformation du groupe SVG — aucune
+  // reprojection : les tracés restent nets et le geste reste fluide. Quand on
+  // défile horizontalement, on replie la position modulo la largeur d'un monde,
+  // ce qui donne un défilement infini gauche/droite.
+  const svg = d3.select("#map");
+  const VB_W = 900, VB_H = 440;
+
+  // Bande de latitudes des terres : on coupe l'océan austral vide (sous ~−53°,
+  // l'Antarctique étant retiré) et l'Arctique glacé (au-dessus de ~74°). Ce
+  // cadrage garde le même rapport largeur/hauteur que la fenêtre → un SEUL monde
+  // la remplit exactement, sans bande vide ni pays affichés en double.
+  const LAT_S = -53, LAT_N = 74;
+  const worldBox = { type:"Polygon", coordinates:[[[-180,LAT_S],[180,LAT_S],[180,LAT_N],[-180,LAT_N],[-180,LAT_S]]] };
+  const projection = d3.geoMercator().fitExtent([[0,0],[VB_W,VB_H]], worldBox);
+  const path = d3.geoPath(projection);
+
+  const W = projection([180,0])[0] - projection([-180,0])[0];   // largeur d'un monde (px @k=1)
+  const by0 = path.bounds(worldBox)[0][1];
+  const by1 = path.bounds(worldBox)[1][1];
+
+  const tip = el("tip");
+  let currentK = 1, panning = false;
+
+  // Fond océan plein cadre, fixe, derrière tout (remplit au-dessus et en dessous
+  // du monde quand on défile verticalement).
+  svg.append("rect").attr("class","ocean-bg").attr("width",VB_W).attr("height",VB_H);
+
+  const g = svg.append("g");                 // groupe transformé par le zoom
+  const graticule = d3.geoGraticule10();
+
+  // Trois copies du monde décalées de -W, 0, +W. Chacune porte le graticule et
+  // les pays avec leurs événements ; survol et sélection agissent sur les trois
+  // (elles partagent la classe .country et la même donnée).
+  for (const o of [-1, 0, 1]){
+    const world = g.append("g").attr("transform", `translate(${o * W},0)`);
+    world.append("path").attr("class","grat").attr("d", path(graticule));
+    world.selectAll("path.country").data(features).join("path")
+      .attr("class", d => "country" + (hasContent(isoOf(d)) ? " covered" : ""))
+      .attr("d", path)
+      .attr("tabindex", 0)
+      .attr("role","button")
+      .attr("aria-label", d => mapName(d))
+      .on("click", (e,d) => selectCountry(isoOf(d), mapName(d), d))
+      .on("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); this.dispatchEvent(new Event("click")); }
+      })
+      .on("mousemove", (e,d) => {
+        if (panning) return;
+        tip.style.display = "flex";
+        tip.style.left = e.clientX + "px";
+        tip.style.top  = e.clientY + "px";
+        tip.querySelector("b").textContent = isoOf(d) || "··";
+        tip.querySelector("span").textContent = mapName(d);
+      })
+      .on("mouseleave", () => { tip.style.display = "none"; });
+  }
+
+  // Bride le défilement vertical : le monde ne peut pas décoller des bords haut
+  // et bas (et se centre s'il est plus court que le cadre).
+  function clampY(t){
+    const wh = (by1 - by0) * t.k;
+    if (wh <= VB_H) return (VB_H - wh) / 2 - by0 * t.k;
+    return Math.max(VB_H - by1 * t.k, Math.min(-by0 * t.k, t.y));
+  }
+  const initT = () => d3.zoomIdentity.translate(0, clampY(d3.zoomIdentity));
+
+  const zoom = d3.zoom()
+    .scaleExtent([1, 20])
+    .on("start", () => { panning = true; svg.classed("dragging", true); tip.style.display = "none"; })
+    .on("zoom", (e) => {
+      let t = e.transform;
+      const y = clampY(t);
+      // Repli horizontal infini — uniquement sur geste utilisateur, pour ne pas
+      // perturber une animation de recentrage (transition programmée).
+      let x = t.x;
+      if (e.sourceEvent){
+        const worldW = W * t.k;
+        x = ((t.x % worldW) + worldW) % worldW;
+      }
+      if (x !== t.x || y !== t.y){
+        t = d3.zoomIdentity.translate(x, y).scale(t.k);
+        if (e.sourceEvent) svg.node().__zoom = t;   // évite la dérive de l'état interne
+      }
+      currentK = t.k;
+      g.attr("transform", t);
+      tip.style.display = "none";
+    })
+    .on("end", () => { panning = false; svg.classed("dragging", false); });
+
+  svg.call(zoom).call(zoom.transform, initT());
+
+  // Sélection d'un pays — partagée par le clic ET la recherche. Indépendante du
+  // déplacement : cliquer surligne sans bouger la carte.
+  function selectCountry(iso, name, feature){
+    selected = { iso, name };
+    g.selectAll("path.country").classed("on", x => !!iso && isoOf(x) === iso);
+    g.selectAll("path.country.on").each(function(){ this.parentNode.appendChild(this); });
+    renderPanel();
+  }
+  window.__select = selectCountry;
+  window.__searchable = searchable;
+
+  // Le plus gros morceau d'un pays : sert à la fois à viser (centroïde) et à
+  // mesurer sa taille à l'écran, sans être faussé par des îles lointaines.
+  function mainPart(feature){
+    const gm = feature.geometry; if (!gm) return null;
+    if (gm.type === "Polygon") return gm;
+    let best = null, bestA = -1;
+    for (const poly of gm.coordinates){
+      const pf = { type:"Polygon", coordinates: poly };
+      const a = d3.geoArea(pf);
+      if (a > bestA){ bestA = a; best = pf; }
+    }
+    return best || gm;
+  }
+
+  // Recentre la carte sur un pays (recherche) en l'affichant TOUJOURS à une
+  // échelle confortable : on choisit le zoom pour que le pays occupe une part
+  // constante du cadre, avec une marge qui laisse voir les voisins. Un petit
+  // pays est donc zoomé (mais pas trop — plafond K_MAX, ce qui garde le rendu
+  // agréable actuel), un très grand pays (Russie, Canada…) est au contraire
+  // dézoomé pour rester lisible dans son contexte plutôt que de tout remplir.
+  const K_MAX = 2.5, FILL = 0.55;
+  function panTo(feature){
+    const main = mainPart(feature); if (!main) return;
+    const c = d3.geoCentroid(main);
+    const p = projection(c);
+    const b = path.bounds({ type:"Feature", geometry: main });
+    const bw = Math.max(1, b[1][0] - b[0][0]);
+    const bh = Math.max(1, b[1][1] - b[0][1]);
+    // zoom pour que le pays remplisse ~FILL du cadre (le côté le plus contraint)
+    let k = Math.min(FILL * VB_W / bw, FILL * VB_H / bh);
+    k = Math.max(1, Math.min(k, K_MAX));   // jamais sous le monde entier, ni au-delà du plafond
+    const cur = d3.zoomTransform(svg.node());
+    const worldW = W * k;
+    let tx = VB_W/2 - k * p[0];
+    while (tx - cur.x >  worldW/2) tx -= worldW;   // plus court chemin
+    while (tx - cur.x < -worldW/2) tx += worldW;
+    let t = d3.zoomIdentity.translate(tx, VB_H/2 - k * p[1]).scale(k);
+    t = d3.zoomIdentity.translate(tx, clampY(t)).scale(k);
+    (reduceMotion ? svg : svg.transition().duration(700)).call(zoom.transform, t);
+  }
+
+  const by = (k) => () => {
+    (reduceMotion ? svg : svg.transition().duration(220)).call(zoom.scaleBy, k);
+  };
+  el("zin").onclick  = by(1.6);
+  el("zout").onclick = by(1 / 1.6);
+  function resetView(){
+    (reduceMotion ? svg : svg.transition().duration(400)).call(zoom.transform, initT());
+  }
+  el("zreset").onclick = resetView;
+
+  // Ctrl+Z (ou ⌘+Z) remet la carte à zéro — sauf si on est en train d'écrire
+  // dans un champ (on laisse alors l'annulation de texte habituelle).
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")){
+      const tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
+      e.preventDefault();
+      resetView();
+    }
+  });
+
+
+  if (macro.fx?.usdToEur) {
+    el("fx").hidden = false;
+    el("fx").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-cur]");
+      if (!b) return;
+      currency = b.dataset.cur;
+      for (const btn of el("fx").querySelectorAll("button")) {
+        const on = btn.dataset.cur === currency;
+        btn.classList.toggle("on", on);
+        btn.setAttribute("aria-pressed", String(on));
+      }
+      // seul le panneau pays affiche des montants : on le rerend s'il est ouvert
+      if (selected) renderPanel();
+    });
+  }
+
+  // ── recherche de pays ──
+  const searchBox = el("search"), resultsBox = el("results");
+  searchBox.placeholder = t("searchPlaceholder");
+  let hiIndex = -1;
+
+  // Nom affiché selon la langue active du site.
+  const dispName = (x) => (lang === "en" ? x.nameEn : x.nameFr) || x.nameFr || x.nameEn;
+
+  function runSearch(){
+    const q = searchBox.value.trim().toLowerCase();
+    resultsBox.innerHTML = "";
+    hiIndex = -1;
+    if (!q) return;
+    // On cherche dans les DEUX noms : "allemagne" comme "germany" trouvent DE.
+    const seenIso = new Set();
+    const hits = searchable.filter(x =>
+      x.nameFr.toLowerCase().includes(q) ||
+      x.nameEn.toLowerCase().includes(q) ||
+      (x.iso && x.iso.toLowerCase() === q)
+    )
+    // Un même pays peut être éclaté en plusieurs entités (France = métropole +
+    // outre-mer, toutes sur FR). On n'en garde qu'une ligne par code ISO.
+    .filter(x => !x.iso || (!seenIso.has(x.iso) && seenIso.add(x.iso)))
+    .sort((a,b) => dispName(a).localeCompare(dispName(b), "fr")).slice(0, 8);
+    if (!hits.length){
+      resultsBox.innerHTML = `<div class="empty2">${t("noMatch")}</div>`;
+      return;
+    }
+    resultsBox.innerHTML = hits.map((h,i) => `
+      <button type="button" data-iso="${h.iso || ""}" data-idx="${i}">
+        <span class="riso">${h.iso || "··"}</span>
+        <span>${esc(dispName(h))}</span>
+        ${h.covered ? '<span class="rdot"></span>' : ''}
+      </button>`).join("");
+    resultsBox._hits = hits;
+  }
+
+  function pickSearch(i){
+    const hits = resultsBox._hits || [];
+    const h = hits[i]; if (!h) return;
+    selectCountry(h.iso, dispName(h), h.feature);
+    panTo(h.feature);   // recentre la carte sur le pays choisi
+    searchBox.value = ""; resultsBox.innerHTML = "";
+  }
+
+  searchBox.addEventListener("input", runSearch);
+  searchBox.addEventListener("keydown", (e) => {
+    const btns = [...resultsBox.querySelectorAll("[data-idx]")];
+    if (e.key === "ArrowDown"){ e.preventDefault(); hiIndex = Math.min(hiIndex+1, btns.length-1); }
+    else if (e.key === "ArrowUp"){ e.preventDefault(); hiIndex = Math.max(hiIndex-1, 0); }
+    else if (e.key === "Enter"){ e.preventDefault(); pickSearch(hiIndex < 0 ? 0 : hiIndex); return; }
+    else if (e.key === "Escape"){ searchBox.value = ""; resultsBox.innerHTML = ""; return; }
+    else return;
+    btns.forEach((b,i) => b.classList.toggle("hi", i === hiIndex));
+  });
+  resultsBox.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-idx]");
+    if (b) pickSearch(Number(b.dataset.idx));
+  });
+  document.addEventListener("click", (e) => {
+    if (!el("search").contains(e.target)) resultsBox.innerHTML = "";
+  });
+
+  // ── bascule de langue ──
+  el("lang").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lang]");
+    if (!b) return;
+    lang = b.dataset.lang;
+    for (const btn of el("lang").querySelectorAll("button")){
+      const on = btn.dataset.lang === lang;
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", String(on));
+    }
+    // retraduire tout ce qui vit hors du panneau
+    el("eyebrow").textContent = t("eyebrow");
+    el("lg-cov").textContent = t("covered");
+    el("lg-not").textContent = t("notYet");
+    searchBox.placeholder = t("searchPlaceholder");
+    renderStamp();
+    renderPanel();  // le panneau se retraduit intégralement
+    g.selectAll("path.country").attr("aria-label", d => mapName(d)); // lecteurs d'écran
+    if (searchBox.value.trim()) runSearch();  // réafficher les noms traduits
+  });
+
+  el("loading").hidden = true;
+  el("map").hidden = false;
+  el("zoomctl").hidden = false;
+  el("legend").hidden = false;
+  renderPanel();
+}
+
+// ── bascule jour / nuit ──
+// Le thème est déjà appliqué par le script d'en-tête (anti-flash) ; ici on
+// synchronise l'état des boutons et on gère le clic + la persistance.
+(function setupTheme(){
+  const box = el("theme"); if (!box) return;
+  function paint(dark){
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    for (const b of box.querySelectorAll("button")){
+      const on = (b.dataset.themeSet === "dark") === dark;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+    }
+  }
+  paint(document.documentElement.getAttribute("data-theme") === "dark");
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-theme-set]");
+    if (!b) return;
+    const dark = b.dataset.themeSet === "dark";
+    paint(dark);
+    try { localStorage.setItem("atlas-theme", dark ? "dark" : "light"); } catch {}
+  });
+})();
+
+boot();
+</script>
+</body>
+</html>

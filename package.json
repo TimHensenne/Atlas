@@ -1,0 +1,15 @@
+{
+  "name": "atlas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "news": "node fetch-news.mjs",
+    "identity": "node fetch-identity.mjs",
+    "start": "npx --yes serve public -l 3000"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0",
+    "world-countries": "^5.1.0"
+  }
+}
