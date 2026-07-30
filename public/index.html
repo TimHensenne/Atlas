@@ -172,12 +172,12 @@
      devient « année · valeur » au survol ; bas = années début/fin. Les points et
      repères sont en HTML (positionnés en %) pour rester ronds même dans la case
      large du PIB, où le SVG est étiré. */
-  .chart{margin:9px 0 2px;}
+  .chart{margin:12px 0 2px;}
   .chart-head{font-family:var(--mono);font-size:9px;letter-spacing:.02em;color:var(--dim);
     height:12px;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     transition:color .1s ease;}
   .chart-head.on{color:var(--indigo);font-weight:500;}
-  .spark-wrap{position:relative;height:40px;cursor:crosshair;}
+  .spark-wrap{position:relative;height:48px;cursor:crosshair;margin-top:2px;}
   .spark{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
   .spark-line{fill:none;stroke:var(--indigo);stroke-width:1.5;
     stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;}
@@ -436,12 +436,14 @@ function sparkChart(hist, year0, fmt){
   // Tout en pourcentage (0–100). Le tracé (SVG) peut s'étirer sans souci
   // (trait à épaisseur fixe), mais les points et repères sont des éléments HTML
   // positionnés en %, donc toujours ronds quelle que soit la largeur de la case.
+  // Marge verticale PADY : la courbe ne colle jamais à l'en-tête ni aux années.
+  const PADY = 12;
   const sx = i => (i - xmin) / ((xmax - xmin) || 1) * 100;
-  const sy = v => (1 - (v - y0) / ((y1 - y0) || 1)) * 100;
+  const sy = v => PADY + (1 - (v - y0) / ((y1 - y0) || 1)) * (100 - 2 * PADY);
   const pts = raw.map(([i, v]) => [ +sx(i).toFixed(2), +sy(v).toFixed(2), year0 + i, v ]);
   const d = pts.map((p, k) => (k ? "L" : "M") + p[0] + "," + p[1]).join(" ");
   const last = pts[pts.length - 1];
-  const zeroPct = (y0 < 0 && y1 > 0) ? ((1 - (0 - y0) / (y1 - y0)) * 100).toFixed(2) : null;
+  const zeroPct = (y0 < 0 && y1 > 0) ? sy(0).toFixed(2) : null;
   const zero = zeroPct != null
     ? `<line class="spark-zero" x1="0" y1="${zeroPct}" x2="100" y2="${zeroPct}"/>` : "";
   const def = `${esc(fmtHist(dMin, fmt))} … ${esc(fmtHist(dMax, fmt))}`;
@@ -459,7 +461,7 @@ function sparkChart(hist, year0, fmt){
   </div>`;
 }
 
-// Bloc Marchés : rendement souverain 10 ans, sa courbe, et l'écart vs Treasury US.
+// Bloc Marchés : rendement souverain 10 ans, sa courbe, et l'écart vs US Treasury.
 // N'affiche rien si le pays n'a pas de données de marché (hors OCDE).
 function renderMarkets(iso){
   const y = yields.countries?.[iso];
@@ -467,11 +469,11 @@ function renderMarkets(iso){
   const benchIso = yields.benchmark?.iso;
   const spread = y.spread == null ? null
     : iso === benchIso ? "ref"
-    : (y.spread >= 0 ? "+" : "−") + Math.abs(Math.round(y.spread * 100)) + " pb";
+    : (y.spread >= 0 ? "+" : "−") + Math.abs(Math.round(y.spread * 100)) + (lang === "fr" ? " pb" : " bp");
   const sub = spread === "ref"
     ? `<div class="mkt-sub">${lang==="fr"?"référence des spreads":"spread benchmark"}</div>`
     : spread != null
-      ? `<div class="mkt-sub">${lang==="fr"?"Écart vs Treasury":"Spread vs Treasury"} · <b>${spread}</b></div>`
+      ? `<div class="mkt-sub">${lang==="fr"?"Écart vs US Treasury":"Spread vs US Treasury"} · <b>${spread}</b></div>`
       : "";
   const chart = y.hist ? sparkChart(y.hist, y.hist0, "pct") : "";
   return `<div class="blocktitle">${lang==="fr"?"Marchés":"Markets"}</div>
