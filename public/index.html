@@ -166,15 +166,34 @@
     margin-top:5px;line-height:1;}
   .cell .v small{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--dim);
     letter-spacing:0;margin-left:3px;}
-  .cell .y{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:4px;letter-spacing:.04em;}
   .cell.wide{grid-column:1 / -1;}
   .trend-up{color:#1E7A46;} .trend-down{color:#B4462A;}
-  /* Mini-courbe d'historique (15 ans) sous chaque valeur. */
-  .spark{display:block;width:100%;height:30px;margin:9px 0 3px;overflow:visible;}
+  /* Mini-graphe d'historique (15 ans) : en-tête = échelle verticale (min…max) qui
+     devient « année · valeur » au survol ; bas = années début/fin. Les points et
+     repères sont en HTML (positionnés en %) pour rester ronds même dans la case
+     large du PIB, où le SVG est étiré. */
+  .chart{margin:9px 0 2px;}
+  .chart-head{font-family:var(--mono);font-size:9px;letter-spacing:.02em;color:var(--dim);
+    height:12px;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:color .1s ease;}
+  .chart-head.on{color:var(--indigo);font-weight:500;}
+  .spark-wrap{position:relative;height:40px;cursor:crosshair;}
+  .spark{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
   .spark-line{fill:none;stroke:var(--indigo);stroke-width:1.5;
     stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;}
   .spark-zero{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke;}
-  .spark-dot{fill:var(--accent);}
+  .spark-end,.spark-hdot{position:absolute;width:6px;height:6px;border-radius:50%;
+    transform:translate(-50%,-50%);pointer-events:none;}
+  .spark-end{background:var(--accent);}
+  .spark-hdot{background:var(--indigo);box-shadow:0 0 0 2px var(--panel);display:none;}
+  .spark-guide{position:absolute;top:0;bottom:0;width:1px;background:var(--dim);opacity:.5;
+    transform:translateX(-50%);pointer-events:none;display:none;}
+  .chart-x{display:flex;justify-content:space-between;margin-top:2px;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.02em;color:var(--dim);opacity:.75;}
+  .macro-src{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--dim);
+    text-transform:uppercase;opacity:.8;margin-top:16px;}
+  .mkt-sub{font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:var(--dim);margin-top:8px;}
+  .mkt-sub b{color:var(--ink);font-weight:600;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -369,6 +388,7 @@ let currency = "USD";  // devise d'affichage, bascule globale
 let selected = null;
 let panelTab = "identity";        // onglet actif du panneau, mémorisé entre pays
 let ident = {};                   // fiches d'identité locales (countries.json), par ISO
+let yields = { countries:{} };    // rendements 10 ans + spreads (yields.json), par ISO
 
 // Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
 // milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
@@ -392,27 +412,78 @@ const fmtVal = (ind) =>
 const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH",
                      "GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 
-// Mini-courbe (sparkline) : trace la série d'un indicateur en SVG. Ligne de
-// zéro pointillée si la série passe du négatif au positif (utile pour la
-// croissance, le solde budgétaire…), et un point sur la dernière valeur.
-function sparkline(hist){
+// Formate une valeur brute d'indicateur selon son type (axes + survol).
+const fmtHist = (v, fmt) =>
+  fmt === "moneyMd" ? fmtMoney(v, "Md")
+  : fmt === "money" ? fmtMoney(v, "")
+  : v.toFixed(1).replace('.', ',') + " %";
+
+// Mini-graphe interactif : trace la série d'un indicateur avec échelle verticale
+// (min/max + unité, dans l'en-tête), échelle horizontale (années, en bas), et
+// survol pour lire la valeur année par année. Les coordonnées pixel de chaque
+// point + l'année + la valeur sont stockées sur le SVG (data-pts) : le survol
+// n'a plus qu'à trouver le point le plus proche, sans recalcul de géométrie.
+const SPARK_H = 40;
+function sparkChart(hist, year0, fmt){
   if (!Array.isArray(hist)) return "";
-  const pts = hist.map((v, i) => [i, v]).filter(([, v]) => typeof v === "number" && isFinite(v));
-  if (pts.length < 2) return "";
-  const W = 132, H = 34, P = 4;
-  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const raw = hist.map((v, i) => [i, v]).filter(([, v]) => typeof v === "number" && isFinite(v));
+  if (raw.length < 2) return "";
+  const xs = raw.map(p => p[0]), ys = raw.map(p => p[1]);
   const xmin = Math.min(...xs), xmax = Math.max(...xs);
-  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const dMin = Math.min(...ys), dMax = Math.max(...ys);
+  let y0 = dMin, y1 = dMax;
   if (y0 === y1){ y0 -= 1; y1 += 1; }
-  const sx = i => (P + (i - xmin) / ((xmax - xmin) || 1) * (W - 2 * P)).toFixed(1);
-  const sy = v => ((H - P) - (v - y0) / ((y1 - y0) || 1) * (H - 2 * P)).toFixed(1);
-  const d = pts.map(([i, v], k) => (k ? "L" : "M") + sx(i) + "," + sy(v)).join(" ");
+  // Tout en pourcentage (0–100). Le tracé (SVG) peut s'étirer sans souci
+  // (trait à épaisseur fixe), mais les points et repères sont des éléments HTML
+  // positionnés en %, donc toujours ronds quelle que soit la largeur de la case.
+  const sx = i => (i - xmin) / ((xmax - xmin) || 1) * 100;
+  const sy = v => (1 - (v - y0) / ((y1 - y0) || 1)) * 100;
+  const pts = raw.map(([i, v]) => [ +sx(i).toFixed(2), +sy(v).toFixed(2), year0 + i, v ]);
+  const d = pts.map((p, k) => (k ? "L" : "M") + p[0] + "," + p[1]).join(" ");
   const last = pts[pts.length - 1];
-  const zero = (y0 < 0 && y1 > 0)
-    ? `<line class="spark-zero" x1="${P}" y1="${sy(0)}" x2="${W - P}" y2="${sy(0)}"/>` : "";
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">`
-    + `${zero}<path class="spark-line" d="${d}"/>`
-    + `<circle class="spark-dot" cx="${sx(last[0])}" cy="${sy(last[1])}" r="2.4"/></svg>`;
+  const zeroPct = (y0 < 0 && y1 > 0) ? ((1 - (0 - y0) / (y1 - y0)) * 100).toFixed(2) : null;
+  const zero = zeroPct != null
+    ? `<line class="spark-zero" x1="0" y1="${zeroPct}" x2="100" y2="${zeroPct}"/>` : "";
+  const def = `${esc(fmtHist(dMin, fmt))} … ${esc(fmtHist(dMax, fmt))}`;
+  return `<div class="chart">
+    <div class="chart-head" data-def="${def}">${def}</div>
+    <div class="spark-wrap" data-fmt="${fmt}" data-pts='${JSON.stringify(pts)}'>
+      <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        ${zero}<path class="spark-line" d="${d}"/>
+      </svg>
+      <span class="spark-end" style="left:${last[0]}%;top:${last[1]}%"></span>
+      <span class="spark-guide"></span>
+      <span class="spark-hdot"></span>
+    </div>
+    <div class="chart-x"><span>${year0 + xmin}</span><span>${year0 + xmax}</span></div>
+  </div>`;
+}
+
+// Bloc Marchés : rendement souverain 10 ans, sa courbe, et l'écart vs Treasury US.
+// N'affiche rien si le pays n'a pas de données de marché (hors OCDE).
+function renderMarkets(iso){
+  const y = yields.countries?.[iso];
+  if (!y || typeof y.yield !== "number") return "";
+  const benchIso = yields.benchmark?.iso;
+  const spread = y.spread == null ? null
+    : iso === benchIso ? "ref"
+    : (y.spread >= 0 ? "+" : "−") + Math.abs(Math.round(y.spread * 100)) + " pb";
+  const sub = spread === "ref"
+    ? `<div class="mkt-sub">${lang==="fr"?"référence des spreads":"spread benchmark"}</div>`
+    : spread != null
+      ? `<div class="mkt-sub">${lang==="fr"?"Écart vs Treasury":"Spread vs Treasury"} · <b>${spread}</b></div>`
+      : "";
+  const chart = y.hist ? sparkChart(y.hist, y.hist0, "pct") : "";
+  return `<div class="blocktitle">${lang==="fr"?"Marchés":"Markets"}</div>
+    <div class="macro">
+      <div class="cell wide">
+        <div class="k">${lang==="fr"?"Rendement 10 ans":"10-year yield"}</div>
+        <div class="v">${y.yield.toFixed(2).replace('.',',')}<small>%</small></div>
+        ${chart}
+        ${sub}
+      </div>
+    </div>
+    <div class="macro-src">${lang==="fr"?"Source : OCDE, via FRED":"Source: OECD, via FRED"}</div>`;
 }
 
 function renderMacro(iso){
@@ -421,16 +492,20 @@ function renderMacro(iso){
     return `<div class="soon"><b>${t("soonBadge")}</b> ${lang==="fr"?"Données économiques indisponibles pour ce pays.":"No economic data available for this country."}</div>`;
   }
   const ind = m.indicators;
-  const cells = MACRO_ORDER.filter(k => ind[k]).map((k, i) => {
+  const keys = MACRO_ORDER.filter(k => ind[k]);
+  const lastKey = keys[keys.length - 1];
+  const normalCount = keys.filter(k => k !== "NGDPD").length;   // cases non pleine largeur
+  const cells = keys.map((k, i) => {
     const d = ind[k];
-    const wide = k === "NGDPD" ? " wide" : "";
+    // NGDPD en pleine largeur ; et si le nombre de cases normales est impair, la
+    // dernière passe aussi en pleine largeur pour ne pas laisser de case vide grise.
+    const wide = (k === "NGDPD" || (k === lastKey && normalCount % 2 === 1)) ? " wide" : "";
     const trend = d.fmt === "pct" && (k === "NGDP_RPCH")
       ? (d.value >= 0 ? " trend-up" : " trend-down") : "";
     return `<div class="cell${wide}">
       <div class="k">${esc(IND_LABELS[k]?.[lang] || d.label)}</div>
       <div class="v${trend}">${fmtVal(d)}</div>
-      ${d.hist ? sparkline(d.hist) : ""}
-      <div class="y">${d.year} · ${esc(d.source)}</div>
+      ${d.hist ? sparkChart(d.hist, d.hist0, d.fmt) : ""}
     </div>`;
   }).join("");
 
@@ -443,7 +518,9 @@ function renderMacro(iso){
         <div class="rk">Banque mondiale</div><div class="rt">${t("wbData")} <span class="ra">→</span></div></a>` : ""}
     </div>` : "";
 
-  return `<div class="macro">${cells}</div>${rep}`;
+  const src = `<div class="macro-src">${lang==="fr"?"Source : FMI — World Economic Outlook":"Source: IMF — World Economic Outlook"}</div>`;
+
+  return `<div class="macro">${cells}</div>${src}${renderMarkets(iso)}${rep}`;
 }
 
 const esc = (s) => String(s).replace(/[&<>"']/g, c =>
@@ -508,6 +585,38 @@ el("panel").addEventListener("click", (e) => {
   renderPanel();
 });
 
+// Survol des mini-graphes : affiche l'année et la valeur du point le plus proche.
+let activeSpark = null;
+function resetSpark(wrap){
+  const chart = wrap.closest(".chart"); if (!chart) return;
+  const head = chart.querySelector(".chart-head");
+  if (head){ head.textContent = head.dataset.def; head.classList.remove("on"); }
+  const g = wrap.querySelector(".spark-guide"); if (g) g.style.display = "none";
+  const h = wrap.querySelector(".spark-hdot");  if (h) h.style.display = "none";
+}
+el("panel").addEventListener("mousemove", (e) => {
+  const wrap = e.target.closest(".spark-wrap");
+  if (activeSpark && activeSpark !== wrap) resetSpark(activeSpark);
+  if (!wrap){ activeSpark = null; return; }
+  activeSpark = wrap;
+  const pts = JSON.parse(wrap.dataset.pts);          // [[x%,y%,année,valeur],…]
+  const rect = wrap.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / rect.width * 100;
+  let best = pts[0], bd = Infinity;
+  for (const p of pts){ const dd = Math.abs(p[0] - mx); if (dd < bd){ bd = dd; best = p; } }
+  const [xPct, yPct, year, val] = best;
+  const guide = wrap.querySelector(".spark-guide");
+  guide.style.left = xPct + "%"; guide.style.display = "block";
+  const hdot = wrap.querySelector(".spark-hdot");
+  hdot.style.left = xPct + "%"; hdot.style.top = yPct + "%"; hdot.style.display = "block";
+  const head = wrap.closest(".chart").querySelector(".chart-head");
+  head.textContent = year + " · " + fmtHist(val, wrap.dataset.fmt);
+  head.classList.add("on");
+});
+el("panel").addEventListener("mouseleave", () => {
+  if (activeSpark){ resetSpark(activeSpark); activeSpark = null; }
+});
+
 async function boot(){
   try {
     const r = await fetch("./macro.json");
@@ -520,6 +629,13 @@ async function boot(){
   try {
     const r = await fetch("./countries.json");
     if(r.ok) ident = await r.json();
+  } catch {}
+
+  // Marchés (rendements 10 ans + spreads) — données locales OCDE/FRED. Absentes
+  // pour les pays hors OCDE : le bloc Marchés n'apparaît alors simplement pas.
+  try {
+    const r = await fetch("./yields.json");
+    if(r.ok) yields = await r.json();
   } catch {}
 
   const nCountries = Object.keys(macro.countries || {}).length;
