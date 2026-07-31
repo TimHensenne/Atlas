@@ -553,33 +553,46 @@ const fmtMonth = (ym) => {
   return new Date(+y, +m - 1, 1).toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB",
     { month: "short", year: "2-digit" });
 };
+// Récupère un fichier de taux (base = devise `lc`) à une date donnée, avec repli
+// Cloudflare si le CDN jsDelivr échoue.
+async function fxGet(date, lc, fallback){
+  const urls = [`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${lc}.min.json`];
+  if (fallback) urls.push(`https://${date}.currency-api.pages.dev/v1/currencies/${lc}.min.json`);
+  for (const u of urls){
+    try { const r = await fetch(u); if (r.ok) return await r.json(); } catch {}
+  }
+  return null;
+}
 async function fetchFX(code){
   if (!code || fxCache[code]) return;
   fxCache[code] = { loading: true };
-  const quote = code === "USD" ? "EUR" : "USD";           // paire du graphe
-  const start = new Date(Date.now() - 366 * 864e5).toISOString().slice(0, 10);
-  const targets = ["USD", "EUR"].filter(t => t !== code).join(",");
+  const lc = code.toLowerCase();
+  const quote = code === "USD" ? "eur" : "usd";   // paire du graphe (minuscule)
   try {
-    // Taux courant ET historique en parallèle. L'historique est déjà regroupé
-    // par mois côté serveur (group=month) → réponse petite et rapide (~12 points).
-    const [lr, hr] = await Promise.all([
-      fetch(`https://api.frankfurter.dev/v1/latest?base=${code}&symbols=${targets}&from=${code}&to=${targets}`),
-      fetch(`https://api.frankfurter.dev/v1/${start}..?base=${code}&symbols=${quote}&from=${code}&to=${quote}&group=month`).catch(() => null),
-    ]);
-    if (!lr.ok) throw new Error();
-    const lj = await lr.json();
-    const rates = lj.rates || {};
-    if (!Object.keys(rates).length) throw new Error();     // devise non couverte
-    let hist = null, months = null;
-    if (hr && hr.ok){
-      const hj = await hr.json();
-      const byMonth = {};
-      for (const [date, o] of Object.entries(hj.rates || {}))
-        if (o[quote] != null) byMonth[date.slice(0, 7)] = o[quote];
-      const ms = Object.keys(byMonth).sort();
-      if (ms.length >= 2){ hist = ms.map(m => byMonth[m]); months = ms.map(fmtMonth); }
-    }
-    fxCache[code] = { rates, quote, date: lj.date, hist, months };
+    const lj = await fxGet("latest", lc, true);    // taux courant (+ repli Cloudflare)
+    const base = lj && lj[lc];
+    if (!base) throw new Error();                  // devise non couverte
+    const rates = {};
+    if (base.usd != null) rates.USD = base.usd;
+    if (base.eur != null) rates.EUR = base.eur;
+
+    // historique : 1er de chacun des 12 derniers mois, en parallèle
+    const now = new Date();
+    const dates = [];
+    for (let k = 11; k >= 0; k--)
+      dates.push(new Date(now.getFullYear(), now.getMonth() - k, 1).toISOString().slice(0, 10));
+    const hres = await Promise.all(dates.map(dt => fxGet(dt, lc, false)));
+    const hist = [], months = [];
+    hres.forEach((hj, i) => {
+      const v = hj && hj[lc] && hj[lc][quote];
+      if (v != null){ hist.push(v); months.push(fmtMonth(dates[i].slice(0, 7))); }
+    });
+
+    fxCache[code] = {
+      rates, date: lj.date, quote: quote.toUpperCase(),
+      hist: hist.length >= 2 ? hist : null,
+      months: hist.length >= 2 ? months : null,
+    };
   } catch { fxCache[code] = { error: true }; }
   paintFX(code);   // injecte le résultat dans le bloc existant, sans toucher au scroll
 }
@@ -611,7 +624,7 @@ function renderFX(iso){
       ${rows}
       ${chart}
     </div>
-    <div class="macro-src">${lang === "fr" ? "Source : BCE, via Frankfurter · quotidien" : "Source: ECB, via Frankfurter · daily"}</div></div>`;
+    <div class="macro-src">${lang === "fr" ? "Taux indicatifs · exchange-api · quotidien" : "Indicative rates · exchange-api · daily"}</div></div>`;
 }
 
 function renderMacro(iso){
