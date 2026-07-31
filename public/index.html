@@ -213,7 +213,8 @@
   .fx-loading{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
     text-transform:uppercase;padding:12px 2px;}
   /* Convertisseur : montant + bascule €/$ + résultat en devise locale */
-  .fx-conv{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .fx-conv{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+  .fx-row{display:flex;align-items:center;gap:8px;min-height:32px;}
   .fx-in{width:104px;background:var(--paper);border:1px solid var(--rule);color:var(--ink);
     font-family:var(--mono);font-size:13px;padding:7px 9px;border-radius:2px;outline:none;
     -moz-appearance:textfield;}
@@ -659,13 +660,19 @@ function renderFX(iso){
         <button class="fx-cur${fxFrom === "USD" ? " on" : ""}" data-fxcur="USD">$</button>
       </div>`;
   const localUnit = `<span class="fx-unit">${esc(code)}</span>`;
+  const inputUnit = fxDir === "fromLocal" ? localUnit : foreignTog;
+  const resultUnit = fxDir === "fromLocal" ? foreignTog : localUnit;
   const conv = `<div class="fx-conv">
-      <input class="fx-in" type="number" inputmode="decimal" step="any"
-        placeholder="${lang === "fr" ? "Montant" : "Amount"}" value="${esc(fxAmount)}">
-      ${fxDir === "fromLocal" ? localUnit : foreignTog}
-      <button class="fx-swap" title="${lang === "fr" ? "Inverser le sens" : "Swap direction"}" aria-label="swap">⇄</button>
-      <span class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b></span>
-      ${fxDir === "fromLocal" ? foreignTog : localUnit}
+      <div class="fx-row">
+        <input class="fx-in" type="number" inputmode="decimal" step="any"
+          placeholder="${lang === "fr" ? "Montant" : "Amount"}" value="${esc(fxAmount)}">
+        ${inputUnit}
+        <button class="fx-swap" title="${lang === "fr" ? "Inverser le sens" : "Swap direction"}" aria-label="swap">⇄</button>
+      </div>
+      <div class="fx-row">
+        <span class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b></span>
+        ${resultUnit}
+      </div>
     </div>`;
   const upd = d.date
     ? (lang === "fr" ? "Mis à jour le " : "Updated ") + new Date(d.date + "T00:00:00").toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB", { day: "numeric", month: "short", year: "numeric" })
