@@ -231,6 +231,49 @@
   .fx-swap{background:var(--paper);border:1px solid var(--rule);color:var(--dim);border-radius:2px;
     font-size:14px;line-height:1;padding:6px 8px;cursor:pointer;}
   .fx-swap:hover{color:var(--ink);border-color:var(--indigo);}
+
+  /* ── Onglets de navigation ── */
+  .tabs{display:flex;gap:2px;flex:none;padding:0 10px;background:var(--panel);
+    border-bottom:1px solid var(--rule);overflow-x:auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;
+    padding:12px 13px;cursor:pointer;white-space:nowrap;line-height:1;}
+  .tabs button:hover{color:var(--ink);}
+  .tabs button.on{color:var(--ink);border-bottom-color:var(--indigo);}
+
+  /* ── Conteneurs de vue ── */
+  .view{flex:1;min-height:0;display:flex;flex-direction:column;}
+  .view[hidden]{display:none;}
+  .page{flex:1;min-height:0;overflow-y:auto;padding:34px 28px 56px;}
+  .page-in{max-width:760px;margin:0 auto;}
+  .page h1{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.02em;
+    margin:0 0 6px;color:var(--ink);}
+  .page .lead{color:var(--dim);font-size:14px;line-height:1.6;margin:0 0 26px;max-width:640px;}
+  .page h2{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
+  .page p.body{color:var(--ink);font-size:14.5px;line-height:1.7;margin:0 0 16px;}
+  /* Lexique */
+  .lex{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
+  .lex-item{background:var(--panel);padding:13px 16px;}
+  .lex-term{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
+  .lex-term small{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--dim);
+    text-transform:uppercase;letter-spacing:.05em;margin-left:8px;}
+  .lex-def{color:var(--dim);font-size:13px;line-height:1.55;margin-top:3px;}
+  /* Base de données */
+  .src{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);}
+  .src-item{background:var(--panel);padding:14px 16px;display:flex;flex-wrap:wrap;gap:5px 12px;align-items:baseline;}
+  .src-name{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
+  .src-freq{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--indigo);border:1px solid var(--rule);border-radius:2px;padding:2px 7px;}
+  .src-desc{color:var(--dim);font-size:13px;line-height:1.55;flex-basis:100%;}
+  /* Placeholder (comparaison, jeux) */
+  .soon{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px;gap:12px;}
+  .soon .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--indigo);border:1px solid var(--rule);border-radius:2px;padding:4px 10px;}
+  .soon h1{font-family:var(--display);font-weight:800;font-size:26px;color:var(--ink);margin:0;letter-spacing:-.02em;}
+  .soon p{color:var(--dim);font-size:14px;line-height:1.65;max-width:460px;margin:0;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -310,6 +353,9 @@
   </div>
 </header>
 
+<nav class="tabs" id="tabs" role="tablist"></nav>
+
+<section id="view-map" class="view">
 <div class="stage">
   <div class="mapcol">
     <div class="mapwrap">
@@ -329,6 +375,13 @@
   </div>
   <aside class="panel" id="panel"></aside>
 </div>
+</section>
+
+<section id="view-benchmark" class="view" hidden></section>
+<section id="view-lexicon"  class="view" hidden></section>
+<section id="view-games"    class="view" hidden></section>
+<section id="view-data"     class="view" hidden></section>
+<section id="view-purpose"  class="view" hidden></section>
 
 <div id="tip"><b></b><span></span></div>
 
@@ -844,7 +897,141 @@ el("panel").addEventListener("mouseleave", () => {
   if (activeSpark){ resetSpark(activeSpark); activeSpark = null; }
 });
 
+// ════════════════ Onglets / vues ════════════════
+const VIEW_ORDER = ["map", "benchmark", "lexicon", "games", "data", "purpose"];
+const NAV_LABELS = {
+  map:      { fr:"Carte",       en:"Map" },
+  benchmark:{ fr:"Comparaison", en:"Benchmark" },
+  lexicon:  { fr:"Lexique",     en:"Glossary" },
+  games:    { fr:"Jeux",        en:"Games" },
+  data:     { fr:"Données",     en:"Database" },
+  purpose:  { fr:"But",         en:"Purpose" },
+};
+let view = "map";
+
+function renderTabs(){
+  el("tabs").innerHTML = VIEW_ORDER.map(v =>
+    `<button data-view="${v}" class="${v === view ? "on" : ""}" role="tab" aria-selected="${v === view}">${esc(NAV_LABELS[v][lang])}</button>`
+  ).join("");
+}
+function setView(v){
+  if (!VIEW_ORDER.includes(v)) v = "map";
+  view = v;
+  for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
+  renderTabs();
+  renderView(v);
+}
+function renderView(v){
+  if (v === "lexicon")  el("view-lexicon").innerHTML  = renderLexicon();
+  else if (v === "data")      el("view-data").innerHTML      = renderData();
+  else if (v === "purpose")   el("view-purpose").innerHTML   = renderPurpose();
+  else if (v === "benchmark") el("view-benchmark").innerHTML = renderBenchmark();
+  else if (v === "games")     el("view-games").innerHTML     = renderGames();
+}
+
+// ── Lexique (bilingue) ──
+const LEX = [
+  { t:["PIB","GDP"], d:["Valeur totale des biens et services produits par un pays en un an.","Total value of the goods and services a country produces in a year."] },
+  { t:["PIB par habitant","GDP per capita"], d:["Le PIB divisé par la population : un repère du niveau de vie moyen.","GDP divided by population: a proxy for average living standards."] },
+  { t:["Croissance","Growth"], d:["Variation annuelle du PIB réel, c'est-à-dire hors effet de l'inflation.","Annual change in real GDP, i.e. stripped of inflation."] },
+  { t:["Inflation","Inflation"], d:["Hausse générale des prix à la consommation sur un an, en pourcentage.","The general rise in consumer prices over a year, in percent."] },
+  { t:["IPC","CPI"], d:["Indice des prix à la consommation : le niveau des prix rapporté à une année de base (100). Sa pente montre l'inflation cumulée.","Consumer Price Index: the price level relative to a base year (100). Its slope shows cumulative inflation."] },
+  { t:["Dette publique","Public debt"], d:["Total des emprunts de l'État, exprimé en pourcentage du PIB.","Total government borrowing, expressed as a percentage of GDP."] },
+  { t:["Solde budgétaire","Budget balance"], d:["Recettes de l'État moins ses dépenses. Négatif = déficit.","Government revenue minus its spending. Negative = deficit."] },
+  { t:["Balance courante","Current account"], d:["Solde des échanges d'un pays avec le reste du monde : biens, services, revenus.","A country's net transactions with the rest of the world: goods, services, income."] },
+  { t:["Chômage","Unemployment"], d:["Part de la population active sans emploi et à la recherche d'un travail.","Share of the labour force without a job and actively seeking one."] },
+  { t:["Rendement 10 ans","10-year yield"], d:["Le taux auquel un État emprunte sur 10 ans. Il monte quand le marché juge le pays plus risqué.","The rate at which a government borrows over 10 years. It rises when markets see more risk."] },
+  { t:["Spread","Spread"], d:["L'écart entre le rendement d'un pays et une référence (ici le Treasury américain). C'est sa prime de risque.","The gap between a country's yield and a benchmark (here the US Treasury). Its risk premium."] },
+  { t:["Point de base","Basis point"], d:["Un centième de pourcent (0,01 %). 100 pb = 1 %. L'unité des écarts de taux.","One hundredth of a percent (0.01%). 100 bp = 1%. The unit for rate gaps."] },
+  { t:["Notation souveraine","Sovereign rating"], d:["L'avis d'une agence (S&P, Moody's, Fitch) sur la capacité d'un État à rembourser sa dette.","An agency's opinion (S&P, Moody's, Fitch) on a government's ability to repay its debt."] },
+  { t:["Investment grade / spéculatif","Investment / speculative grade"], d:["Au-dessus de BBB−/Baa3 la dette est « de qualité » ; en dessous, « spéculative » (junk).","At BBB−/Baa3 and above, debt is 'investment grade'; below, it is 'speculative' (junk)."] },
+  { t:["Taux de change","Exchange rate"], d:["Le prix d'une monnaie exprimé dans une autre.","The price of one currency expressed in another."] },
+];
+function renderLexicon(){
+  const i = lang === "fr" ? 0 : 1;
+  const items = LEX.map(x =>
+    `<div class="lex-item"><div class="lex-term">${esc(x.t[i])}<small>${esc(x.t[i === 0 ? 1 : 0])}</small></div><div class="lex-def">${esc(x.d[i])}</div></div>`
+  ).join("");
+  return `<div class="page"><div class="page-in">
+    <h1>${lang === "fr" ? "Lexique" : "Glossary"}</h1>
+    <p class="lead">${lang === "fr"
+      ? "Les termes économiques et financiers utilisés dans Atlas, définis simplement."
+      : "The economic and financial terms used across Atlas, defined plainly."}</p>
+    <div class="lex">${items}</div>
+  </div></div>`;
+}
+
+// ── Base de données (sources) ──
+const SRC = [
+  { n:"FMI — World Economic Outlook", f:["Mensuel (auto)","Monthly (auto)"], d:["PIB, croissance, inflation, dette, solde budgétaire, balance courante, chômage, et l'indice des prix reconstruit. Projections jusqu'en 2026.","GDP, growth, inflation, debt, budget balance, current account, unemployment, and the reconstructed price index. Projections to 2026."] },
+  { n:"Banque mondiale", f:["Mensuel (auto)","Monthly (auto)"], d:["Population des pays (série SP.POP.TOTL).","Country population (series SP.POP.TOTL)."] },
+  { n:"OCDE, via FRED", f:["Mensuel (auto)","Monthly (auto)"], d:["Rendements souverains 10 ans et spreads vs Treasury américain, pour ~32 pays de l'OCDE.","10-year sovereign yields and spreads vs US Treasury, for ~32 OECD countries."] },
+  { n:"Wikipédia", f:["Mensuel (auto)","Monthly (auto)"], d:["Notations souveraines S&P, Moody's et Fitch (~160 pays). Licence CC BY-SA.","Sovereign ratings from S&P, Moody's and Fitch (~160 countries). CC BY-SA licence."] },
+  { n:"exchange-api", f:["Quotidien (en direct)","Daily (live)"], d:["Taux de change de 200+ devises, récupérés dans le navigateur à chaque visite.","Exchange rates for 200+ currencies, fetched in the browser on each visit."] },
+  { n:"world-countries", f:["Statique","Static"], d:["Capitales, monnaies, langues, superficie et drapeaux.","Capitals, currencies, languages, area and flags."] },
+];
+function renderData(){
+  const i = lang === "fr" ? 0 : 1;
+  const items = SRC.map(s =>
+    `<div class="src-item"><span class="src-name">${esc(s.n)}</span><span class="src-freq">${esc(s.f[i])}</span><span class="src-desc">${esc(s.d[i])}</span></div>`
+  ).join("");
+  return `<div class="page"><div class="page-in">
+    <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
+    <p class="lead">${lang === "fr"
+      ? "Toutes les données d'Atlas viennent de sources publiques, récupérées automatiquement. Voici lesquelles, et à quel rythme elles se rafraîchissent."
+      : "All of Atlas's data comes from public sources, fetched automatically. Here they are, and how often they refresh."}</p>
+    <div class="src">${items}</div>
+  </div></div>`;
+}
+
+// ── But (bilingue) ──
+const PURPOSE = {
+  fr: [
+    "Atlas réunit, pays par pays, les grands indicateurs macroéconomiques et financiers — d'ordinaire éparpillés entre des dizaines de sources — en une seule lecture claire et cliquable.",
+    "Chaque donnée provient d'une source publique et officielle, récupérée automatiquement et tenue à jour : le FMI pour la macroéconomie, l'OCDE pour les taux, les trois grandes agences pour les notations, et les marchés pour le change.",
+    "Le projet a été construit de zéro, sans expérience de développement au départ, comme un exercice concret à la croisée de la finance et de la donnée. Il vise autant à comprendre les indicateurs qu'à bâtir l'outil qui les met en scène.",
+  ],
+  en: [
+    "Atlas brings together, country by country, the key macroeconomic and financial indicators — usually scattered across dozens of sources — into a single, clear, clickable view.",
+    "Every figure comes from a public, official source, fetched automatically and kept up to date: the IMF for macroeconomics, the OECD for rates, the three major agencies for ratings, and markets for FX.",
+    "The project was built from scratch, with no prior development experience, as a hands-on exercise at the intersection of finance and data. It is as much about understanding the indicators as about building the tool that showcases them.",
+  ],
+};
+function renderPurpose(){
+  const paras = PURPOSE[lang].map(p => `<p class="body">${esc(p)}</p>`).join("");
+  return `<div class="page"><div class="page-in">
+    <h1>${lang === "fr" ? "But du projet" : "Purpose"}</h1>
+    ${paras}
+  </div></div>`;
+}
+
+// ── Placeholders (à cadrer ensemble) ──
+function renderBenchmark(){
+  return `<div class="soon">
+    <span class="tag">${lang === "fr" ? "En construction" : "Coming soon"}</span>
+    <h1>${lang === "fr" ? "Comparaison" : "Benchmark"}</h1>
+    <p>${lang === "fr"
+      ? "Comparer plusieurs pays côte à côte sur les mêmes axes : rendements, dette, inflation, notations. On cadre ensemble les indicateurs et le format."
+      : "Compare several countries side by side on the same axes: yields, debt, inflation, ratings. We'll define the indicators and layout together."}</p>
+  </div>`;
+}
+function renderGames(){
+  return `<div class="soon">
+    <span class="tag">${lang === "fr" ? "En construction" : "Coming soon"}</span>
+    <h1>${lang === "fr" ? "Jeux" : "Games"}</h1>
+    <p>${lang === "fr"
+      ? "Des mini-jeux pour tester ta connaissance du monde : deviner le pays d'après ses indicateurs, situer une capitale, classer des dettes… Dis-moi ce qui t'attire."
+      : "Mini-games to test your knowledge of the world: guess the country from its indicators, place a capital, rank public debts… Tell me what appeals to you."}</p>
+  </div>`;
+}
+
 async function boot(){
+  renderTabs();
+  el("tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-view]");
+    if (b) setView(b.dataset.view);
+  });
+
   try {
     const r = await fetch("./macro.json");
     if(r.ok) macro = await r.json();
@@ -1010,6 +1197,7 @@ async function boot(){
   // déplacement : cliquer surligne sans bouger la carte.
   function selectCountry(iso, name, feature){
     selected = { iso, name };
+    if (view !== "map") setView("map");   // un clic/recherche ramène sur la carte
     g.selectAll("path.country").classed("on", x => !!iso && isoOf(x) === iso);
     g.selectAll("path.country.on").each(function(){ this.parentNode.appendChild(this); });
     renderPanel();
@@ -1176,6 +1364,8 @@ async function boot(){
     searchBox.placeholder = t("searchPlaceholder");
     renderStamp();
     renderPanel();  // le panneau se retraduit intégralement
+    renderTabs();
+    renderView(view);  // retraduit la vue active (lexique, données, but…)
     g.selectAll("path.country").attr("aria-label", d => mapName(d)); // lecteurs d'écran
     if (searchBox.value.trim()) runSearch();  // réafficher les noms traduits
   });
