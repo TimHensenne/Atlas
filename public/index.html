@@ -558,7 +558,8 @@ async function fetchFX(code){
   fxCache[code] = { loading: true };
   try {
     const targets = ["USD", "EUR"].filter(t => t !== code);
-    const lr = await fetch(`https://api.frankfurter.app/latest?from=${code}&to=${targets.join(",")}`);
+    const t = targets.join(",");
+    const lr = await fetch(`https://api.frankfurter.dev/v1/latest?base=${code}&symbols=${t}&from=${code}&to=${t}`);
     if (!lr.ok) throw new Error();
     const lj = await lr.json();
     const rates = lj.rates || {};
@@ -567,7 +568,7 @@ async function fetchFX(code){
     const start = new Date(Date.now() - 366 * 864e5).toISOString().slice(0, 10);
     let hist = null, months = null;
     try {
-      const hr = await fetch(`https://api.frankfurter.app/${start}..?from=${code}&to=${quote}`);
+      const hr = await fetch(`https://api.frankfurter.dev/v1/${start}..?base=${code}&symbols=${quote}&from=${code}&to=${quote}`);
       if (hr.ok){
         const hj = await hr.json();
         const byMonth = {};
