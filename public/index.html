@@ -320,6 +320,9 @@
      lecture (le grand affichage est réservé aux chiffres macro). */
   .macro.identity .v{font-family:var(--body);font-weight:600;font-size:15px;
     letter-spacing:0;line-height:1.3;}
+  .macro.identity .cell{padding:9px 14px;}
+  .macro.identity .k{margin-bottom:2px;}
+  .macro.identity + .macro-src{margin-top:12px;}
 
   .reports{display:flex;gap:8px;flex-wrap:wrap;}
   .reports a{flex:1;min-width:130px;text-decoration:none;border:1px solid var(--rule);
@@ -849,7 +852,10 @@ function renderIdentity(iso){
       <div class="k">${IDENT_LABELS[c.k][lang]}</div>
       <div class="v">${esc(String(c.v))}</div>
     </div>`).join("");
-  return cells ? `<div class="macro identity">${cells}</div>`
+  const src = `<div class="macro-src">${lang === "fr"
+    ? "Sources : world-countries · Banque mondiale (population)"
+    : "Sources: world-countries · World Bank (population)"}</div>`;
+  return cells ? `<div class="macro identity">${cells}</div>${src}`
               : `<div class="soon"><b>${t("soonBadge")}</b> ${t("idUnavail")}</div>`;
 }
 
