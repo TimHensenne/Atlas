@@ -24,7 +24,6 @@ const INDIC = [
   ["NGDPDPC",     "PIB par habitant", "money",   true],
   ["NGDP_RPCH",   "Croissance",       "pct",     true],
   ["PCPIPCH",     "Inflation",        "pct",     true],
-  ["PCPIEPCH",    "Inflation fin d'année", "pct", false],
   ["GGXWDG_NGDP", "Dette publique",   "pct",     true],
   ["GGXCNL_NGDP", "Solde budgétaire", "pct",     false],
   ["BCA_NGDPD",   "Balance courante", "pct",     false],
@@ -81,6 +80,26 @@ function history(series) {
   return { hist0: slice[0], hist: slice.map((y) => (series[y] != null ? series[y] : null)) };
 }
 
+// Indice des prix (CPI) reconstruit à partir du taux d'inflation FMI (PCPIPCH),
+// que l'on récupère déjà et qui va jusqu'en 2026. En composant les inflations
+// depuis une base 100 (premier point de la fenêtre), on retrouve exactement
+// l'indice WEO du FMI, re-basé — courbe partant de 100, jusqu'en 2026.
+function cpiFromInflation(series) {
+  if (!series) return null;
+  const years = Object.keys(series).map(Number).filter((y) => y <= YEAR_MAX).sort((a, b) => a - b);
+  if (years.length < 2) return null;
+  const window = years.slice(-HISTN);
+  const hist = [];
+  let idx = 100;
+  window.forEach((y, k) => {
+    if (k === 0) { hist.push(100); return; }            // année de base = 100
+    const infl = series[y];
+    if (infl != null && Number.isFinite(infl)) idx = idx * (1 + infl / 100);
+    hist.push(+idx.toFixed(1));
+  });
+  return { value: hist[hist.length - 1], year: window[window.length - 1], hist0: window[0], hist };
+}
+
 async function run() {
   let sources = {};
   try { sources = JSON.parse(await readFile(new URL("./sources.json", import.meta.url))); } catch {}
@@ -114,6 +133,10 @@ async function run() {
     // Règle tout-ou-rien : si un indicateur CLÉ manque, on écarte le pays.
     if (missingKey) { partial++; continue; }
     full++;
+
+    // Indice des prix reconstruit depuis l'inflation FMI (PCPIPCH, jusqu'en 2026).
+    const cpi = cpiFromInflation(raw["PCPIPCH"]?.[iso3]);
+    if (cpi) indicators.CPI = { label: "IPC (indice)", fmt: "num", source: "FMI (calculé)", ...cpi };
 
     out[iso] = {
       name: sources[iso]?.name || NAMES[iso] || iso,

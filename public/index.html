@@ -372,7 +372,7 @@ const IND_LABELS = {
   "NGDPDPC":     { fr:"PIB par habitant",  en:"GDP per capita" },
   "NGDP_RPCH":   { fr:"Croissance",        en:"Growth" },
   "PCPIPCH":     { fr:"Inflation",         en:"Inflation" },
-  "PCPIEPCH":    { fr:"Inflation fin d'année", en:"Inflation, year-end" },
+  "CPI":         { fr:"IPC (indice)",       en:"CPI (index)" },
   "GGXWDG_NGDP": { fr:"Dette publique",    en:"Public debt" },
   "GGXCNL_NGDP": { fr:"Solde budgétaire",  en:"Budget balance" },
   "BCA_NGDPD":   { fr:"Balance courante",  en:"Current account" },
@@ -440,10 +440,11 @@ const fmtMoney = (usd, unit) => {
 const fmtVal = (ind) =>
   ind.fmt === "moneyMd" ? fmtMoney(ind.value, "Md")
   : ind.fmt === "money" ? fmtMoney(ind.value, "")
+  : ind.fmt === "num" ? ind.value.toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 1 })
   : `${ind.value >= 0 ? "" : ""}${ind.value.toFixed(1).replace('.',',')}<small>%</small>`;
 
 // Ordre d'affichage : le PIB en grand, puis les taux deux par deux.
-const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","PCPIEPCH",
+const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","CPI",
                      "GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 
 // Formate une valeur brute d'indicateur selon son type (axes + survol).
@@ -451,6 +452,7 @@ const fmtHist = (v, fmt) =>
   fmt === "moneyMd" ? fmtMoney(v, "Md")
   : fmt === "money" ? fmtMoney(v, "")
   : fmt === "fx" ? new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB", { maximumSignificantDigits: 4 }).format(v)
+  : fmt === "num" ? v.toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 1 })
   : v.toFixed(1).replace('.', ',') + " %";
 
 // Mini-graphe interactif : trace la série d'un indicateur avec échelle verticale
