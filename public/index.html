@@ -440,9 +440,14 @@ const IDENT_LABELS = {
   capital:    { fr:"Capitale",   en:"Capital" },
   currency:   { fr:"Monnaie",    en:"Currency" },
   population: { fr:"Population",  en:"Population" },
+  density:    { fr:"Densité",    en:"Density" },
   area:       { fr:"Superficie", en:"Area" },
-  languages:  { fr:"Langues",    en:"Languages" },
+  region:     { fr:"Région",     en:"Region" },
+  subregion:  { fr:"Sous-région",en:"Subregion" },
+  timezone:   { fr:"Fuseau horaire", en:"Time zone" },
   calling:    { fr:"Indicatif",  en:"Calling code" },
+  tld:        { fr:"Domaine",    en:"Internet domain" },
+  languages:  { fr:"Langues",    en:"Languages" },
 };
 
 // libellés des indicateurs macro, par code
@@ -806,18 +811,29 @@ function renderIdentity(iso){
   const d = iso && ident[iso];
   if (!d) return `<div class="soon"><b>${t("soonBadge")}</b> ${t("idUnavail")}</div>`;
   const fmt = new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB");
+  const density = (d.pop != null && d.area) ? Math.round(d.pop / d.area) : null;
   const rows = [
     ["capital",    lang === "fr" ? (d.capFr || d.cap) : d.cap],
     ["currency",   lang === "fr" ? (d.curFr || d.cur) : d.cur],
     ["population", d.pop != null ? fmt.format(d.pop) : null],
+    ["density",    density != null ? fmt.format(density) + (lang === "fr" ? " hab/km²" : "/km²") : null],
     ["area",       d.area != null ? fmt.format(Math.round(d.area)) + " km²" : null],
-    ["languages",  lang === "fr" ? (d.langFr || d.lang) : d.lang, true],
+    ["region",     lang === "fr" ? (d.regFr || d.reg) : d.reg],
+    ["subregion",  lang === "fr" ? (d.subFr || d.sub) : d.sub],
+    ["timezone",   d.tz],
     ["calling",    d.call],
+    ["tld",        d.tld],
+    ["languages",  lang === "fr" ? (d.langFr || d.lang) : d.lang, true],
   ];
-  const cells = rows.filter(([, v]) => v).map(([k, v, wide]) => `
-    <div class="cell${wide ? " wide" : ""}">
-      <div class="k">${IDENT_LABELS[k][lang]}</div>
-      <div class="v">${esc(String(v))}</div>
+  // Cases présentes ; si le nombre de cases normales est impair, la dernière
+  // passe en pleine largeur pour ne pas laisser de case grise (comme l'Économie).
+  const present = rows.filter(r => r[1]).map(([k, v, wide]) => ({ k, v, wide: !!wide }));
+  const normals = present.filter(c => !c.wide);
+  if (normals.length % 2 === 1) normals[normals.length - 1].wide = true;
+  const cells = present.map(c => `
+    <div class="cell${c.wide ? " wide" : ""}">
+      <div class="k">${IDENT_LABELS[c.k][lang]}</div>
+      <div class="v">${esc(String(c.v))}</div>
     </div>`).join("");
   return cells ? `<div class="macro identity">${cells}</div>`
               : `<div class="soon"><b>${t("soonBadge")}</b> ${t("idUnavail")}</div>`;
