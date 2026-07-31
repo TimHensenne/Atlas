@@ -261,6 +261,19 @@
     text-transform:uppercase;color:var(--indigo);text-decoration:none;
     border:1px solid var(--rule);border-radius:2px;padding:5px 11px;}
   .about-link:hover{border-color:var(--indigo);background:var(--rule-soft);}
+  /* Formulaire de feedback */
+  .fb-form{display:flex;flex-direction:column;gap:10px;max-width:480px;margin-top:4px;}
+  .fb-form input,.fb-form textarea{background:var(--paper);border:1px solid var(--rule);
+    color:var(--ink);font-family:var(--body);font-size:14px;padding:10px 12px;border-radius:3px;
+    outline:none;width:100%;box-sizing:border-box;resize:vertical;}
+  .fb-form input::placeholder,.fb-form textarea::placeholder{color:var(--dim);}
+  .fb-form input:focus,.fb-form textarea:focus{border-color:var(--indigo);}
+  .fb-btn{align-self:flex-start;background:var(--indigo);color:#FFF;border:0;border-radius:3px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+    padding:10px 20px;cursor:pointer;}
+  .fb-btn:hover{background:var(--indigo-hi);}
+  .fb-btn:disabled{opacity:.6;cursor:default;}
+  .fb-status{font-family:var(--mono);font-size:12px;color:var(--dim);min-height:16px;}
   /* Lexique */
   .lex{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
   .lex-item{background:var(--panel);padding:13px 16px;}
@@ -1020,6 +1033,38 @@ const PROFILE = {
     ],
   },
 };
+// Adresse qui recevra les retours. ↓↓↓ REMPLIS-LA avec ton e-mail ↓↓↓
+// (au 1er message, FormSubmit t'enverra un mail de confirmation à valider une fois.)
+const FEEDBACK_EMAIL = "tim.hensenne@gmail.com";
+async function submitFeedback(form){
+  const status = form.querySelector(".fb-status");
+  const btn = form.querySelector(".fb-btn");
+  const val = (n) => (form.querySelector(`[name="${n}"]`)?.value || "").trim();
+  const msg = val("message");
+  if (!msg){ status.textContent = lang === "fr" ? "Écris un message avant d'envoyer." : "Write a message first."; return; }
+  if (!FEEDBACK_EMAIL){ status.textContent = lang === "fr" ? "Formulaire à configurer (e-mail manquant)." : "Form not configured (missing email)."; return; }
+  btn.disabled = true;
+  status.textContent = lang === "fr" ? "Envoi…" : "Sending…";
+  try {
+    const r = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(FEEDBACK_EMAIL)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: "Atlas — nouveau retour",
+        _captcha: "false",
+        _template: "table",
+        name: val("name") || "—",
+        email: val("email") || "—",
+        message: msg,
+      }),
+    });
+    if (!r.ok) throw new Error();
+    form.reset();
+    status.textContent = lang === "fr" ? "Merci pour ton retour !" : "Thanks for your feedback!";
+  } catch {
+    status.textContent = lang === "fr" ? "Échec de l'envoi, réessaie plus tard." : "Send failed, please try again later.";
+  } finally { btn.disabled = false; }
+}
 function renderPurpose(){
   const L = lang === "fr" ? "fr" : "en";
   const about = PROFILE.about[L].map(p => `<p class="body">${esc(p)}</p>`).join("");
@@ -1035,6 +1080,17 @@ function renderPurpose(){
     ${about}
     <h2>${L === "fr" ? "Le projet" : "The project"}</h2>
     ${proj}
+    <h2>${L === "fr" ? "Vos retours" : "Feedback"}</h2>
+    <p class="body">${L === "fr"
+      ? "Une remarque, une donnée manquante, une idée d'amélioration ? Dites-le-moi."
+      : "A remark, a missing figure, an idea to improve Atlas? Let me know."}</p>
+    <form class="fb-form" novalidate>
+      <input name="name" type="text" placeholder="${L === "fr" ? "Nom (facultatif)" : "Name (optional)"}" autocomplete="name">
+      <input name="email" type="email" placeholder="${L === "fr" ? "E-mail, pour une réponse (facultatif)" : "Email, for a reply (optional)"}" autocomplete="email">
+      <textarea name="message" rows="4" placeholder="${L === "fr" ? "Votre message…" : "Your message…"}"></textarea>
+      <button type="submit" class="fb-btn">${L === "fr" ? "Envoyer" : "Send"}</button>
+      <div class="fb-status" role="status" aria-live="polite"></div>
+    </form>
   </div></div>`;
 }
 
@@ -1063,6 +1119,9 @@ async function boot(){
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b) setView(b.dataset.view);
+  });
+  el("view-purpose").addEventListener("submit", (e) => {
+    if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
   });
 
   try {
