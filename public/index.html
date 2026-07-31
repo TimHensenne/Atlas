@@ -15,6 +15,7 @@
     --ink:#131A2E; --dim:#5E6B84;
     --indigo:#24357C; --indigo-hi:#3B54C4; --accent:#E23A2E; --accent-line:#B02419;
     --rule:rgba(19,26,46,.13); --rule-soft:rgba(19,26,46,.07);
+    --scroll:rgba(19,26,46,.26); --scroll-hi:rgba(19,26,46,.42);
     --ctrl:rgba(255,255,255,.92); --shadow:rgba(19,26,46,.14); --topbar-bg:var(--paper);
     --display:'Bricolage Grotesque',system-ui,sans-serif;
     --body:'IBM Plex Sans',system-ui,sans-serif;
@@ -29,6 +30,7 @@
     --ink:#F5F8FE; --dim:#A0AEC4;
     --indigo:#5B74EC; --indigo-hi:#7E93F6; --accent:#F1503F; --accent-line:#B02419;
     --rule:rgba(233,237,245,.16); --rule-soft:rgba(233,237,245,.07);
+    --scroll:rgba(233,237,245,.22); --scroll-hi:rgba(233,237,245,.4);
     --ctrl:rgba(32,46,68,.95); --shadow:rgba(0,0,0,.45);
     --topbar-bg:var(--panel);   /* barre = teinte chrome, nettement plus claire que la mer */
   }
@@ -43,6 +45,15 @@
   /* Sur grand écran, la page ne défile jamais : seul le panneau défile.
      Sur mobile le panneau passe sous la carte, donc la page redevient scrollable. */
   @media(min-width:900px){ body{overflow:hidden;} }
+
+  /* Barres de défilement assorties au thème (jour/nuit) */
+  *{scrollbar-width:thin;scrollbar-color:var(--scroll) transparent;}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:6px;
+    border:3px solid transparent;background-clip:padding-box;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--scroll-hi);background-clip:padding-box;}
+  ::-webkit-scrollbar-corner{background:transparent;}
 
   .topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:none;
     background:var(--topbar-bg);
@@ -159,6 +170,7 @@
   /* ── bloc données macro ── */
   .macro{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
     border:1px solid var(--rule);}
+  .macro.identity{grid-auto-flow:row dense;}
   .cell{background:var(--panel);padding:12px 14px;}
   .cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);
     text-transform:uppercase;}
@@ -443,7 +455,8 @@ const IDENT_LABELS = {
   density:    { fr:"Densité",    en:"Density" },
   area:       { fr:"Superficie", en:"Area" },
   region:     { fr:"Région",     en:"Region" },
-  subregion:  { fr:"Sous-région",en:"Subregion" },
+  borders:    { fr:"Pays frontaliers", en:"Land borders" },
+  demonym:    { fr:"Gentilé",    en:"Demonym" },
   timezone:   { fr:"Fuseau horaire", en:"Time zone" },
   calling:    { fr:"Indicatif",  en:"Calling code" },
   tld:        { fr:"Domaine",    en:"Internet domain" },
@@ -814,16 +827,17 @@ function renderIdentity(iso){
   const density = (d.pop != null && d.area) ? Math.round(d.pop / d.area) : null;
   const rows = [
     ["capital",    lang === "fr" ? (d.capFr || d.cap) : d.cap],
-    ["currency",   lang === "fr" ? (d.curFr || d.cur) : d.cur],
-    ["population", d.pop != null ? fmt.format(d.pop) : null],
-    ["density",    density != null ? fmt.format(density) + (lang === "fr" ? " hab/km²" : "/km²") : null],
-    ["area",       d.area != null ? fmt.format(Math.round(d.area)) + " km²" : null],
     ["region",     lang === "fr" ? (d.regFr || d.reg) : d.reg],
-    ["subregion",  lang === "fr" ? (d.subFr || d.sub) : d.sub],
+    ["currency",   lang === "fr" ? (d.curFr || d.cur) : d.cur, true],   // pleine largeur
+    ["population", d.pop != null ? fmt.format(d.pop) : null],
+    ["borders",    d.bord != null ? fmt.format(d.bord) : null],
+    ["area",       d.area != null ? fmt.format(Math.round(d.area)) + " km²" : null],
+    ["tld",        d.tld],
+    ["density",    density != null ? fmt.format(density) + (lang === "fr" ? " hab/km²" : "/km²") : null],
     ["timezone",   d.tz],
     ["calling",    d.call],
-    ["tld",        d.tld],
-    ["languages",  lang === "fr" ? (d.langFr || d.lang) : d.lang, true],
+    ["demonym",    lang === "fr" ? (d.gentFr || d.gent) : d.gent],
+    ["languages",  lang === "fr" ? (d.langFr || d.lang) : d.lang, true],  // pleine largeur
   ];
   // Cases présentes ; si le nombre de cases normales est impair, la dernière
   // passe en pleine largeur pour ne pas laisser de case grise (comme l'Économie).

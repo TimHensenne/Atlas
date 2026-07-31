@@ -24,20 +24,6 @@ const REGION_FR = {
   "Africa":"Afrique", "Americas":"Amériques", "Asia":"Asie",
   "Europe":"Europe", "Oceania":"Océanie", "Antarctic":"Antarctique",
 };
-const SUBREGION_FR = {
-  "Northern Africa":"Afrique du Nord", "Eastern Africa":"Afrique de l'Est",
-  "Middle Africa":"Afrique centrale", "Western Africa":"Afrique de l'Ouest",
-  "Southern Africa":"Afrique australe",
-  "Northern America":"Amérique du Nord", "Central America":"Amérique centrale",
-  "South America":"Amérique du Sud", "Caribbean":"Caraïbes",
-  "Central Asia":"Asie centrale", "Eastern Asia":"Asie de l'Est",
-  "South-Eastern Asia":"Asie du Sud-Est", "Southern Asia":"Asie du Sud",
-  "Western Asia":"Asie de l'Ouest",
-  "Eastern Europe":"Europe de l'Est", "Northern Europe":"Europe du Nord",
-  "Southern Europe":"Europe du Sud", "Western Europe":"Europe de l'Ouest",
-  "Australia and New Zealand":"Australie et Nouvelle-Zélande",
-  "Melanesia":"Mélanésie", "Micronesia":"Micronésie", "Polynesia":"Polynésie",
-};
 
 
 // Noms des langues en français (codes ISO 639-3 de world-countries).
@@ -284,10 +270,11 @@ async function main(){
       pop:  population,
       reg:   c.region || null,
       regFr: c.region ? (REGION_FR[c.region] || c.region) : null,
-      sub:   c.subregion || null,
-      subFr: c.subregion ? (SUBREGION_FR[c.subregion] || c.subregion) : null,
       tz:    Array.isArray(c.timezones) && c.timezones.length ? c.timezones[0] : null,
       tld:   Array.isArray(c.tld) && c.tld.length ? c.tld[0] : null,
+      bord:  Array.isArray(c.borders) ? c.borders.length : 0,
+      gent:   c.demonyms?.eng?.m || null,
+      gentFr: c.demonyms?.fra?.m || null,
     };
   }
 
