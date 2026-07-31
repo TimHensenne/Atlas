@@ -253,6 +253,14 @@
   .page h2{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
   .page p.body{color:var(--ink);font-size:14.5px;line-height:1.7;margin:0 0 16px;}
+  /* Profil (page But) */
+  .about-head{display:flex;gap:22px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .about-id h1{margin:0 0 5px;}
+  .about-role{color:var(--dim);font-size:13px;line-height:1.5;margin-bottom:10px;max-width:340px;}
+  .about-link{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--indigo);text-decoration:none;
+    border:1px solid var(--rule);border-radius:2px;padding:5px 11px;}
+  .about-link:hover{border-color:var(--indigo);background:var(--rule-soft);}
   /* Lexique */
   .lex{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
   .lex-item{background:var(--panel);padding:13px 16px;}
@@ -984,24 +992,49 @@ function renderData(){
   </div></div>`;
 }
 
-// ── But (bilingue) ──
-const PURPOSE = {
-  fr: [
-    "Atlas réunit, pays par pays, les grands indicateurs macroéconomiques et financiers — d'ordinaire éparpillés entre des dizaines de sources — en une seule lecture claire et cliquable.",
-    "Chaque donnée provient d'une source publique et officielle, récupérée automatiquement et tenue à jour : le FMI pour la macroéconomie, l'OCDE pour les taux, les trois grandes agences pour les notations, et les marchés pour le change.",
-    "Le projet a été construit de zéro, sans expérience de développement au départ, comme un exercice concret à la croisée de la finance et de la donnée. Il vise autant à comprendre les indicateurs qu'à bâtir l'outil qui les met en scène.",
-  ],
-  en: [
-    "Atlas brings together, country by country, the key macroeconomic and financial indicators — usually scattered across dozens of sources — into a single, clear, clickable view.",
-    "Every figure comes from a public, official source, fetched automatically and kept up to date: the IMF for macroeconomics, the OECD for rates, the three major agencies for ratings, and markets for FX.",
-    "The project was built from scratch, with no prior development experience, as a hands-on exercise at the intersection of finance and data. It is as much about understanding the indicators as about building the tool that showcases them.",
-  ],
+// ── But / À propos ──
+const PROFILE = {
+  linkedin: "https://www.linkedin.com/in/tim-hensenne",
+  role: {
+    fr: "Étudiant en Master Financial Economics · Université de Maastricht",
+    en: "Master's student in Financial Economics · Maastricht University",
+  },
+  about: {
+    fr: [
+      "Je suis un étudiant belge en master de Financial Economics à l'université de Maastricht. Après plusieurs expériences à l'international, je me suis pris d'intérêt pour la macroéconomie, et je reste curieux de tout ce qui touche à l'économie, la finance et la géopolitique.",
+      "Je conçois Atlas comme un terrain pour développer mes compétences avant d'entrer sur le marché du travail.",
+    ],
+    en: [
+      "I'm a Belgian student in the Master of Financial Economics at Maastricht University. After several international experiences, I grew interested in macroeconomics, and I stay curious about everything touching economics, finance and geopolitics.",
+      "I see Atlas as a way to sharpen my skills before entering the job market.",
+    ],
+  },
+  project: {
+    fr: [
+      "J'ai voulu rassembler en un seul endroit des données économiques en accès libre — aujourd'hui dispersées entre de nombreuses sources — et les rendre faciles à explorer, tout en garantissant un sourcing fiable et transparent.",
+      "Chaque chiffre provient d'une source publique et identifiée — FMI, OCDE, Banque mondiale, agences de notation, marchés — récupérée automatiquement et tenue à jour. L'onglet Base de données détaille d'où vient chaque donnée et à quelle fréquence elle se rafraîchit.",
+    ],
+    en: [
+      "I set out to gather open-access economic data — today scattered across many sources — in one place, and make it easy to explore, while guaranteeing reliable, transparent sourcing.",
+      "Every figure comes from a public, identified source — the IMF, OECD, World Bank, rating agencies, markets — fetched automatically and kept up to date. The Database tab details where each figure comes from and how often it refreshes.",
+    ],
+  },
 };
 function renderPurpose(){
-  const paras = PURPOSE[lang].map(p => `<p class="body">${esc(p)}</p>`).join("");
+  const L = lang === "fr" ? "fr" : "en";
+  const about = PROFILE.about[L].map(p => `<p class="body">${esc(p)}</p>`).join("");
+  const proj = PROFILE.project[L].map(p => `<p class="body">${esc(p)}</p>`).join("");
   return `<div class="page"><div class="page-in">
-    <h1>${lang === "fr" ? "But du projet" : "Purpose"}</h1>
-    ${paras}
+    <div class="about-head">
+      <div class="about-id">
+        <div class="about-role">${esc(PROFILE.role[L])}</div>
+        <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </div>
+    </div>
+    <h2>${L === "fr" ? "À propos" : "About"}</h2>
+    ${about}
+    <h2>${L === "fr" ? "Le projet" : "The project"}</h2>
+    ${proj}
   </div></div>`;
 }
 
