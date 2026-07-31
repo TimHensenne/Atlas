@@ -307,6 +307,26 @@
     color:var(--indigo);border:1px solid var(--rule);border-radius:2px;padding:4px 10px;}
   .soon h1{font-family:var(--display);font-weight:800;font-size:26px;color:var(--ink);margin:0;letter-spacing:-.02em;}
   .soon p{color:var(--dim);font-size:14px;line-height:1.65;max-width:460px;margin:0;}
+  /* Base de données : tableur */
+  .db-page{display:flex;flex-direction:column;overflow:hidden;padding:26px 22px 18px;}
+  .db-in{display:flex;flex-direction:column;min-height:0;flex:1;max-width:100%;}
+  .db-cols{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 14px;}
+  .db-chk{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.03em;text-transform:uppercase;color:var(--dim);cursor:pointer;}
+  .db-chk input{accent-color:var(--indigo);cursor:pointer;margin:0;}
+  .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
+  table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
+  table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
+  table.db th{position:sticky;top:0;background:var(--panel);font-family:var(--mono);font-size:10px;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--dim);cursor:pointer;user-select:none;z-index:1;}
+  table.db th:hover{color:var(--ink);}
+  table.db th.sorted{color:var(--indigo);}
+  table.db td{color:var(--ink);}
+  table.db th.num,table.db td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  table.db tbody tr:hover td{background:var(--rule-soft);}
+  table.db td:first-child,table.db th:first-child{position:sticky;left:0;background:var(--panel);
+    font-weight:600;z-index:1;}
+  table.db th:first-child{z-index:2;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -958,10 +978,10 @@ el("panel").addEventListener("mouseleave", () => {
 const VIEW_ORDER = ["map", "benchmark", "lexicon", "games", "data", "purpose"];
 const NAV_LABELS = {
   map:      { fr:"Carte",       en:"Map" },
-  benchmark:{ fr:"Comparaison", en:"Benchmark" },
+  benchmark:{ fr:"Base de données", en:"Database" },
   lexicon:  { fr:"Lexique",     en:"Glossary" },
   games:    { fr:"Jeux",        en:"Games" },
-  data:     { fr:"Données",     en:"Database" },
+  data:     { fr:"Sources",     en:"Sources" },
   purpose:  { fr:"But",         en:"Purpose" },
 };
 let view = "map";
@@ -1033,7 +1053,7 @@ function renderData(){
     `<div class="src-item"><span class="src-name">${esc(s.n)}</span><span class="src-freq">${esc(s.f[i])}</span><span class="src-desc">${esc(s.d[i])}</span></div>`
   ).join("");
   return `<div class="page"><div class="page-in">
-    <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
+    <h1>${lang === "fr" ? "Sources" : "Sources"}</h1>
     <p class="lead">${lang === "fr"
       ? "Toutes les données d'Atlas viennent de sources publiques, récupérées automatiquement. Voici lesquelles, et à quel rythme elles se rafraîchissent."
       : "All of Atlas's data comes from public sources, fetched automatically. Here they are, and how often they refresh."}</p>
@@ -1131,15 +1151,69 @@ function renderPurpose(){
 }
 
 // ── Placeholders (à cadrer ensemble) ──
-function renderBenchmark(){
-  return `<div class="soon">
-    <span class="tag">${lang === "fr" ? "En construction" : "Coming soon"}</span>
-    <h1>${lang === "fr" ? "Comparaison" : "Benchmark"}</h1>
-    <p>${lang === "fr"
-      ? "Comparer plusieurs pays côte à côte sur les mêmes axes : rendements, dette, inflation, notations. On cadre ensemble les indicateurs et le format."
-      : "Compare several countries side by side on the same axes: yields, debt, inflation, ratings. We'll define the indicators and layout together."}</p>
-  </div>`;
+// ── Base de données : tableur de tous les pays, colonnes cochables, tri ──
+const RANK_SPF = { "AAA":21,"AA+":20,"AA":19,"AA-":18,"A+":17,"A":16,"A-":15,"BBB+":14,"BBB":13,"BBB-":12,"BB+":11,"BB":10,"BB-":9,"B+":8,"B":7,"B-":6,"CCC+":5,"CCC":4,"CCC-":3,"CC":2,"C":1,"SD":0,"RD":0,"D":0 };
+const RANK_MOODY = { "Aaa":21,"Aa1":20,"Aa2":19,"Aa3":18,"A1":17,"A2":16,"A3":15,"Baa1":14,"Baa2":13,"Baa3":12,"Ba1":11,"Ba2":10,"Ba3":9,"B1":8,"B2":7,"B3":6,"Caa1":5,"Caa2":4,"Caa3":3,"Ca":2,"C":1 };
+const ind = (iso, code) => macro.countries?.[iso]?.indicators?.[code]?.value;
+const pctCell = (v) => v == null ? null : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(1).replace('.', ',') + " %";
+const DB_COLS = [
+  { key:"name",   t:{fr:"Pays",en:"Country"},        text:true, always:true, get:(iso)=>macro.countries?.[iso]?.name },
+  { key:"region", t:{fr:"Région",en:"Region"},       text:true, on:true,  get:(iso)=>lang==="fr"?(ident[iso]?.regFr||ident[iso]?.reg):ident[iso]?.reg },
+  { key:"pop",    t:{fr:"Population",en:"Population"},on:true,  get:(iso)=>ident[iso]?.pop, fmt:(v)=>v.toLocaleString(lang==="fr"?"fr-BE":"en-GB") },
+  { key:"gdp",    t:{fr:"PIB",en:"GDP"},              on:true,  get:(iso)=>ind(iso,"NGDPD"), fmt:(v)=>fmtMoney(v,"Md") },
+  { key:"gdppc",  t:{fr:"PIB/hab.",en:"GDP/cap."},              get:(iso)=>ind(iso,"NGDPDPC"), fmt:(v)=>fmtMoney(v,"") },
+  { key:"growth", t:{fr:"Croissance",en:"Growth"},    on:true,  get:(iso)=>ind(iso,"NGDP_RPCH"), fmt:pctCell },
+  { key:"infl",   t:{fr:"Inflation",en:"Inflation"},  on:true,  get:(iso)=>ind(iso,"PCPIPCH"), fmt:pctCell },
+  { key:"debt",   t:{fr:"Dette",en:"Debt"},           on:true,  get:(iso)=>ind(iso,"GGXWDG_NGDP"), fmt:pctCell },
+  { key:"budget", t:{fr:"Solde budg.",en:"Budget"},             get:(iso)=>ind(iso,"GGXCNL_NGDP"), fmt:pctCell },
+  { key:"cab",    t:{fr:"Bal. courante",en:"Curr. acc."},       get:(iso)=>ind(iso,"BCA_NGDPD"), fmt:pctCell },
+  { key:"unemp",  t:{fr:"Chômage",en:"Unemp."},                 get:(iso)=>ind(iso,"LUR"), fmt:pctCell },
+  { key:"yield",  t:{fr:"Rend. 10a",en:"10y yield"},            get:(iso)=>yields.countries?.[iso]?.yield, fmt:pctCell },
+  { key:"spread", t:{fr:"Spread",en:"Spread"},                  get:(iso)=>yields.countries?.[iso]?.spread, fmt:(v)=>(v>=0?"+":"−")+Math.abs(Math.round(v*100))+" pb" },
+  { key:"sp",     t:{fr:"S&P",en:"S&P"},              on:true,  rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.sp },
+  { key:"moody",  t:{fr:"Moody's",en:"Moody's"},                rank:RANK_MOODY, get:(iso)=>ratings.countries?.[iso]?.moody },
+  { key:"fitch",  t:{fr:"Fitch",en:"Fitch"},                    rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.fitch },
+];
+let dbVisible = new Set(DB_COLS.filter(c => c.always || c.on).map(c => c.key));
+let dbSort = "gdp";
+let dbDir = -1;   // -1 = décroissant, 1 = croissant
+
+function renderDatabase(){
+  const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
+  const toggles = DB_COLS.filter(c => !c.always).map(c =>
+    `<label class="db-chk"><input type="checkbox" data-col="${c.key}"${dbVisible.has(c.key) ? " checked" : ""}>${esc(c.t[lang])}</label>`
+  ).join("");
+  const sortCol = DB_COLS.find(c => c.key === dbSort) || DB_COLS[0];
+  const rankOf = (c, v) => c.rank ? (c.rank[v] ?? -1) : v;
+  const isos = Object.keys(macro.countries || {}).sort((a, b) => {
+    let va = sortCol.get(a), vb = sortCol.get(b);
+    const na = va == null || va === "", nb = vb == null || vb === "";
+    if (na && nb) return 0; if (na) return 1; if (nb) return -1;   // manquants en bas
+    if (sortCol.text) return String(va).localeCompare(String(vb)) * dbDir;
+    return (rankOf(sortCol, va) - rankOf(sortCol, vb)) * dbDir;
+  });
+  const arrow = dbDir < 0 ? " ↓" : " ↑";
+  const thead = cols.map(c =>
+    `<th class="${c.text ? "" : "num"}${c.key === dbSort ? " sorted" : ""}" data-sort="${c.key}">${esc(c.t[lang])}${c.key === dbSort ? arrow : ""}</th>`
+  ).join("");
+  const tbody = isos.map(iso => `<tr>${cols.map(c => {
+    const v = c.get(iso);
+    const disp = (v == null || v === "") ? "—" : (c.fmt ? c.fmt(v) : esc(String(v)));
+    return `<td class="${c.text ? "" : "num"}">${disp}</td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="page db-page"><div class="db-in">
+    <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
+    <p class="lead">${lang === "fr"
+      ? "Tous les pays, tous les indicateurs. Coche les colonnes à afficher, clique un en-tête pour trier (deux clics pour inverser)."
+      : "All countries, all indicators. Tick the columns to show, click a header to sort (click again to reverse)."}</p>
+    <div class="db-cols">${toggles}</div>
+    <div class="db-scroll"><table class="db">
+      <thead><tr>${thead}</tr></thead>
+      <tbody>${tbody}</tbody>
+    </table></div>
+  </div></div>`;
 }
+function renderBenchmark(){ return renderDatabase(); }
 function renderGames(){
   return `<div class="soon">
     <span class="tag">${lang === "fr" ? "En construction" : "Coming soon"}</span>
@@ -1158,6 +1232,21 @@ async function boot(){
   });
   el("view-purpose").addEventListener("submit", (e) => {
     if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
+  });
+  // Base de données : tri par en-tête, colonnes cochables.
+  el("view-benchmark").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-sort]");
+    if (!th) return;
+    const key = th.dataset.sort;
+    if (dbSort === key) dbDir = -dbDir;
+    else { dbSort = key; dbDir = (DB_COLS.find(c => c.key === key)?.text) ? 1 : -1; }
+    el("view-benchmark").innerHTML = renderDatabase();
+  });
+  el("view-benchmark").addEventListener("change", (e) => {
+    const cb = e.target.closest("input[data-col]");
+    if (!cb) return;
+    if (cb.checked) dbVisible.add(cb.dataset.col); else dbVisible.delete(cb.dataset.col);
+    el("view-benchmark").innerHTML = renderDatabase();
   });
 
   try {
