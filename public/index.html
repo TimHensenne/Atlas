@@ -205,6 +205,13 @@
   .rg.ig{color:#1E7A46;} .rg.spec{color:#B4462A;} .rg.none{color:var(--dim);font-size:16px;}
   .ro{font-family:var(--mono);font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;margin-top:4px;}
   .ro-positive{color:#1E7A46;} .ro-negative{color:#B4462A;} .ro-stable{color:var(--dim);}
+  /* Devise & change */
+  .fx-line{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--dim);margin-top:7px;}
+  .fx-line b{color:var(--ink);font-weight:600;}
+  .fx-pair{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--dim);margin-top:11px;}
+  .fx-loading{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
+    text-transform:uppercase;padding:12px 2px;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -428,6 +435,7 @@ const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH",
 const fmtHist = (v, fmt) =>
   fmt === "moneyMd" ? fmtMoney(v, "Md")
   : fmt === "money" ? fmtMoney(v, "")
+  : fmt === "fx" ? new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB", { maximumSignificantDigits: 4 }).format(v)
   : v.toFixed(1).replace('.', ',') + " %";
 
 // Mini-graphe interactif : trace la série d'un indicateur avec échelle verticale
@@ -436,7 +444,7 @@ const fmtHist = (v, fmt) =>
 // point + l'année + la valeur sont stockées sur le SVG (data-pts) : le survol
 // n'a plus qu'à trouver le point le plus proche, sans recalcul de géométrie.
 const SPARK_H = 40;
-function sparkChart(hist, year0, fmt){
+function sparkChart(hist, labels, fmt){
   if (!Array.isArray(hist)) return "";
   const raw = hist.map((v, i) => [i, v]).filter(([, v]) => typeof v === "number" && isFinite(v));
   if (raw.length < 2) return "";
@@ -448,11 +456,12 @@ function sparkChart(hist, year0, fmt){
   // Tout en pourcentage (0–100). Le tracé (SVG) peut s'étirer sans souci
   // (trait à épaisseur fixe), mais les points et repères sont des éléments HTML
   // positionnés en %, donc toujours ronds quelle que soit la largeur de la case.
-  // Marge verticale PADY : la courbe ne colle jamais à l'en-tête ni aux années.
+  // Marge verticale PADY : la courbe ne colle jamais à l'en-tête ni aux étiquettes.
   const PADY = 12;
   const sx = i => (i - xmin) / ((xmax - xmin) || 1) * 100;
   const sy = v => PADY + (1 - (v - y0) / ((y1 - y0) || 1)) * (100 - 2 * PADY);
-  const pts = raw.map(([i, v]) => [ +sx(i).toFixed(2), +sy(v).toFixed(2), year0 + i, v ]);
+  const lab = i => (labels && labels[i] != null) ? labels[i] : i;
+  const pts = raw.map(([i, v]) => [ +sx(i).toFixed(2), +sy(v).toFixed(2), lab(i), v ]);
   const d = pts.map((p, k) => (k ? "L" : "M") + p[0] + "," + p[1]).join(" ");
   const last = pts[pts.length - 1];
   const zeroPct = (y0 < 0 && y1 > 0) ? sy(0).toFixed(2) : null;
@@ -469,9 +478,11 @@ function sparkChart(hist, year0, fmt){
       <span class="spark-guide"></span>
       <span class="spark-hdot"></span>
     </div>
-    <div class="chart-x"><span>${year0 + xmin}</span><span>${year0 + xmax}</span></div>
+    <div class="chart-x"><span>${esc(String(lab(xmin)))}</span><span>${esc(String(lab(xmax)))}</span></div>
   </div>`;
 }
+// Étiquettes d'années à partir d'une année de départ, pour une série annuelle.
+const yearLabels = (hist, y0) => hist.map((_, i) => y0 + i);
 
 // Investment grade : au-dessus du seuil (BBB−/Baa3), le pays est "de qualité".
 const IG_SPFITCH = new Set(["AAA","AA+","AA","AA-","A+","A","A-","BBB+","BBB","BBB-"]);
@@ -511,7 +522,7 @@ function renderMarkets(iso){
     body += `<div class="macro"><div class="cell wide">
         <div class="k">${lang==="fr"?"Rendement 10 ans":"10-year yield"}</div>
         <div class="v">${y.yield.toFixed(2).replace('.',',')}<small>%</small></div>
-        ${y.hist ? sparkChart(y.hist, y.hist0, "pct") : ""}
+        ${y.hist ? sparkChart(y.hist, yearLabels(y.hist, y.hist0), "pct") : ""}
         ${sub}
       </div></div>`;
     srcs.push("OCDE/FRED");
@@ -530,6 +541,67 @@ function renderMarkets(iso){
   return `<div class="blocktitle">${lang==="fr"?"Marchés":"Markets"}</div>
     ${body}
     <div class="macro-src">${lang==="fr"?"Sources : ":"Sources: "}${srcs.join(" · ")}</div>`;
+}
+
+// ── Devise & change (taux BCE en direct via Frankfurter, sans clé, CORS) ──
+// Récupéré côté navigateur à chaque consultation : toujours le taux du jour,
+// sans cron ni fichier. Mis en cache par devise pour la session. Repli propre
+// si la devise n'est pas couverte par la BCE (~30 devises) ou si l'API échoue.
+const fxCache = {};
+const fmtMonth = (ym) => {
+  const [y, m] = ym.split("-");
+  return new Date(+y, +m - 1, 1).toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB",
+    { month: "short", year: "2-digit" });
+};
+async function fetchFX(code){
+  if (!code || fxCache[code]) return;
+  fxCache[code] = { loading: true };
+  try {
+    const targets = ["USD", "EUR"].filter(t => t !== code);
+    const lr = await fetch(`https://api.frankfurter.app/latest?from=${code}&to=${targets.join(",")}`);
+    if (!lr.ok) throw new Error();
+    const lj = await lr.json();
+    const rates = lj.rates || {};
+    if (!Object.keys(rates).length) throw new Error();     // devise non couverte
+    const quote = code === "USD" ? "EUR" : "USD";           // paire du graphe
+    const start = new Date(Date.now() - 366 * 864e5).toISOString().slice(0, 10);
+    let hist = null, months = null;
+    try {
+      const hr = await fetch(`https://api.frankfurter.app/${start}..?from=${code}&to=${quote}`);
+      if (hr.ok){
+        const hj = await hr.json();
+        const byMonth = {};
+        for (const [date, o] of Object.entries(hj.rates || {}))
+          if (o[quote] != null) byMonth[date.slice(0, 7)] = o[quote];   // dernier jour du mois
+        const ms = Object.keys(byMonth).sort();
+        if (ms.length >= 2){ hist = ms.map(m => byMonth[m]); months = ms.map(fmtMonth); }
+      }
+    } catch {}
+    fxCache[code] = { rates, quote, date: lj.date, hist, months };
+  } catch { fxCache[code] = { error: true }; }
+  if (selected && ident[selected.iso]?.code === code && panelTab === "economics") renderPanel();
+}
+function renderFX(iso){
+  const info = ident[iso]; const code = info?.code;
+  if (!code) return "";
+  const cap = `<div class="mkt-cap">${lang === "fr" ? "Devise &amp; change" : "Currency &amp; FX"}</div>`;
+  const d = fxCache[code];
+  if (!d || d.loading) return `${cap}<div class="fx-loading">${lang === "fr" ? "Chargement du taux…" : "Loading rate…"}</div>`;
+  if (d.error) return "";   // devise non couverte par la BCE → on n'affiche rien
+  const nf = new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB", { maximumSignificantDigits: 4 });
+  const rows = ["USD", "EUR"].filter(t => t !== code && d.rates[t] != null)
+    .map(t => `<div class="fx-line">1 ${code} = <b>${nf.format(d.rates[t])} ${t}</b></div>`).join("");
+  const name = (lang === "fr" ? info.curFr : info.cur) || code;
+  const chart = d.hist
+    ? `<div class="fx-pair">${lang === "fr" ? "Évolution vs" : "vs"} ${d.quote} · 12 ${lang === "fr" ? "mois" : "mo"}</div>${sparkChart(d.hist, d.months, "fx")}`
+    : "";
+  return `${cap}
+    <div class="cell wide">
+      <div class="k">${esc(name)}</div>
+      ${rows}
+      ${chart}
+    </div>
+    <div class="macro-src">${lang === "fr" ? "Source : BCE, via Frankfurter · quotidien" : "Source: ECB, via Frankfurter · daily"}</div>`;
 }
 
 function renderMacro(iso){
@@ -551,7 +623,7 @@ function renderMacro(iso){
     return `<div class="cell${wide}">
       <div class="k">${esc(IND_LABELS[k]?.[lang] || d.label)}</div>
       <div class="v${trend}">${fmtVal(d)}</div>
-      ${d.hist ? sparkChart(d.hist, d.hist0, d.fmt) : ""}
+      ${d.hist ? sparkChart(d.hist, yearLabels(d.hist, d.hist0), d.fmt) : ""}
     </div>`;
   }).join("");
 
@@ -566,7 +638,7 @@ function renderMacro(iso){
 
   const src = `<div class="macro-src">${lang==="fr"?"Source : FMI — World Economic Outlook":"Source: IMF — World Economic Outlook"}</div>`;
 
-  return `<div class="macro">${cells}</div>${src}${renderMarkets(iso)}${rep}`;
+  return `<div class="macro">${cells}</div>${src}${renderMarkets(iso)}${renderFX(iso)}${rep}`;
 }
 
 const esc = (s) => String(s).replace(/[&<>"']/g, c =>
@@ -621,6 +693,11 @@ function renderPanel(){
     ${body}
   `;
   p.scrollTop = 0;
+  // Récupère le taux de change en direct pour l'onglet Économie (une fois par devise).
+  if (panelTab === "economics" && selected.iso){
+    const code = ident[selected.iso]?.code;
+    if (code && !fxCache[code]) fetchFX(code);
+  }
 }
 
 // Bascule d'onglet (délégation : le panneau est reconstruit à chaque rendu).

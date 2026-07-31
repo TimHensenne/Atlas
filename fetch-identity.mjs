@@ -255,6 +255,7 @@ async function main(){
       capFr: cap ? (CAP_FR[cap] || cap) : null,
       cur:   cur ? (cur.name + sym) : null,
       curFr: curFrName ? (curFrName + sym) : null,
+      code:  curCode || null,
       area:  typeof c.area === "number" ? c.area : null,
       lang:   c.languages ? Object.values(c.languages).join(", ") : null,
       langFr: c.languages ? Object.entries(c.languages).map(([code, en]) => LANG_FR[code] || en).join(", ") : null,
