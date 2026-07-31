@@ -226,6 +226,10 @@
   .fx-cur.on{background:var(--indigo);color:#FFF;}
   .fx-eq{font-family:var(--mono);font-size:13px;color:var(--dim);}
   .fx-eq b{color:var(--ink);font-weight:600;}
+  .fx-unit{font-family:var(--mono);font-size:13px;color:var(--dim);}
+  .fx-swap{background:var(--paper);border:1px solid var(--rule);color:var(--dim);border-radius:2px;
+    font-size:14px;line-height:1;padding:6px 8px;cursor:pointer;}
+  .fx-swap:hover{color:var(--ink);border-color:var(--indigo);}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -566,16 +570,19 @@ function renderMarkets(iso){
 // si la devise n'est pas couverte par la BCE (~30 devises) ou si l'API échoue.
 const fxCache = {};
 let fxAmount = "";       // montant saisi dans le convertisseur (persiste entre pays)
-let fxFrom = "EUR";      // devise de départ du convertisseur : "EUR" ou "USD"
-// Convertit le montant saisi (fxAmount, en fxFrom) vers la devise locale `code`.
+let fxFrom = "EUR";      // devise étrangère choisie : "EUR" ou "USD"
+let fxDir = "toLocal";   // sens : "toLocal" (€/$ → local) ou "fromLocal" (local → €/$)
+// Convertit fxAmount selon le sens choisi, à l'aide du taux (1 code = r fxFrom).
 function fxConvResult(code){
   const d = fxCache[code];
   const a = parseFloat(String(fxAmount).replace(",", "."));
+  const fmt = (x) => x.toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 2 });
   if (!isFinite(a) || a <= 0) return "—";
-  if (fxFrom === code) return a.toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 2 });
-  const r = d && d.rates ? d.rates[fxFrom] : null;   // 1 code = r fxFrom
+  if (fxFrom === code) return fmt(a);                // même devise → identité
+  const r = d && d.rates ? d.rates[fxFrom] : null;
   if (r == null || r === 0) return "—";
-  return (a / r).toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 2 });
+  // fromLocal : a (local) × r → montant en fxFrom ; toLocal : a (fxFrom) ÷ r → local
+  return fmt(fxDir === "fromLocal" ? a * r : a / r);
 }
 const fmtMonth = (ym) => {
   const [y, m] = ym.split("-");
@@ -647,14 +654,18 @@ function renderFX(iso){
   const chart = d.hist
     ? `<div class="fx-pair">${lang === "fr" ? "Évolution vs" : "vs"} ${d.quote} · 12 ${lang === "fr" ? "mois" : "mo"}</div>${sparkChart(d.hist, d.months, "fx")}`
     : "";
+  const foreignTog = `<div class="fx-tog">
+        <button class="fx-cur${fxFrom === "EUR" ? " on" : ""}" data-fxcur="EUR">€</button>
+        <button class="fx-cur${fxFrom === "USD" ? " on" : ""}" data-fxcur="USD">$</button>
+      </div>`;
+  const localUnit = `<span class="fx-unit">${esc(code)}</span>`;
   const conv = `<div class="fx-conv">
       <input class="fx-in" type="number" inputmode="decimal" step="any"
         placeholder="${lang === "fr" ? "Montant" : "Amount"}" value="${esc(fxAmount)}">
-      <div class="fx-tog">
-        <button class="fx-cur${fxFrom === "EUR" ? " on" : ""}" data-fxcur="EUR">€</button>
-        <button class="fx-cur${fxFrom === "USD" ? " on" : ""}" data-fxcur="USD">$</button>
-      </div>
-      <div class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b> ${code}</div>
+      ${fxDir === "fromLocal" ? localUnit : foreignTog}
+      <button class="fx-swap" title="${lang === "fr" ? "Inverser le sens" : "Swap direction"}" aria-label="swap">⇄</button>
+      <span class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b></span>
+      ${fxDir === "fromLocal" ? foreignTog : localUnit}
     </div>`;
   const upd = d.date
     ? (lang === "fr" ? "Mis à jour le " : "Updated ") + new Date(d.date + "T00:00:00").toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB", { day: "numeric", month: "short", year: "numeric" })
@@ -772,6 +783,11 @@ el("panel").addEventListener("click", (e) => {
   if (cur){
     fxFrom = cur.dataset.fxcur;
     if (selected) paintFX(ident[selected.iso]?.code);   // re-render du bloc FX (bascule + résultat)
+    return;
+  }
+  if (e.target.closest(".fx-swap")){
+    fxDir = fxDir === "toLocal" ? "fromLocal" : "toLocal";
+    if (selected) paintFX(ident[selected.iso]?.code);
     return;
   }
   const b = e.target.closest("[data-tab]");
