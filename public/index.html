@@ -656,6 +656,9 @@ function renderFX(iso){
       </div>
       <div class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b> ${code}</div>
     </div>`;
+  const upd = d.date
+    ? (lang === "fr" ? "Mis à jour le " : "Updated ") + new Date(d.date + "T00:00:00").toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "";
   return `<div id="fxblock">${cap}
     <div class="cell wide">
       <div class="k">${esc(name)}</div>
@@ -663,7 +666,7 @@ function renderFX(iso){
       ${chart}
       ${conv}
     </div>
-    <div class="macro-src">${lang === "fr" ? "Taux indicatifs · exchange-api · quotidien" : "Indicative rates · exchange-api · daily"}</div></div>`;
+    <div class="macro-src">${upd ? esc(upd) + " · " : ""}exchange-api</div></div>`;
 }
 
 function renderMacro(iso){
