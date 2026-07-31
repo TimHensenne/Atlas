@@ -556,38 +556,47 @@ const fmtMonth = (ym) => {
 async function fetchFX(code){
   if (!code || fxCache[code]) return;
   fxCache[code] = { loading: true };
+  const quote = code === "USD" ? "EUR" : "USD";           // paire du graphe
+  const start = new Date(Date.now() - 366 * 864e5).toISOString().slice(0, 10);
+  const targets = ["USD", "EUR"].filter(t => t !== code).join(",");
   try {
-    const targets = ["USD", "EUR"].filter(t => t !== code);
-    const t = targets.join(",");
-    const lr = await fetch(`https://api.frankfurter.dev/v1/latest?base=${code}&symbols=${t}&from=${code}&to=${t}`);
+    // Taux courant ET historique en parallèle. L'historique est déjà regroupé
+    // par mois côté serveur (group=month) → réponse petite et rapide (~12 points).
+    const [lr, hr] = await Promise.all([
+      fetch(`https://api.frankfurter.dev/v1/latest?base=${code}&symbols=${targets}&from=${code}&to=${targets}`),
+      fetch(`https://api.frankfurter.dev/v1/${start}..?base=${code}&symbols=${quote}&from=${code}&to=${quote}&group=month`).catch(() => null),
+    ]);
     if (!lr.ok) throw new Error();
     const lj = await lr.json();
     const rates = lj.rates || {};
     if (!Object.keys(rates).length) throw new Error();     // devise non couverte
-    const quote = code === "USD" ? "EUR" : "USD";           // paire du graphe
-    const start = new Date(Date.now() - 366 * 864e5).toISOString().slice(0, 10);
     let hist = null, months = null;
-    try {
-      const hr = await fetch(`https://api.frankfurter.dev/v1/${start}..?base=${code}&symbols=${quote}&from=${code}&to=${quote}`);
-      if (hr.ok){
-        const hj = await hr.json();
-        const byMonth = {};
-        for (const [date, o] of Object.entries(hj.rates || {}))
-          if (o[quote] != null) byMonth[date.slice(0, 7)] = o[quote];   // dernier jour du mois
-        const ms = Object.keys(byMonth).sort();
-        if (ms.length >= 2){ hist = ms.map(m => byMonth[m]); months = ms.map(fmtMonth); }
-      }
-    } catch {}
+    if (hr && hr.ok){
+      const hj = await hr.json();
+      const byMonth = {};
+      for (const [date, o] of Object.entries(hj.rates || {}))
+        if (o[quote] != null) byMonth[date.slice(0, 7)] = o[quote];
+      const ms = Object.keys(byMonth).sort();
+      if (ms.length >= 2){ hist = ms.map(m => byMonth[m]); months = ms.map(fmtMonth); }
+    }
     fxCache[code] = { rates, quote, date: lj.date, hist, months };
   } catch { fxCache[code] = { error: true }; }
-  if (selected && ident[selected.iso]?.code === code && panelTab === "economics") renderPanel();
+  paintFX(code);   // injecte le résultat dans le bloc existant, sans toucher au scroll
+}
+
+// Remplace le contenu du bloc FX en place (pas de re-render du panneau → le
+// scroll ne bouge pas). Ne fait rien si on n'est plus sur le bon pays/onglet.
+function paintFX(code){
+  if (!selected || ident[selected.iso]?.code !== code || panelTab !== "economics") return;
+  const host = document.getElementById("fxblock");
+  if (host) host.outerHTML = renderFX(selected.iso);
 }
 function renderFX(iso){
   const info = ident[iso]; const code = info?.code;
   if (!code) return "";
   const cap = `<div class="mkt-cap">${lang === "fr" ? "Devise &amp; change" : "Currency &amp; FX"}</div>`;
   const d = fxCache[code];
-  if (!d || d.loading) return `${cap}<div class="fx-loading">${lang === "fr" ? "Chargement du taux…" : "Loading rate…"}</div>`;
+  if (!d || d.loading) return `<div id="fxblock">${cap}<div class="fx-loading">${lang === "fr" ? "Chargement du taux…" : "Loading rate…"}</div></div>`;
   if (d.error) return "";   // devise non couverte par la BCE → on n'affiche rien
   const nf = new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB", { maximumSignificantDigits: 4 });
   const rows = ["USD", "EUR"].filter(t => t !== code && d.rates[t] != null)
@@ -596,13 +605,13 @@ function renderFX(iso){
   const chart = d.hist
     ? `<div class="fx-pair">${lang === "fr" ? "Évolution vs" : "vs"} ${d.quote} · 12 ${lang === "fr" ? "mois" : "mo"}</div>${sparkChart(d.hist, d.months, "fx")}`
     : "";
-  return `${cap}
+  return `<div id="fxblock">${cap}
     <div class="cell wide">
       <div class="k">${esc(name)}</div>
       ${rows}
       ${chart}
     </div>
-    <div class="macro-src">${lang === "fr" ? "Source : BCE, via Frankfurter · quotidien" : "Source: ECB, via Frankfurter · daily"}</div>`;
+    <div class="macro-src">${lang === "fr" ? "Source : BCE, via Frankfurter · quotidien" : "Source: ECB, via Frankfurter · daily"}</div></div>`;
 }
 
 function renderMacro(iso){
@@ -694,8 +703,9 @@ function renderPanel(){
     ${body}
   `;
   p.scrollTop = 0;
-  // Récupère le taux de change en direct pour l'onglet Économie (une fois par devise).
-  if (panelTab === "economics" && selected.iso){
+  // Précharge le taux de change en fond dès la sélection (une fois par devise),
+  // pour qu'il soit déjà prêt quand on ouvre l'onglet Économie.
+  if (selected.iso){
     const code = ident[selected.iso]?.code;
     if (code && !fxCache[code]) fetchFX(code);
   }
