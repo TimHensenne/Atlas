@@ -212,6 +212,20 @@
     color:var(--dim);margin-top:11px;}
   .fx-loading{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
     text-transform:uppercase;padding:12px 2px;}
+  /* Convertisseur : montant + bascule €/$ + résultat en devise locale */
+  .fx-conv{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .fx-in{width:104px;background:var(--paper);border:1px solid var(--rule);color:var(--ink);
+    font-family:var(--mono);font-size:13px;padding:7px 9px;border-radius:2px;outline:none;
+    -moz-appearance:textfield;}
+  .fx-in::-webkit-outer-spin-button,.fx-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .fx-in:focus{border-color:var(--indigo);}
+  .fx-tog{display:flex;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px;overflow:hidden;}
+  .fx-cur{background:var(--panel);color:var(--dim);border:0;font-family:var(--mono);font-size:13px;
+    padding:6px 11px;cursor:pointer;line-height:1.4;}
+  .fx-cur:hover:not(.on){color:var(--ink);}
+  .fx-cur.on{background:var(--indigo);color:#FFF;}
+  .fx-eq{font-family:var(--mono);font-size:13px;color:var(--dim);}
+  .fx-eq b{color:var(--ink);font-weight:600;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
   .ptabs{display:flex;border:1px solid var(--rule);}
   .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
@@ -358,6 +372,7 @@ const IND_LABELS = {
   "NGDPDPC":     { fr:"PIB par habitant",  en:"GDP per capita" },
   "NGDP_RPCH":   { fr:"Croissance",        en:"Growth" },
   "PCPIPCH":     { fr:"Inflation",         en:"Inflation" },
+  "PCPIEPCH":    { fr:"Inflation fin d'année", en:"Inflation, year-end" },
   "GGXWDG_NGDP": { fr:"Dette publique",    en:"Public debt" },
   "GGXCNL_NGDP": { fr:"Solde budgétaire",  en:"Budget balance" },
   "BCA_NGDPD":   { fr:"Balance courante",  en:"Current account" },
@@ -428,7 +443,7 @@ const fmtVal = (ind) =>
   : `${ind.value >= 0 ? "" : ""}${ind.value.toFixed(1).replace('.',',')}<small>%</small>`;
 
 // Ordre d'affichage : le PIB en grand, puis les taux deux par deux.
-const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH",
+const MACRO_ORDER = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","PCPIEPCH",
                      "GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 
 // Formate une valeur brute d'indicateur selon son type (axes + survol).
@@ -548,6 +563,18 @@ function renderMarkets(iso){
 // sans cron ni fichier. Mis en cache par devise pour la session. Repli propre
 // si la devise n'est pas couverte par la BCE (~30 devises) ou si l'API échoue.
 const fxCache = {};
+let fxAmount = "";       // montant saisi dans le convertisseur (persiste entre pays)
+let fxFrom = "EUR";      // devise de départ du convertisseur : "EUR" ou "USD"
+// Convertit le montant saisi (fxAmount, en fxFrom) vers la devise locale `code`.
+function fxConvResult(code){
+  const d = fxCache[code];
+  const a = parseFloat(String(fxAmount).replace(",", "."));
+  if (!isFinite(a) || a <= 0) return "—";
+  if (fxFrom === code) return a.toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 2 });
+  const r = d && d.rates ? d.rates[fxFrom] : null;   // 1 code = r fxFrom
+  if (r == null || r === 0) return "—";
+  return (a / r).toLocaleString(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 2 });
+}
 const fmtMonth = (ym) => {
   const [y, m] = ym.split("-");
   return new Date(+y, +m - 1, 1).toLocaleDateString(lang === "fr" ? "fr-BE" : "en-GB",
@@ -618,11 +645,21 @@ function renderFX(iso){
   const chart = d.hist
     ? `<div class="fx-pair">${lang === "fr" ? "Évolution vs" : "vs"} ${d.quote} · 12 ${lang === "fr" ? "mois" : "mo"}</div>${sparkChart(d.hist, d.months, "fx")}`
     : "";
+  const conv = `<div class="fx-conv">
+      <input class="fx-in" type="number" inputmode="decimal" step="any"
+        placeholder="${lang === "fr" ? "Montant" : "Amount"}" value="${esc(fxAmount)}">
+      <div class="fx-tog">
+        <button class="fx-cur${fxFrom === "EUR" ? " on" : ""}" data-fxcur="EUR">€</button>
+        <button class="fx-cur${fxFrom === "USD" ? " on" : ""}" data-fxcur="USD">$</button>
+      </div>
+      <div class="fx-eq">= <b id="fxconv">${fxConvResult(code)}</b> ${code}</div>
+    </div>`;
   return `<div id="fxblock">${cap}
     <div class="cell wide">
       <div class="k">${esc(name)}</div>
       ${rows}
       ${chart}
+      ${conv}
     </div>
     <div class="macro-src">${lang === "fr" ? "Taux indicatifs · exchange-api · quotidien" : "Indicative rates · exchange-api · daily"}</div></div>`;
 }
@@ -726,10 +763,25 @@ function renderPanel(){
 
 // Bascule d'onglet (délégation : le panneau est reconstruit à chaque rendu).
 el("panel").addEventListener("click", (e) => {
+  const cur = e.target.closest("[data-fxcur]");
+  if (cur){
+    fxFrom = cur.dataset.fxcur;
+    if (selected) paintFX(ident[selected.iso]?.code);   // re-render du bloc FX (bascule + résultat)
+    return;
+  }
   const b = e.target.closest("[data-tab]");
   if (!b) return;
   panelTab = b.dataset.tab;
   renderPanel();
+});
+
+// Saisie dans le convertisseur : recalcule le résultat en place (sans re-render,
+// pour ne pas perdre le focus du champ).
+el("panel").addEventListener("input", (e) => {
+  if (!e.target.classList.contains("fx-in")) return;
+  fxAmount = e.target.value;
+  const out = document.getElementById("fxconv");
+  if (out && selected) out.textContent = fxConvResult(ident[selected.iso]?.code);
 });
 
 // Survol des mini-graphes : affiche l'année et la valeur du point le plus proche.

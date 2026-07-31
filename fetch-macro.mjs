@@ -24,6 +24,7 @@ const INDIC = [
   ["NGDPDPC",     "PIB par habitant", "money",   true],
   ["NGDP_RPCH",   "Croissance",       "pct",     true],
   ["PCPIPCH",     "Inflation",        "pct",     true],
+  ["PCPIEPCH",    "Inflation fin d'année", "pct", false],
   ["GGXWDG_NGDP", "Dette publique",   "pct",     true],
   ["GGXCNL_NGDP", "Solde budgétaire", "pct",     false],
   ["BCA_NGDPD",   "Balance courante", "pct",     false],
