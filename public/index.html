@@ -1275,7 +1275,8 @@ function renderDatabase(){
   }
   const passQuart = (iso) => !quartOf || dbQuarts.has(quartOf(iso));
   const shown = isos.filter(iso => dbPicked.has(iso)
-    || ((!q || fold(nameCol.get(iso)).includes(q)) && passRegion(iso) && passGrade(iso) && passQuart(iso)));
+    || ((!q || fold(nameCol.get(iso)).includes(q) || iso.toLowerCase() === q)
+        && passRegion(iso) && passGrade(iso) && passQuart(iso)));
   // Puces de filtres
   const chip = (attr, val, on, label, dis) =>
     `<button class="chip${on ? " on" : ""}" ${attr}="${val}"${dis ? " disabled" : ""}>${label}</button>`;
@@ -1644,8 +1645,9 @@ async function boot(){
         btn.classList.toggle("on", on);
         btn.setAttribute("aria-pressed", String(on));
       }
-      // seul le panneau pays affiche des montants : on le rerend s'il est ouvert
+      // Le panneau pays ET le tableur affichent des montants : on rerend les deux.
       if (selected) renderPanel();
+      renderView(view);
     });
   }
 
@@ -1672,7 +1674,17 @@ async function boot(){
     // Un même pays peut être éclaté en plusieurs entités (France = métropole +
     // outre-mer, toutes sur FR). On n'en garde qu'une ligne par code ISO.
     .filter(x => !x.iso || (!seenIso.has(x.iso) && seenIso.add(x.iso)))
-    .sort((a,b) => dispName(a).localeCompare(dispName(b), "fr")).slice(0, 8);
+    // Priorité : code ISO exact ("us" → États-Unis), puis noms commençant par
+    // la saisie, puis le reste en alphabétique.
+    .sort((a, b) => {
+      const ai = a.iso && a.iso.toLowerCase() === q ? 0 : 1;
+      const bi = b.iso && b.iso.toLowerCase() === q ? 0 : 1;
+      if (ai !== bi) return ai - bi;
+      const ap = dispName(a).toLowerCase().startsWith(q) ? 0 : 1;
+      const bp = dispName(b).toLowerCase().startsWith(q) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return dispName(a).localeCompare(dispName(b), "fr");
+    }).slice(0, 8);
     if (!hits.length){
       resultsBox.innerHTML = `<div class="empty2">${t("noMatch")}</div>`;
       return;
