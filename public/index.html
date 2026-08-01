@@ -326,6 +326,7 @@
   .db-search:focus{border-color:var(--indigo);}
   .db-search::placeholder{color:var(--dim);}
   .db-none{color:var(--dim);text-align:center;padding:18px;}
+  .db-src{margin-top:10px;flex:none;}
   .pickcell{display:flex;align-items:center;gap:9px;cursor:pointer;}
   .pickcell input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
   table.db tr.picked td{background:var(--rule-soft);}
@@ -1309,6 +1310,9 @@ function renderDatabase(){
       <thead><tr>${thead}</tr></thead>
       <tbody>${tbody}</tbody>
     </table></div>
+    <div class="macro-src db-src">${lang === "fr"
+      ? "Sources : FMI (macro) · Banque mondiale (population) · world-countries (région) · OCDE via FRED (rendements) · Wikipédia (notations)"
+      : "Sources: IMF (macro) · World Bank (population) · world-countries (region) · OECD via FRED (yields) · Wikipedia (ratings)"}</div>
   </div></div>`;
 }
 function renderBenchmark(){ return renderDatabase(); }
