@@ -397,8 +397,10 @@
   .g-bar{justify-content:center;margin-bottom:16px;}
   .g-banner,.g-hintbox{text-align:center;}
   /* Hub des jeux */
-  .g-back{background:none;border:0;color:var(--dim);font-family:var(--mono);font-size:11px;
-    letter-spacing:.05em;text-transform:uppercase;cursor:pointer;padding:4px 0;align-self:flex-start;}
+  .g-page{position:relative;}
+  .g-back{position:absolute;top:16px;left:22px;background:none;border:0;color:var(--dim);
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+    cursor:pointer;padding:4px 0;z-index:2;}
   .g-back:hover{color:var(--indigo);}
   .serie-card{border:1px solid var(--indigo);border-radius:4px;background:var(--panel);
     text-align:center;padding:26px 22px;margin:6px 0 18px;
@@ -1516,7 +1518,7 @@ function renderCountryGame(){
       ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
       : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`));
   return `<div class="page db-page g-page"><div class="db-in g-center">
-    <button class="g-back" data-ghub>← ${L ? "Jeux" : "Games"}</button>
+    <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
     <div class="g-eyebrow">${gDaily
       ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
       : (L ? "Jeu" : "Game")}</div>
