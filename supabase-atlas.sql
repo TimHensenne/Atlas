@@ -91,3 +91,25 @@ grant select on public.leaderboard_today to anon, authenticated;
 --   autrui ou 2×/jour, mais pas de mentir sur son propre total. Acceptable
 --   pour un jeu ludique ; sinon il faudrait valider la partie côté serveur.
 -- =====================================================================
+
+-- =====================================================================
+-- AJOUT (connexion par pseudo) — à exécuter aussi si tu veux permettre
+-- de se connecter avec le pseudo et pas seulement l'email.
+-- ⚠️ Compromis vie privée : cette fonction renvoie l'email associé à un
+-- pseudo (nécessaire pour que Supabase authentifie). Quelqu'un qui connaît
+-- un pseudo peut donc récupérer l'email correspondant. Acceptable pour un
+-- jeu ; si tu veux l'éviter, ne lance PAS ce bloc (connexion par email seule).
+-- =====================================================================
+create or replace function public.email_for_pseudo(p text)
+  returns text
+  language sql
+  security definer
+  set search_path = public
+as $$
+  select u.email::text
+  from public.profiles pr
+  join auth.users u on u.id = pr.id
+  where lower(pr.pseudo) = lower(p)
+  limit 1;
+$$;
+grant execute on function public.email_for_pseudo(text) to anon, authenticated;
