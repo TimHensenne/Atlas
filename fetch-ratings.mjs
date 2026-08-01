@@ -60,12 +60,18 @@ for (const c of worldCountries){
     const k = norm(n); if (k && !(k in NAME2ISO)) NAME2ISO[k] = iso;
   }
 }
-const isoOf = (name) => NAME2ISO[norm(name)] || null;
+const isoOf = (name) => {
+  const k = norm(name);
+  if (NAME2ISO[k]) return NAME2ISO[k];
+  const k2 = k.replace(/ [a-z0-9]{1,2}$/, "").trim();   // retire un éventuel suffixe de note
+  return (k2 && NAME2ISO[k2]) || null;
+};
 
 // Nettoie une cellule HTML : enlève balises, décode entités, normalise le « − ».
 const clean = (html) => html
   .replace(/<sup[\s\S]*?<\/sup>/gi, "")        // enlève les [refs]
   .replace(/<[^>]+>/g, "")                      // enlève les balises
+  .replace(/\[[^\]]*\]/g, "")                   // notes en clair : [a], [1]…
   .replace(/&amp;/g, "&").replace(/&nbsp;/g, " ")
   .replace(/&#8722;|\u2212/g, "-")              // − → -
   .replace(/&[a-z]+;/gi, "").replace(/\s+/g, " ").trim();
