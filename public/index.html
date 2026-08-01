@@ -431,18 +431,114 @@
   .tagmini{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
     color:var(--dim);border:1px solid var(--rule);border-radius:2px;padding:3px 8px;align-self:flex-start;}
   .tagmini.on{color:var(--indigo);border-color:var(--indigo);}
-  /* Super Série : manches (une par jeu) */
+  /* Super Série : étapes linéaires (non cliquables — on ne choisit pas) */
   .serie-prog{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--dim);margin:0 0 14px;}
-  .serie-rounds{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-  .serie-round{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;
-    background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:11px 15px;
-    cursor:pointer;min-width:150px;transition:border-color .15s ease,transform .15s ease;}
-  .serie-round:hover{border-color:var(--indigo);transform:translateY(-1px);}
-  .serie-round.done{border-color:#1E7A46;}
-  .serie-round .sr-t{font-family:var(--display);font-weight:700;font-size:13.5px;color:var(--ink);}
-  .serie-round .sr-s{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);}
-  .serie-round.done .sr-s{color:#1E7A46;}
+    color:var(--dim);margin:0 0 12px;}
+  .serie-steps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 18px;}
+  .serie-step{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px 14px 10px 12px;
+    min-width:150px;position:relative;}
+  .serie-step .sr-i{position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:10px;
+    color:var(--dim);border:1px solid var(--rule);border-radius:50%;width:18px;height:18px;
+    display:flex;align-items:center;justify-content:center;}
+  .serie-step .sr-t{font-family:var(--display);font-weight:700;font-size:13.5px;color:var(--ink);padding-right:22px;}
+  .serie-step .sr-s{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;}
+  .serie-step.done{border-color:#1E7A46;}
+  .serie-step.done .sr-s{color:#1E7A46;}
+  .serie-step.done .sr-i{border-color:#1E7A46;color:#1E7A46;}
+  .serie-step.current{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo) inset;}
+  .serie-step.current .sr-s{color:var(--indigo);}
+  .serie-step.current .sr-i{border-color:var(--indigo);color:var(--indigo);}
+  .serie-step.todo{opacity:.6;}
+  .serie-cta .serie-play{font-size:12px;padding:11px 24px;}
+  .serie-cont{text-align:center;margin:14px 0 4px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .serie-free{text-align:center;color:var(--dim);font-size:12.5px;margin:2px 0 12px;}
+  /* Super Série + classement côte à côte */
+  .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
+  .serie-row .serie-card{flex:1 1 auto;margin:0;}
+  .lb-card{flex:0 0 264px;max-width:300px;border:1px solid var(--rule);border-radius:4px;
+    background:var(--panel);padding:16px 16px 13px;display:flex;flex-direction:column;text-align:left;}
+  .lb-h{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);margin-bottom:2px;}
+  .lb-sub{font-size:11.5px;color:var(--dim);line-height:1.4;margin-bottom:12px;}
+  .lb{width:100%;border-collapse:collapse;font-size:13px;}
+  .lb th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+    text-align:left;font-weight:400;padding:0 0 6px;border-bottom:1px solid var(--rule);}
+  .lb th:last-child,.lb td:last-child{text-align:right;}
+  .lb td{padding:7px 0;border-bottom:1px solid var(--rule-soft);}
+  .lb tbody tr:last-child td{border-bottom:0;}
+  .lb-rk{font-family:var(--mono);color:var(--dim);width:22px;}
+  .lb tbody tr:first-child .lb-rk{color:#C9921E;font-weight:600;}
+  .lb-dt{color:var(--ink);}
+  .lb-sc{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .lb tbody tr:first-child .lb-sc{color:#1E7A46;}
+  .lb-empty{color:var(--dim);font-size:12px;padding:16px 0;text-align:center!important;}
+  .lb-note{font-size:10px;color:var(--dim);line-height:1.4;margin-top:auto;padding-top:12px;opacity:.85;}
+  @media(max-width:760px){
+    .serie-row{flex-direction:column;}
+    .lb-card{flex:1 1 auto;max-width:none;}
+  }
+  /* Comptes : boutons barre + modale */
+  .authbar{display:flex;gap:1px;border:1px solid var(--rule);}
+  .authbar button{background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
+    font-family:var(--mono);font-size:11px;padding:5px 10px;line-height:1;color:var(--dim);white-space:nowrap;}
+  .authbar button:last-child{border-right:0;}
+  .authbar button.pri{background:var(--indigo);color:#FFF;}
+  .authbar button:hover:not(.pri){color:var(--ink);background:var(--ocean);}
+  .authbar .who{display:flex;align-items:center;gap:6px;padding:5px 10px;color:var(--ink);
+    font-family:var(--mono);font-size:11px;}
+  .authbar .who b{color:var(--indigo);font-weight:600;}
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(8,12,20,.55);
+    display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px 16px;overflow:auto;}
+  .modal[hidden]{display:none;}
+  .modal-card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;
+    width:100%;max-width:420px;padding:22px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.4);position:relative;}
+  .m-close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);
+    font-size:20px;line-height:1;cursor:pointer;}
+  .m-close:hover{color:var(--ink);}
+  .m-tabs{display:flex;gap:2px;margin:0 0 16px;border-bottom:1px solid var(--rule);}
+  .m-tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--dim);padding:8px 4px;}
+  .m-tabs button.on{color:var(--indigo);border-bottom-color:var(--indigo);}
+  .m-h{font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);margin:0 0 4px;}
+  .m-sub{font-size:12.5px;color:var(--dim);line-height:1.5;margin:0 0 16px;}
+  .m-field{margin:0 0 11px;}
+  .m-field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--dim);margin:0 0 5px;}
+  .m-field .req{color:var(--accent);}
+  .m-in,.m-sel{width:100%;box-sizing:border-box;font-family:var(--body);font-size:13.5px;
+    padding:9px 11px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
+    color:var(--ink);outline:none;}
+  .m-in:focus,.m-sel:focus{border-color:var(--indigo);}
+  .m-row{display:flex;gap:10px;}
+  .m-row .m-field{flex:1;}
+  .m-opt{margin:14px 0 0;border-top:1px solid var(--rule-soft);padding-top:12px;}
+  .m-opt>summary{cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--dim);list-style:none;}
+  .m-opt>summary::-webkit-details-marker{display:none;}
+  .m-opt>summary::before{content:"▸ ";}
+  .m-opt[open]>summary::before{content:"▾ ";}
+  .m-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--dim);
+    line-height:1.45;margin:12px 0 2px;}
+  .m-consent input{margin-top:2px;flex:none;}
+  .m-consent a{color:var(--indigo);}
+  .m-go{width:100%;background:var(--indigo);color:#FFF;border:0;border-radius:3px;cursor:pointer;
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px;margin:16px 0 0;}
+  .m-go:hover{background:var(--indigo-hi);}
+  .m-go:disabled{opacity:.5;cursor:default;}
+  .m-alt{text-align:center;margin:12px 0 0;}
+  .m-alt button{background:none;border:0;color:var(--dim);font-size:11.5px;cursor:pointer;text-decoration:underline;}
+  .m-alt button:hover{color:var(--indigo);}
+  .m-msg{font-size:12.5px;line-height:1.45;margin:12px 0 0;padding:9px 11px;border-radius:3px;}
+  .m-msg.err{background:rgba(226,58,46,.12);color:var(--accent);}
+  .m-msg.ok{background:rgba(30,122,70,.14);color:#1E7A46;}
+  .m-legal{font-size:11px;color:var(--dim);line-height:1.6;max-height:52vh;overflow:auto;}
+  .m-legal h4{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--ink);margin:14px 0 4px;}
+  .m-legal p{margin:0 0 8px;}
+  .lb-you{color:var(--indigo);}
+  .lb tbody tr.me{background:var(--rule-soft);}
+  .lb-load{color:var(--dim);font-size:12.5px;padding:14px 0;text-align:center;}
   /* Jeu : devine le drapeau */
   .fg-main{display:flex;gap:22px;align-items:flex-start;justify-content:center;margin:2px 0 20px;}
   .fg-left{flex:0 0 auto;width:300px;max-width:100%;}
@@ -569,6 +665,7 @@
       <button type="button" data-theme-set="light" aria-label="Mode jour" title="Jour">☀</button>
       <button type="button" data-theme-set="dark" aria-label="Mode nuit" title="Nuit">☾</button>
     </div>
+    <div class="authbar" id="authbar" hidden></div>
   </div>
 </header>
 
@@ -608,6 +705,10 @@
 
 <div id="tip"><b></b><span></span></div>
 
+<!-- Modale comptes / confidentialité (remplie par le script, cachée par défaut) -->
+<div id="authModal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true"></div></div>
+
+<script src="atlas-config.js"></script>
 <script type="module">
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
@@ -1478,6 +1579,65 @@ const serieRead = () => { try { const j = JSON.parse(localStorage.getItem("atlas
 const serieGet  = (game) => serieRead()[game] || null;
 const serieSave = (game, tries) => { try { const games = serieRead(); games[game] = { tries };
   localStorage.setItem("atlas-serie", JSON.stringify({ date: todayKey(), games })); } catch {} };
+// La Super Série est linéaire : on enchaîne les jeux dans cet ordre, sans choisir.
+const SERIE = ["country", "flag"];   // ← ajouter les jeux 3 et 4 ici quand ils existeront
+const serieLabel = (g, L) => g === "flag" ? (L ? "Devine le drapeau" : "Guess the flag")
+                                          : (L ? "Trouve le pays" : "Guess the country");
+const serieNext = () => SERIE.find(g => !serieGet(g)) || null;   // 1re manche non terminée
+const serieReset = () => { try { localStorage.removeItem("atlas-serie"); } catch {} };
+// Bloc affiché quand une manche de la série vient d'être gagnée : enchaîne sur
+// le jeu suivant, ou annonce la fin de la série.
+function serieContHTML(L){
+  const nxt = serieNext();
+  return nxt
+    ? `<div class="serie-cont"><button class="db-all serie-play" data-gserie>${L ? "Continuer la série" : "Continue the series"} → ${esc(serieLabel(nxt, L))}</button></div>`
+    : `<div class="serie-cont"><div class="serie-done">🎉 ${L ? "Série du jour terminée !" : "Today's series complete!"}</div>
+       <button class="db-all" data-ghub>← ${L ? "Retour à la salle" : "Back to the game room"}</button></div>`;
+}
+// ── Classement local (palmarès des séries terminées) ─────────────────────
+// Site statique : pas de serveur, donc pas de classement partagé entre
+// visiteurs. On garde un palmarès LOCAL à ce navigateur — les meilleures
+// séries (total d'essais le plus faible), une entrée par jour (la meilleure).
+const scoreRead = () => { try { const a = JSON.parse(localStorage.getItem("atlas-scores") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+const scoreWrite = (a) => { try { localStorage.setItem("atlas-scores", JSON.stringify(a.slice(0, 50))); } catch {} };
+function serieRecord(){
+  const games = serieRead();
+  if (SERIE.some(g => !games[g])) return;                         // série incomplète
+  const total = SERIE.reduce((s, g) => s + (games[g]?.tries || 0), 0);
+  const day = todayKey();
+  const scores = scoreRead();
+  const ex = scores.find(s => s.date === day);
+  if (ex) ex.total = Math.min(ex.total, total);                    // garde la meilleure du jour
+  else scores.push({ date: day, total });
+  scores.sort((a, b) => a.total - b.total || (a.date < b.date ? -1 : 1));
+  scoreWrite(scores);
+}
+function renderLeaderboard(L){
+  // Connecté à Supabase → classement DU JOUR partagé (rempli en async par Auth).
+  if (Auth.isLoggedIn()){
+    setTimeout(() => Auth.fillLeaderboard(L), 0);
+    return `<div class="lb-card" id="lbCard">
+      <div class="lb-h">${L ? "Classement du jour" : "Today's leaderboard"}</div>
+      <div class="lb-sub">${L ? "Le moins d'essais gagne · une seule tentative." : "Fewest guesses wins · one attempt."}</div>
+      <div class="lb-load">${L ? "Chargement…" : "Loading…"}</div></div>`;
+  }
+  // Sinon : palmarès LOCAL à ce navigateur.
+  const scores = scoreRead().slice().sort((a, b) => a.total - b.total || (a.date < b.date ? -1 : 1)).slice(0, 8);
+  const fmtDay = (iso) => { try { return new Date(iso + "T00:00:00").toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "short" }); } catch { return iso; } };
+  const rows = scores.length
+    ? scores.map((s, i) => `<tr><td class="lb-rk">${i + 1}</td><td class="lb-dt">${esc(fmtDay(s.date))}</td><td class="lb-sc">${s.total}</td></tr>`).join("")
+    : `<tr><td colspan="3" class="lb-empty">${L ? "Termine une série pour apparaître ici." : "Finish a series to appear here."}</td></tr>`;
+  const cta = Auth.configured()
+    ? `<div class="lb-note">${L ? "Connecte-toi pour le classement du jour partagé." : "Log in for the shared daily leaderboard."}</div>`
+    : `<div class="lb-note">${L ? "Palmarès local à ce navigateur (site statique, sans serveur)." : "Ranking local to this browser (static site, no server)."}</div>`;
+  return `<div class="lb-card" id="lbCard">
+    <div class="lb-h">${L ? "Classement" : "Leaderboard"}</div>
+    <div class="lb-sub">${L ? "Tes meilleures séries — le moins d'essais gagne." : "Your best series — fewest guesses wins."}</div>
+    <table class="lb"><thead><tr><th>#</th><th>${L ? "Jour" : "Day"}</th><th title="${L ? "Total d'essais" : "Total guesses"}">${L ? "Essais" : "Guesses"}</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    ${cta}
+  </div>`;
+}
 const gName = (iso) => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name || iso;
 const gDensity = (iso) => { const d = ident[iso]; return d && d.pop != null && d.area ? d.pop / d.area : null; };
 // Direction du pays mystère vue depuis l'essai : flèche parmi 8 (↑ = nord).
@@ -1516,14 +1676,26 @@ function renderGames(){
 function renderGameHub(){
   const L = lang === "fr";
   const dateStr = new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" });
-  const cDone = serieGet("country"), fDone = serieGet("flag");
-  const doneN = (cDone ? 1 : 0) + (fDone ? 1 : 0);
-  const round = (game, label, st) => `<button class="serie-round${st ? " done" : ""}" data-gserie="${game}">
-      <span class="sr-t">${label}</span>
-      <span class="sr-s">${st
-        ? `✓ ${st.tries} ${L ? (st.tries > 1 ? "essais" : "essai") : (st.tries > 1 ? "guesses" : "guess")}`
-        : (L ? "À jouer →" : "Play →")}</span>
-    </button>`;
+  const nextG = serieNext();
+  const doneN = SERIE.filter(g => serieGet(g)).length;
+  const startedN = doneN;                       // nb de manches déjà faites
+  // Étapes de la série (dans l'ordre, non cliquables : on ne choisit pas).
+  const steps = SERIE.map((g, i) => {
+    const st = serieGet(g);
+    const cls = st ? "done" : (g === nextG ? "current" : "todo");
+    const status = st
+      ? `✓ ${st.tries} ${L ? (st.tries > 1 ? "essais" : "essai") : (st.tries > 1 ? "guesses" : "guess")}`
+      : (g === nextG ? (L ? "à jouer" : "up next") : (L ? "à venir" : "later"));
+    return `<div class="serie-step ${cls}"><span class="sr-i">${i + 1}</span>
+        <span class="sr-t">${esc(serieLabel(g, L))}</span>
+        <span class="sr-s">${status}</span></div>`;
+  }).join("");
+  const cta = nextG
+    ? `<button class="db-all serie-play" data-gserie>${startedN > 0
+        ? (L ? "Continuer la série" : "Continue the series")
+        : (L ? "Jouer la série du jour" : "Play today's series")} →</button>`
+    : `<div class="serie-done">🎉 ${L ? "Série du jour terminée" : "Today's series complete"}</div>
+       <button class="db-all" data-gserie-reset>⟳ ${L ? "Rejouer la série" : "Replay the series"}</button>`;
   const off = (name) => `<div class="g-card off">
       <div class="g-card-t">${name}</div>
       <div class="g-card-d">?</div>
@@ -1532,20 +1704,20 @@ function renderGameHub(){
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <div class="g-eyebrow">${L ? "Jeux" : "Games"}</div>
     <h1 class="g-title">${L ? "Salle de jeux" : "Game room"}</h1>
-    <div class="serie-card">
-      <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
-      <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
-      <p class="serie-d">${L
-        ? "Une manche de chaque jeu, une fois par jour — le même défi pour tout le monde. 2 jeux sur 4 pour l'instant ; les manches s'ajouteront avec les nouveaux jeux."
-        : "One round of each game, once a day — the same challenge for everyone. 2 of 4 games for now; rounds will be added as new games arrive."}</p>
-      <div class="serie-prog">${doneN === 2
-        ? (L ? "✓ Série du jour complétée" : "✓ Today's series complete")
-        : `${doneN} / 2 ${L ? "manches" : "rounds"}`}</div>
-      <div class="serie-rounds">
-        ${round("country", L ? "Trouve le pays" : "Guess the country", cDone)}
-        ${round("flag", L ? "Devine le drapeau" : "Guess the flag", fDone)}
+    <div class="serie-row">
+      <div class="serie-card">
+        <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
+        <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
+        <p class="serie-d">${L
+          ? "Une série, pas un menu : on commence par le premier jeu et on enchaîne les manches dans l'ordre. Une par jour, le même défi pour tout le monde. 2 jeux sur 4 pour l'instant."
+          : "A series, not a menu: you start with the first game and play the rounds in order. One a day, the same challenge for everyone. 2 of 4 games for now."}</p>
+        <div class="serie-prog">${doneN} / ${SERIE.length} ${L ? "manches" : "rounds"}</div>
+        <div class="serie-steps">${steps}</div>
+        <div class="serie-cta">${cta}</div>
       </div>
+      ${renderLeaderboard(L)}
     </div>
+    <p class="serie-free">${L ? "Ou joue librement, hors série (parties illimitées) :" : "Or play freely, outside the series (unlimited games):"}</p>
     <div class="g-grid">
       <div class="g-card" data-gplay>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
@@ -1554,7 +1726,7 @@ function renderGameHub(){
       </div>
       <div class="g-card" data-gflag>
         <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
-        <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, indicatif et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, dialing code and name unlock as you try."}</div>
+        <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, code pays et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, country code and name unlock as you try."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
       ${off(L ? "Jeu n°3" : "Game #3")}
@@ -1619,6 +1791,7 @@ function renderCountryGame(){
       ${gDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
     </div>
     ${win}
+    ${gDaily && gWon ? serieContHTML(L) : ""}
     ${hint}
     <div class="g-scroll">
       <div class="g-row g-head">${heads.map(h => `<div class="g-cell">${esc(h)}</div>`).join("")}</div>
@@ -1644,7 +1817,7 @@ function gSuggest(qRaw, exclude = gGuesses){
 function gGuess(iso){
   if (gWon || gGuesses.includes(iso)) return;
   gGuesses.push(iso);
-  if (iso === gTarget){ gWon = true; if (gDaily) serieSave("country", gGuesses.length); }
+  if (iso === gTarget){ gWon = true; if (gDaily){ serieSave("country", gGuesses.length); serieRecord(); Auth.onSeriesComplete(); } }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !gWon) inp.focus();
@@ -1667,7 +1840,7 @@ function fNew(daily){
 function fGuess(iso){
   if (fWon || fGuesses.includes(iso)) return;
   fGuesses.push(iso);
-  if (iso === fTarget){ fWon = true; if (fDaily) serieSave("flag", fGuesses.length); }
+  if (iso === fTarget){ fWon = true; if (fDaily){ serieSave("flag", fGuesses.length); serieRecord(); Auth.onSeriesComplete(); } }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !fWon) inp.focus();
@@ -1768,6 +1941,7 @@ function renderFlagGame(){
       <span class="g-count">${fGuesses.length} ${L ? "essai" : "guess"}${fGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
       ${fDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
     </div>
+    ${fDaily && fWon ? serieContHTML(L) : ""}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
   </div></div>`;
 }
@@ -1807,12 +1981,23 @@ async function boot(){
       gScreen = "flag";
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
-    const serie = e.target.closest("[data-gserie]");
-    if (serie){                              // manche du jour du jeu choisi (reprise, ou rejeu si finie)
-      if (serie.dataset.gserie === "flag"){ if (!fDaily || fWon) fNew(true); gScreen = "flag"; }
-      else { if (!gDaily || gWon) gNew(true); gScreen = "country"; }
+    if (e.target.closest("[data-gserie-reset]")){   // recommencer toute la série
+      serieReset();
+      if (serieNext() === "flag"){ fNew(true); gScreen = "flag"; } else { gNew(true); gScreen = "country"; }
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
+    const serie = e.target.closest("[data-gserie]");
+    if (serie){                              // lance / poursuit la série : 1re manche non terminée, dans l'ordre
+      const launch = () => {
+        const g = serieNext();
+        if (!g){ gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
+        if (g === "flag"){ if (!fDaily || fWon || !fTarget) fNew(true); gScreen = "flag"; }
+        else { if (!gDaily || gWon || !gTarget) gNew(true); gScreen = "country"; }
+        el("view-games").innerHTML = renderGames();
+        el("view-games").querySelector(".g-in")?.focus();
+      };
+      Auth.promptSeries(launch);             // propose la connexion (1×/session), puis joue
+      return; }
     const nb = e.target.closest("[data-gnew]");
     if (nb){ gScreen === "flag" ? fNew(false) : gNew(false);
       el("view-games").innerHTML = renderGames();
@@ -2272,7 +2457,285 @@ async function boot(){
   });
 })();
 
+// ═══ Comptes & classement partagé (Supabase) ══════════════════════════════
+// Entièrement isolé : si atlas-config.js n'est pas renseigné, cfgOK() est faux
+// et TOUT reste en mode local (aucun bouton, palmarès local). Chaque appel
+// réseau est en try/catch : la moindre erreur retombe proprement en local.
+const Auth = (() => {
+  let supa = null, user = null, profile = null, ready = false;
+  let pendingAfter = null, busy = false;
+
+  const cfgOK = () => { const c = window.ATLAS_SUPABASE;
+    return !!(c && c.url && c.anon && !/VOTRE-PROJET|VOTRE_CLE/.test(String(c.url) + String(c.anon))); };
+  const isLoggedIn = () => !!(ready && user);
+
+  async function init(){
+    bindOnce();
+    if (!cfgOK()){ paintBar(); return; }                 // mode local
+    try {
+      const mod = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+      supa = mod.createClient(window.ATLAS_SUPABASE.url, window.ATLAS_SUPABASE.anon,
+        { auth: { persistSession: true, autoRefreshToken: true } });
+      ready = true;
+      const { data } = await supa.auth.getSession();
+      if (data && data.session && data.session.user){ user = data.session.user; await ensureProfile(); }
+      supa.auth.onAuthStateChange(async (_e, session) => {
+        user = (session && session.user) || null;
+        if (user) await ensureProfile(); else profile = null;
+        paintBar(); refreshHub();
+      });
+      paintBar();
+      // Invite après 5 s sur la carte, une seule fois par session.
+      setTimeout(() => {
+        if (ready && !user && view === "map" && !sessionStorage.getItem("atlas-auth-nag")){
+          sessionStorage.setItem("atlas-auth-nag", "1"); openModal("signup", null);
+        }
+      }, 5000);
+    } catch { ready = false; supa = null; paintBar(); }   // échec de chargement → local
+  }
+
+  async function ensureProfile(){
+    if (!supa || !user) return;
+    try {
+      let { data: p } = await supa.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      if (!p){
+        let prof = null;
+        try { const pend = JSON.parse(localStorage.getItem("atlas-pending-profile") || "null");
+          if (pend && pend.id === user.id) prof = pend; } catch {}
+        if (!prof){ const base = (user.email || "joueur").split("@")[0].replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20) || "joueur";
+          prof = { id: user.id, pseudo: base, consent_optional: false }; }
+        await supa.from("profiles").upsert(prof);
+        localStorage.removeItem("atlas-pending-profile");
+        const r = await supa.from("profiles").select("*").eq("id", user.id).maybeSingle();
+        p = r.data;
+      }
+      profile = p || null;
+    } catch { profile = null; }
+  }
+
+  function collectSignup(){
+    const g = (id) => (el(id) ? el(id).value.trim() : "");
+    const consent = !!(el("su-consent") && el("su-consent").checked);
+    const yearRaw = g("su-year");
+    const prof = { pseudo: g("su-pseudo") };
+    if (consent){
+      if (g("su-first")) prof.first_name = g("su-first");
+      if (yearRaw && /^\d{4}$/.test(yearRaw)) prof.birth_year = parseInt(yearRaw, 10);
+      if (el("su-sex") && el("su-sex").value) prof.sex = el("su-sex").value;
+      if (g("su-country")) prof.country = g("su-country");
+    }
+    prof.consent_optional = consent;
+    return { email: g("su-email"), password: g("su-pw"), prof };
+  }
+
+  async function doSignup(){
+    if (busy) return; const L = lang === "fr";
+    const { email, password, prof } = collectSignup();
+    if (prof.pseudo.length < 2) return setMsg("err", L ? "Choisis un pseudo (2 caractères min.)." : "Pick a pseudonym (2+ chars).");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setMsg("err", L ? "Adresse email invalide." : "Invalid email address.");
+    if (password.length < 6) return setMsg("err", L ? "Mot de passe : 6 caractères minimum." : "Password: 6 characters minimum.");
+    setBusy(true);
+    try {
+      const { data, error } = await supa.auth.signUp({ email, password });
+      if (error) throw error;
+      const row = Object.assign({ id: data.user.id }, prof);
+      if (data.session){                                  // confirmation email désactivée → session directe
+        user = data.user;
+        const up = await supa.from("profiles").upsert(row);
+        if (up.error) throw up.error;
+        await ensureProfile(); paintBar(); refreshHub();
+        finishAuth(L ? "Compte créé, te voilà connecté !" : "Account created — you're in!");
+      } else {                                            // confirmation email activée
+        try { localStorage.setItem("atlas-pending-profile", JSON.stringify(row)); } catch {}
+        setBusy(false);
+        setMsg("ok", L ? "Compte créé. Confirme via l'email reçu, puis connecte-toi." : "Account created. Confirm via email, then log in.");
+      }
+    } catch (e){
+      setBusy(false);
+      const m = String(e && e.message || e);
+      if (/duplicate|unique|already/i.test(m)) setMsg("err", L ? "Ce pseudo ou cet email est déjà pris." : "That pseudonym or email is taken.");
+      else setMsg("err", (L ? "Échec : " : "Failed: ") + m);
+    }
+  }
+
+  async function doLogin(){
+    if (busy) return; const L = lang === "fr";
+    const email = el("au-email") ? el("au-email").value.trim() : "";
+    const password = el("au-pw") ? el("au-pw").value : "";
+    if (!email || !password) return setMsg("err", L ? "Email et mot de passe requis." : "Email and password required.");
+    setBusy(true);
+    try {
+      const { error } = await supa.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await ensureProfile(); paintBar(); refreshHub();
+      finishAuth(L ? "Connecté." : "Logged in.");
+    } catch (e){
+      setBusy(false);
+      setMsg("err", (lang === "fr" ? "Connexion impossible : " : "Login failed: ") + String(e && e.message || e));
+    }
+  }
+
+  async function logout(){
+    try { await supa.auth.signOut(); } catch {}
+    user = null; profile = null; paintBar(); refreshHub();
+  }
+
+  // ── Score du jour : une insertion (la RLS + clé primaire garantissent 1×/jour)
+  async function onSeriesComplete(){
+    if (!isLoggedIn()) return;
+    let games; try { games = serieRead(); } catch { return; }
+    if (SERIE.some(g => !games[g])) return;               // série incomplète
+    const total = SERIE.reduce((s, g) => s + ((games[g] && games[g].tries) || 0), 0);
+    const day = todayKey();
+    if (sessionStorage.getItem("atlas-sent-" + day)) { fillLeaderboard(lang === "fr"); return; }
+    try {
+      const row = { user_id: user.id, total,
+        country_tries: games.country ? games.country.tries : null,
+        flag_tries: games.flag ? games.flag.tries : null };
+      const { error } = await supa.from("daily_scores").insert(row);
+      // 23505 = déjà une ligne aujourd'hui : normal (une tentative), on ignore.
+      if (error && !/duplicate|23505|unique/i.test(String(error.message))) throw error;
+      try { sessionStorage.setItem("atlas-sent-" + day, "1"); } catch {}
+    } catch {}
+    fillLeaderboard(lang === "fr");
+  }
+
+  async function fillLeaderboard(L){
+    const card = el("lbCard"); if (!card || !supa) return;
+    const head = '<div class="lb-h">' + (L ? "Classement du jour" : "Today's leaderboard") + '</div>'
+      + '<div class="lb-sub">' + (L ? "Le moins d'essais gagne · une seule tentative." : "Fewest guesses wins · one attempt.") + '</div>';
+    try {
+      const { data, error } = await supa.from("leaderboard_today").select("pseudo,total").order("total", { ascending: true }).limit(20);
+      if (error) throw error;
+      const mine = profile && profile.pseudo;
+      const rows = (data && data.length)
+        ? data.map((r, i) => '<tr class="' + (r.pseudo === mine ? "me" : "") + '"><td class="lb-rk">' + (i + 1) + '</td><td class="lb-dt">' + esc(r.pseudo) + '</td><td class="lb-sc">' + r.total + '</td></tr>').join("")
+        : '<tr><td colspan="3" class="lb-empty">' + (L ? "Personne n'a encore terminé aujourd'hui." : "No one has finished today yet.") + '</td></tr>';
+      card.innerHTML = head
+        + '<table class="lb"><thead><tr><th>#</th><th>' + (L ? "Joueur" : "Player") + '</th><th>' + (L ? "Essais" : "Guesses") + '</th></tr></thead><tbody>' + rows + '</tbody></table>'
+        + '<div class="lb-note">' + (L ? "Classement partagé, remis à zéro chaque jour." : "Shared ranking, reset daily.") + '</div>';
+    } catch {
+      card.innerHTML = head + '<div class="lb-note">' + (L ? "Classement indisponible pour le moment." : "Leaderboard unavailable right now.") + '</div>';
+    }
+  }
+
+  // ── Barre supérieure ────────────────────────────────────────────────────
+  function paintBar(){
+    const bar = el("authbar"); if (!bar) return;
+    if (!cfgOK()){ bar.hidden = true; bar.innerHTML = ""; return; }
+    const L = lang === "fr";
+    bar.hidden = false;
+    if (isLoggedIn()){
+      const who = profile && profile.pseudo ? profile.pseudo : (user.email || "").split("@")[0];
+      bar.innerHTML = '<span class="who">👤 <b>' + esc(who) + '</b></span>'
+        + '<button type="button" data-auth="logout">' + (L ? "Déconnexion" : "Log out") + '</button>';
+    } else {
+      bar.innerHTML = '<button type="button" data-auth="login-open">' + (L ? "Se connecter" : "Log in") + '</button>'
+        + '<button type="button" class="pri" data-auth="signup-open">' + (L ? "S'inscrire" : "Sign up") + '</button>';
+    }
+  }
+  function refreshHub(){ if (view === "games" && gScreen === "hub"){ el("view-games").innerHTML = renderGames(); } }
+
+  // ── Modale ──────────────────────────────────────────────────────────────
+  function fieldLogin(L){
+    return '<div class="m-field"><label>Email <span class="req">*</span></label><input class="m-in" id="au-email" type="email" autocomplete="email"></div>'
+      + '<div class="m-field"><label>' + (L ? "Mot de passe" : "Password") + ' <span class="req">*</span></label><input class="m-in" id="au-pw" type="password" autocomplete="current-password"></div>'
+      + '<button class="m-go" data-auth="submit-login">' + (L ? "Se connecter" : "Log in") + '</button>'
+      + '<div class="m-alt"><button data-auth="tab-signup">' + (L ? "Pas encore de compte ? S'inscrire" : "No account? Sign up") + '</button></div>';
+  }
+  function fieldSignup(L){
+    const opt = L ? "facultatif" : "optional";
+    return '<div class="m-field"><label>' + (L ? "Pseudo" : "Pseudonym") + ' <span class="req">*</span></label><input class="m-in" id="su-pseudo" maxlength="24" autocomplete="nickname"></div>'
+      + '<div class="m-field"><label>Email <span class="req">*</span></label><input class="m-in" id="su-email" type="email" autocomplete="email"></div>'
+      + '<div class="m-field"><label>' + (L ? "Mot de passe" : "Password") + ' <span class="req">*</span></label><input class="m-in" id="su-pw" type="password" autocomplete="new-password"></div>'
+      + '<details class="m-opt"><summary>' + (L ? "Infos facultatives" : "Optional info") + '</summary>'
+        + '<div class="m-field" style="margin-top:11px"><label>' + (L ? "Prénom" : "First name") + ' (' + opt + ')</label><input class="m-in" id="su-first"></div>'
+        + '<div class="m-row"><div class="m-field"><label>' + (L ? "Année de naissance" : "Birth year") + '</label><input class="m-in" id="su-year" inputmode="numeric" maxlength="4" placeholder="1999"></div>'
+        + '<div class="m-field"><label>' + (L ? "Sexe" : "Sex") + '</label><select class="m-sel" id="su-sex"><option value="">—</option><option value="F">' + (L ? "Femme" : "Female") + '</option><option value="M">' + (L ? "Homme" : "Male") + '</option><option value="X">' + (L ? "Autre" : "Other") + '</option></select></div></div>'
+        + '<div class="m-field"><label>' + (L ? "Pays" : "Country") + ' (' + opt + ')</label><input class="m-in" id="su-country"></div>'
+      + '</details>'
+      + '<label class="m-consent"><input type="checkbox" id="su-consent"><span>' + (L
+          ? "J'accepte que mes infos facultatives soient conservées. "
+          : "I agree to store my optional info. ") + '<a data-auth="privacy">' + (L ? "Confidentialité" : "Privacy") + '</a></span></label>'
+      + '<button class="m-go" data-auth="submit-signup">' + (L ? "S'inscrire" : "Sign up") + '</button>'
+      + '<div class="m-alt"><button data-auth="tab-login">' + (L ? "Déjà un compte ? Se connecter" : "Have an account? Log in") + '</button></div>';
+  }
+  function privacyHTML(L){
+    if (!L) return '<div class="m-h">Privacy</div>'
+      + '<div class="m-legal"><p>Atlas stores the data below to run accounts and the daily leaderboard.</p>'
+      + '<h4>Data</h4><p>Required: pseudonym, email, password (hashed by Supabase). Optional (with consent): first name, birth year, sex, country. We never collect your postal address or any sensitive data.</p>'
+      + '<h4>Purpose & basis</h4><p>Account &amp; login (necessity); optional fields and leaderboard display (your consent).</p>'
+      + '<h4>Hosting</h4><p>Data is stored via Supabase. Transport is encrypted (HTTPS).</p>'
+      + '<h4>Your rights</h4><p>Access, rectify, delete — contact [YOUR EMAIL]. You can delete your account at any time.</p>'
+      + '<h4>Retention</h4><p>Until you delete your account. Daily scores may be purged periodically.</p></div>'
+      + '<button class="m-go" data-auth="back">Back</button>';
+    return '<div class="m-h">Confidentialité</div>'
+      + '<div class="m-legal"><p>Atlas conserve les données ci-dessous pour gérer les comptes et le classement du jour.</p>'
+      + '<h4>Données</h4><p>Obligatoires : pseudo, email, mot de passe (haché par Supabase, jamais en clair). Facultatives (avec ton consentement) : prénom, année de naissance, sexe, pays. Nous ne collectons ni adresse postale ni donnée sensible.</p>'
+      + '<h4>Finalité &amp; base légale</h4><p>Compte et connexion (nécessité du service) ; champs facultatifs et affichage au classement (ton consentement, retirable).</p>'
+      + '<h4>Hébergement</h4><p>Les données sont stockées via Supabase. Le transport est chiffré (HTTPS).</p>'
+      + '<h4>Tes droits</h4><p>Accès, rectification, suppression — écris à [TON EMAIL]. Tu peux supprimer ton compte à tout moment.</p>'
+      + '<h4>Conservation</h4><p>Jusqu\'à la suppression de ton compte. Les scores quotidiens peuvent être purgés régulièrement.</p></div>'
+      + '<button class="m-go" data-auth="back">Retour</button>';
+  }
+  function renderModal(tab){
+    const L = lang === "fr";
+    const card = el("authModal").querySelector(".modal-card");
+    let body;
+    if (tab === "privacy") body = privacyHTML(L);
+    else {
+      const tabs = '<div class="m-tabs"><button data-auth="tab-login" class="' + (tab === "login" ? "on" : "") + '">' + (L ? "Connexion" : "Log in")
+        + '</button><button data-auth="tab-signup" class="' + (tab === "signup" ? "on" : "") + '">' + (L ? "Inscription" : "Sign up") + '</button></div>';
+      const intro = tab === "signup"
+        ? '<div class="m-sub">' + (L ? "Un pseudo, un email, un mot de passe — c'est tout ce qu'il faut pour figurer au classement." : "A pseudonym, an email, a password — all you need to join the leaderboard.") + '</div>'
+        : '<div class="m-sub">' + (L ? "Ravi de te revoir." : "Welcome back.") + '</div>';
+      body = tabs + intro + (tab === "signup" ? fieldSignup(L) : fieldLogin(L)) + '<div class="m-msg" id="m-msg" hidden></div>';
+    }
+    card.innerHTML = '<button class="m-close" data-auth="close" aria-label="Fermer">×</button>' + body;
+  }
+  function openModal(tab, after){ pendingAfter = after || null; renderModal(tab || "login"); el("authModal").hidden = false; }
+  function runPending(){ const after = pendingAfter; pendingAfter = null; if (typeof after === "function") after(); }
+  function closeModal(){ const m = el("authModal"); if (m) m.hidden = true; busy = false; runPending(); }
+  function finishAuth(){ const m = el("authModal"); if (m) m.hidden = true; busy = false; runPending(); }
+  function setMsg(kind, text){ const m = el("m-msg"); if (!m){ return; } m.hidden = false; m.className = "m-msg " + kind; m.textContent = text; setBusy(false); }
+  function setBusy(v){ busy = v; const cards = el("authModal"); if (!cards) return;
+    cards.querySelectorAll(".m-go").forEach(b => { b.disabled = v; }); }
+
+  // Invite à la connexion à l'entrée de la Super Série (une fois/session), non bloquant.
+  function promptSeries(launch){
+    if (!cfgOK() || isLoggedIn() || sessionStorage.getItem("atlas-serie-nag")){ launch(); return; }
+    try { sessionStorage.setItem("atlas-serie-nag", "1"); } catch {}
+    openModal("signup", launch);
+  }
+
+  let bound = false;
+  function bindOnce(){
+    if (bound) return; bound = true;
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("[data-auth]"); if (!a) return;
+      const act = a.dataset.auth;
+      if (act === "login-open") openModal("login", null);
+      else if (act === "signup-open") openModal("signup", null);
+      else if (act === "logout") logout();
+      else if (act === "tab-login") renderModal("login");
+      else if (act === "tab-signup") renderModal("signup");
+      else if (act === "privacy") renderModal("privacy");
+      else if (act === "back") renderModal("signup");
+      else if (act === "close") closeModal();
+      else if (act === "submit-login") doLogin();
+      else if (act === "submit-signup") doSignup();
+    });
+    // Clic sur le fond → fermer.
+    document.addEventListener("mousedown", (e) => {
+      if (e.target && e.target.id === "authModal") closeModal();
+    });
+  }
+
+  return { init, isLoggedIn, configured: cfgOK, onSeriesComplete, fillLeaderboard, promptSeries };
+})();
+
 boot();
+Auth.init();
 </script>
 </body>
 </html>
