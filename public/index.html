@@ -397,7 +397,13 @@
   .g-bar{justify-content:center;margin-bottom:16px;}
   .g-banner,.g-hintbox{text-align:center;}
   /* Hub des jeux */
-  .g-page{position:relative;}
+  /* Les pages de jeux défilent d'un bloc dans la fenêtre (elles n'héritent pas
+     du overflow:hidden de .db-page). Le tableau des essais s'étend au lieu
+     d'être enfermé dans une bande à défilement propre ; il ne conserve qu'un
+     défilement horizontal si la largeur l'exige. */
+  .page.g-page{position:relative;display:block;overflow-y:auto;overflow-x:hidden;padding:14px 22px 44px;}
+  .g-page .db-in{display:block;flex:none;min-height:0;}
+  .g-page .g-scroll{overflow-x:auto;overflow-y:hidden;flex:none;min-height:0;}
   .g-back{position:absolute;top:16px;left:22px;background:none;border:0;color:var(--dim);
     font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
     cursor:pointer;padding:4px 0;z-index:2;}
