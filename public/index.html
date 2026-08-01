@@ -81,11 +81,14 @@
      s'étire pour occuper la place. La barre ne se disloque plus. */
   @media(max-width:640px){
     .tools{width:100%;margin-left:0;justify-content:flex-start;}
-    .search{flex:1 1 auto;}
-    .search input{width:100%;}
+    .map-search{right:12px;}
+    .map-search input{width:100%;}
   }
 
   .search{position:relative;}
+  /* Recherche en surimpression sur la carte, coin supérieur gauche */
+  .map-search{position:absolute;top:12px;left:12px;z-index:25;}
+  .map-search input{background:var(--panel);box-shadow:0 1px 6px rgba(0,0,0,.12);}
   .search input{font-family:var(--body);font-size:13px;width:190px;padding:6px 10px;
     background:var(--panel);border:1px solid var(--rule);color:var(--ink);outline:none;
     transition:border-color .15s ease;}
@@ -317,6 +320,12 @@
   .db-all{background:var(--indigo);color:#FFF;border:0;border-radius:3px;font-family:var(--mono);
     font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;cursor:pointer;}
   .db-all:hover{background:var(--indigo-hi);}
+  .db-search{font-family:var(--body);font-size:13px;width:230px;max-width:100%;padding:7px 11px;
+    margin:0 0 12px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
+    color:var(--ink);outline:none;box-sizing:border-box;}
+  .db-search:focus{border-color:var(--indigo);}
+  .db-search::placeholder{color:var(--dim);}
+  .db-none{color:var(--dim);text-align:center;padding:18px;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -397,10 +406,6 @@
       <button type="button" data-cur="USD" class="on" aria-pressed="true">$ USD</button>
       <button type="button" data-cur="EUR" aria-pressed="false">€ EUR</button>
     </div>
-    <div class="search">
-      <input type="text" id="search" autocomplete="off" spellcheck="false" aria-label="Rechercher un pays">
-      <div class="results" id="results"></div>
-    </div>
     <div class="lang" id="lang" role="group" aria-label="Langue">
       <button type="button" data-lang="fr" class="on" aria-pressed="true">FR</button>
       <button type="button" data-lang="en" aria-pressed="false">EN</button>
@@ -421,6 +426,10 @@
       <div class="hint" id="loading">Chargement du fond de carte…</div>
       <svg id="map" viewBox="0 0 900 440" preserveAspectRatio="xMidYMid meet"
            role="img" aria-label="Carte du monde cliquable" hidden></svg>
+      <div class="search map-search">
+        <input type="text" id="search" autocomplete="off" spellcheck="false" aria-label="Rechercher un pays">
+        <div class="results" id="results"></div>
+      </div>
       <div class="zoomctl" id="zoomctl" hidden>
         <button id="zin"   type="button" aria-label="Zoomer">+</button>
         <button id="zout"  type="button" aria-label="Dézoomer">−</button>
@@ -1185,6 +1194,7 @@ const DB_COLS = [
 let dbVisible = new Set(DB_COLS.filter(c => c.always || c.on).map(c => c.key));
 let dbSort = "gdp";
 let dbDir = -1;   // -1 = décroissant, 1 = croissant
+let dbQuery = "";  // filtre de la recherche du tableur
 
 function renderDatabase(){
   const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
@@ -1204,20 +1214,29 @@ function renderDatabase(){
     return (rankOf(sortCol, va) - rankOf(sortCol, vb)) * dbDir;
   });
   const arrow = dbDir < 0 ? " ↓" : " ↑";
+  // Filtre de recherche : compare sans accents, sur le nom affiché.
+  const fold = (s) => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const q = fold(dbQuery.trim());
+  const nameCol = DB_COLS[0];
+  const shown = q ? isos.filter(iso => fold(nameCol.get(iso)).includes(q)) : isos;
   const thead = cols.map(c =>
     `<th class="${c.text ? "" : "num"}${c.key === dbSort ? " sorted" : ""}" data-sort="${c.key}">${esc(c.t[lang])}${c.key === dbSort ? arrow : ""}</th>`
   ).join("");
-  const tbody = isos.map(iso => `<tr>${cols.map(c => {
+  const tbody = shown.map(iso => `<tr>${cols.map(c => {
     const v = c.get(iso);
     const disp = (v == null || v === "") ? "—" : (c.fmt ? c.fmt(v) : esc(String(v)));
     return `<td class="${c.text ? "" : "num"}">${disp}</td>`;
-  }).join("")}</tr>`).join("");
+  }).join("")}</tr>`).join("")
+    || `<tr><td colspan="${cols.length}" class="db-none">${lang === "fr" ? "Aucun pays ne correspond." : "No country matches."}</td></tr>`;
   return `<div class="page db-page"><div class="db-in">
     <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
     <p class="lead">${lang === "fr"
       ? "Tous les pays, tous les indicateurs. Coche les colonnes à afficher, clique un en-tête pour trier (deux clics pour inverser)."
       : "All countries, all indicators. Tick the columns to show, click a header to sort (click again to reverse)."}</p>
     <div class="db-cols">${allBtn}${toggles}</div>
+    <input class="db-search" type="text" autocomplete="off" spellcheck="false"
+      value="${esc(dbQuery)}" placeholder="${lang === "fr" ? "Rechercher un pays…" : "Search a country…"}"
+      aria-label="${lang === "fr" ? "Rechercher dans le tableau" : "Search the table"}">
     <div class="db-scroll"><table class="db">
       <thead><tr>${thead}</tr></thead>
       <tbody>${tbody}</tbody>
@@ -1263,6 +1282,17 @@ async function boot(){
     if (dbSort === key) dbDir = -dbDir;
     else { dbSort = key; dbDir = (DB_COLS.find(c => c.key === key)?.text) ? 1 : -1; }
     el("view-benchmark").innerHTML = renderDatabase();
+  });
+  el("view-benchmark").addEventListener("input", (e) => {
+    const cb = e.target.closest("input[data-col]");
+    if (cb) return;   // les cases passent par l'écouteur change
+    const s = e.target.closest(".db-search");
+    if (!s) return;
+    dbQuery = s.value;
+    const pos = s.selectionStart;
+    el("view-benchmark").innerHTML = renderDatabase();
+    const s2 = el("view-benchmark").querySelector(".db-search");
+    if (s2){ s2.focus(); s2.setSelectionRange(pos, pos); }   // le curseur ne saute pas
   });
   el("view-benchmark").addEventListener("change", (e) => {
     const cb = e.target.closest("input[data-col]");
