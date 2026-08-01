@@ -379,6 +379,12 @@
   .g-hintbox{margin:0 0 10px;font-size:13.5px;color:var(--ink);}
   .g-hintbox b{font-family:var(--mono);color:var(--indigo);letter-spacing:.05em;}
   .g-hintwait{color:var(--dim);font-size:12.5px;}
+  /* Vue jeu : colonne centrée, largeur bornée */
+  .g-center{max-width:940px;margin:0 auto;width:100%;}
+  .g-page h1,.g-page .lead{text-align:center;}
+  .g-page .lead{max-width:640px;margin-left:auto;margin-right:auto;}
+  .g-bar{justify-content:center;}
+  .g-banner,.g-hintbox{text-align:center;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1419,7 +1425,7 @@ function renderGames(){
     : (gHint
       ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
       : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`));
-  return `<div class="page db-page"><div class="db-in">
+  return `<div class="page db-page g-page"><div class="db-in g-center">
     <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
     <p class="lead">${L
       ? "Un pays mystère est tiré au sort. Propose un pays : vert = exact, jaune = proche (±10 %), ↑↓ = le mystère est plus grand ou plus petit, et la flèche Direction pointe vers lui."
