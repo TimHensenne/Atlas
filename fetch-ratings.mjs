@@ -69,6 +69,7 @@ const isoOf = (name) => {
 
 // Nettoie une cellule HTML : enlève balises, décode entités, normalise le « − ».
 const clean = (html) => html
+  .replace(/<style[\s\S]*?<\/style>/gi, "")     // blocs CSS (TemplateStyles) — retirés en entier
   .replace(/<sup[\s\S]*?<\/sup>/gi, "")        // enlève les [refs]
   .replace(/<[^>]+>/g, "")                      // enlève les balises
   .replace(/\[[^\]]*\]/g, "")                   // notes en clair : [a], [1]…
