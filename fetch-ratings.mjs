@@ -72,17 +72,26 @@ const clean = (html) => html
   .replace(/<sup[\s\S]*?<\/sup>/gi, "")        // enlève les [refs]
   .replace(/<[^>]+>/g, "")                      // enlève les balises
   .replace(/\[[^\]]*\]/g, "")                   // notes en clair : [a], [1]…
-  .replace(/&amp;/g, "&").replace(/&nbsp;/g, " ")
+  .replace(/&amp;/g, "&")
+  .replace(/&nbsp;|&#160;|&#xa0;/gi, " ")       // espace insécable : nommé ET numérique
   .replace(/&#8722;|\u2212/g, "-")              // − → -
-  .replace(/&[a-z]+;/gi, "").replace(/\s+/g, " ").trim();
+  .replace(/&#\d+;|&[a-z]+;/gi, "")             // autres entités résiduelles → retirées
+  .replace(/\s+/g, " ").trim();
 
 // Parse un tableau HTML → [{ country, rating, outlook }].
+// Découpage tolérant : ne dépend pas des balises de fermeture (<td>/<tr>), que
+// le HTML de Wikipédia omet parfois — c'est ce qui faisait sauter des lignes.
 function parseTable(tableHtml, validRe){
   const rows = [];
-  const trs = tableHtml.match(/<tr[\s\S]*?<\/tr>/gi) || [];
-  for (const tr of trs){
-    const cells = (tr.match(/<t[dh][\s\S]*?<\/t[dh]>/gi) || []).map(clean);
-    if (cells.length < 3) continue;
+  const body = (tableHtml.match(/<tbody[\s\S]*?<\/tbody>/i) || [tableHtml])[0];
+  for (const chunk of body.split(/<tr\b/i).slice(1)){
+    const row = chunk.split(/<\/tr>/i)[0];
+    const cells = row.split(/<t[dh]\b/i).slice(1).map((c) => {
+      const gt = c.indexOf(">");                       // fin de la balise ouvrante
+      const inner = gt >= 0 ? c.slice(gt + 1) : c;
+      return clean(inner.split(/<\/t[dh]>/i)[0]);      // contenu avant la fermeture
+    });
+    if (cells.length < 2) continue;
     const country = cells[0], rating = cells[1], outlook = cells[2] || "";
     if (!country || !validRe.test(rating)) continue;   // saute en-têtes/WD/RD…
     rows.push({ country, rating, outlook });
