@@ -376,6 +376,8 @@
   .g-empty{color:var(--dim);font-size:13px;padding:14px 2px;}
   .g-dir{font-size:19px;color:var(--indigo);}
   .g-dir.g-ok{color:#FFF;font-size:15px;}
+  .g-hintbox{margin:0 0 10px;font-size:13.5px;color:var(--ink);}
+  .g-hintbox b{font-family:var(--mono);color:var(--indigo);letter-spacing:.05em;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1353,6 +1355,7 @@ function renderBenchmark(){ return renderDatabase(); }
 // grand/petit (↑↓) ou plus à l'est/ouest (→←, via le fuseau horaire).
 let gTarget = null;
 let gWon = false;
+let gHint = false;   // indice (code ISO) révélé après 8 essais, sur demande
 const gGuesses = [];
 const gName = (iso) => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name || iso;
 const gDensity = (iso) => { const d = ident[iso]; return d && d.pop != null && d.area ? d.pop / d.area : null; };
@@ -1373,7 +1376,7 @@ function gPool(){
 function gNew(){
   const pool = gPool();
   gTarget = pool[Math.floor(Math.random() * pool.length)] || null;
-  gGuesses.length = 0; gWon = false;
+  gGuesses.length = 0; gWon = false; gHint = false;
 }
 // Compare une valeur numérique de l'essai à celle du mystère.
 function gCellNum(v, tv, fmt){
@@ -1407,6 +1410,11 @@ function renderGames(){
     </div>`;
   }).join("");
   const win = gWon ? `<div class="g-banner">🎉 ${L ? "Trouvé en" : "Found in"} ${gGuesses.length} ${L ? (gGuesses.length>1?"essais":"essai") : (gGuesses.length>1?"guesses":"guess")} — ${esc(gName(t))} !</div>` : "";
+  const hint = (!gWon && gGuesses.length >= 8)
+    ? (gHint
+      ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
+      : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : code du pays" : "Hint: country code"}</button></div>`)
+    : "";
   return `<div class="page db-page"><div class="db-in">
     <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
     <p class="lead">${L
@@ -1422,6 +1430,7 @@ function renderGames(){
       <button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>
     </div>
     ${win}
+    ${hint}
     <div class="g-scroll">
       <div class="g-row g-head">${heads.map(h => `<div class="g-cell">${esc(h)}</div>`).join("")}</div>
       ${rows || `<div class="g-empty">${L ? "Fais un premier essai pour obtenir des indices." : "Make a first guess to get clues."}</div>`}
@@ -1477,6 +1486,9 @@ async function boot(){
   el("view-games").addEventListener("click", (e) => {
     const nb = e.target.closest("[data-gnew]");
     if (nb){ gNew(); el("view-games").innerHTML = renderGames();
+      el("view-games").querySelector(".g-in")?.focus(); return; }
+    const hb = e.target.closest("[data-ghint]");
+    if (hb){ gHint = true; el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const pk = e.target.closest("[data-gpick]");
     if (pk) gGuess(pk.dataset.gpick);
