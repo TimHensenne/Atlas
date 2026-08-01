@@ -378,6 +378,7 @@
   .g-dir.g-ok{color:#FFF;font-size:15px;}
   .g-hintbox{margin:0 0 10px;font-size:13.5px;color:var(--ink);}
   .g-hintbox b{font-family:var(--mono);color:var(--indigo);letter-spacing:.05em;}
+  .g-hintwait{color:var(--dim);font-size:12.5px;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1410,11 +1411,14 @@ function renderGames(){
     </div>`;
   }).join("");
   const win = gWon ? `<div class="g-banner">🎉 ${L ? "Trouvé en" : "Found in"} ${gGuesses.length} ${L ? (gGuesses.length>1?"essais":"essai") : (gGuesses.length>1?"guesses":"guess")} — ${esc(gName(t))} !</div>` : "";
-  const hint = (!gWon && gGuesses.length >= 8)
-    ? (gHint
+  const hintLeft = 8 - gGuesses.length;
+  const hint = gWon ? "" : (hintLeft > 0
+    ? `<div class="g-hintbox g-hintwait">💡 ${L
+        ? `Indice dans ${hintLeft} essai${hintLeft > 1 ? "s" : ""}`
+        : `Hint in ${hintLeft} guess${hintLeft > 1 ? "es" : ""}`}</div>`
+    : (gHint
       ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
-      : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`)
-    : "";
+      : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`));
   return `<div class="page db-page"><div class="db-in">
     <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
     <p class="lead">${L
