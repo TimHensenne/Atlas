@@ -311,28 +311,30 @@
   .soon h1{font-family:var(--display);font-weight:800;font-size:26px;color:var(--ink);margin:0;letter-spacing:-.02em;}
   .soon p{color:var(--dim);font-size:14px;line-height:1.65;max-width:460px;margin:0;}
   /* Base de données : tableur */
-  .db-page{display:flex;flex-direction:column;overflow:hidden;padding:26px 22px 18px;}
+  .db-page{display:flex;flex-direction:column;overflow:hidden;padding:14px 22px 12px;}
+  .db-page h1{font-size:19px;margin:0 0 3px;}
+  .db-page .lead{font-size:12.5px;margin:0 0 10px;max-width:none;}
   .db-in{display:flex;flex-direction:column;min-height:0;flex:1;max-width:100%;}
-  .db-cols{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 14px;}
+  .db-cols{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 8px;align-items:center;}
   .db-chk{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
     letter-spacing:.03em;text-transform:uppercase;color:var(--dim);cursor:pointer;}
   .db-chk input{accent-color:var(--indigo);cursor:pointer;margin:0;}
   .db-all{background:var(--indigo);color:#FFF;border:0;border-radius:3px;font-family:var(--mono);
     font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;cursor:pointer;}
   .db-all:hover{background:var(--indigo-hi);}
-  .db-search{font-family:var(--body);font-size:13px;width:230px;max-width:100%;padding:7px 11px;
-    margin:0 0 12px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
+  .db-search{font-family:var(--body);font-size:13px;width:230px;max-width:100%;padding:6px 11px;
+    margin:0 0 8px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
     color:var(--ink);outline:none;box-sizing:border-box;}
   .db-search:focus{border-color:var(--indigo);}
   .db-search::placeholder{color:var(--dim);}
   .db-none{color:var(--dim);text-align:center;padding:18px;}
-  .db-src{margin-top:10px;flex:none;}
+  .db-src{margin-top:7px;flex:none;}
   .pickcell{display:flex;align-items:center;gap:9px;cursor:pointer;}
   .pickcell input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
   table.db tr.picked td{background:var(--rule-soft);}
   table.db tr.picked td:first-child{background:var(--panel);box-shadow:inset 3px 0 0 var(--indigo);}
   /* Filtres du tableur */
-  .db-filters{display:flex;flex-wrap:wrap;gap:8px 26px;margin:0 0 12px;}
+  .db-filters{display:flex;flex-wrap:wrap;gap:6px 22px;margin:0 0 8px;}
   .fgroup{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
   .flab{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
     color:var(--dim);margin-right:4px;cursor:default;}
@@ -1299,8 +1301,8 @@ function renderDatabase(){
   return `<div class="page db-page"><div class="db-in">
     <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
     <p class="lead">${lang === "fr"
-      ? "Tous les pays, tous les indicateurs. Clique un en-tête pour trier, coche un pays pour l'épingler : il reste affiché pendant tes recherches."
-      : "All countries, all indicators. Click a header to sort, tick a country to pin it: it stays visible while you search."}</p>
+      ? "Trie par en-tête, filtre, et coche un pays pour l'épingler pendant tes recherches."
+      : "Sort by header, filter, and tick a country to pin it while you search."}</p>
     <div class="db-cols">${allBtn}${toggles}</div>
     ${filters}
     <input class="db-search" type="text" autocomplete="off" spellcheck="false"
