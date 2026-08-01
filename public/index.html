@@ -1211,8 +1211,8 @@ const DB_COLS = [
   { key:"fitch",  t:{fr:"Fitch",en:"Fitch"},                    rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.fitch },
 ];
 let dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));   // tout coché par défaut
-let dbSort = "gdp";
-let dbDir = -1;   // -1 = décroissant, 1 = croissant
+let dbSort = "name";
+let dbDir = 1;    // -1 = décroissant, 1 = croissant (alphabétique par défaut)
 let dbQuery = "";  // filtre de la recherche du tableur
 const dbPicked = new Set();   // pays épinglés : restent affichés malgré la recherche
 const dbRegions = new Set();  // filtres région (clés EN stables : Europe, Asia…)
@@ -1251,7 +1251,7 @@ function renderDatabase(){
     let va = sortCol.get(a), vb = sortCol.get(b);
     const na = va == null || va === "", nb = vb == null || vb === "";
     if (na && nb) return 0; if (na) return 1; if (nb) return -1;   // manquants en bas
-    if (sortCol.text) return String(va).localeCompare(String(vb)) * dbDir;
+    if (sortCol.text) return String(va).localeCompare(String(vb), lang) * dbDir;
     return (rankOf(sortCol, va) - rankOf(sortCol, vb)) * dbDir;
   });
   const arrow = dbDir < 0 ? " ↓" : " ↑";
@@ -1345,7 +1345,7 @@ async function boot(){
   el("view-benchmark").addEventListener("click", (e) => {
     const rst = e.target.closest("[data-dbreset]");
     if (rst){
-      dbQuery = ""; dbPicked.clear(); dbSort = "gdp"; dbDir = -1;
+      dbQuery = ""; dbPicked.clear(); dbSort = "name"; dbDir = 1;
       dbRegions.clear(); dbGrades.clear(); dbQInd = null; dbQuarts.clear();
       dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));
       el("view-benchmark").innerHTML = renderDatabase();
