@@ -2485,12 +2485,6 @@ const Auth = (() => {
         paintBar(); refreshHub();
       });
       paintBar();
-      // Invite après 5 s sur la carte, une seule fois par session.
-      setTimeout(() => {
-        if (ready && !user && view === "map" && !sessionStorage.getItem("atlas-auth-nag")){
-          sessionStorage.setItem("atlas-auth-nag", "1"); openModal("signup", null);
-        }
-      }, 5000);
     } catch { ready = false; supa = null; paintBar(); }   // échec de chargement → local
   }
 
