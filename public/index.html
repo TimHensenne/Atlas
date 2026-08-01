@@ -326,6 +326,10 @@
   .db-search:focus{border-color:var(--indigo);}
   .db-search::placeholder{color:var(--dim);}
   .db-none{color:var(--dim);text-align:center;padding:18px;}
+  .pickcell{display:flex;align-items:center;gap:9px;cursor:pointer;}
+  .pickcell input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
+  table.db tr.picked td{background:var(--rule-soft);}
+  table.db tr.picked td:first-child{background:var(--panel);box-shadow:inset 3px 0 0 var(--indigo);}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1174,33 +1178,33 @@ const RANK_MOODY = { "Aaa":21,"Aa1":20,"Aa2":19,"Aa3":18,"A1":17,"A2":16,"A3":15
 const ind = (iso, code) => macro.countries?.[iso]?.indicators?.[code]?.value;
 const pctCell = (v) => v == null ? null : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(1).replace('.', ',') + " %";
 const DB_COLS = [
-  { key:"name",   t:{fr:"Pays",en:"Country"},        text:true, always:true, get:(iso)=>(lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name },
-  { key:"region", t:{fr:"Région",en:"Region"},       text:true, on:true,  get:(iso)=>lang==="fr"?(ident[iso]?.regFr||ident[iso]?.reg):ident[iso]?.reg },
-  { key:"pop",    t:{fr:"Population",en:"Population"},on:true,  get:(iso)=>ident[iso]?.pop, fmt:(v)=>v.toLocaleString(lang==="fr"?"fr-BE":"en-GB") },
-  { key:"gdp",    t:{fr:"PIB",en:"GDP"},              on:true,  get:(iso)=>ind(iso,"NGDPD"), fmt:(v)=>fmtMoney(v,"Md") },
+  { key:"name",   t:{fr:"Pays",en:"Country"}, text:true, always:true, get:(iso)=>(lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name },
+  { key:"region", t:{fr:"Région",en:"Region"},       text:true, get:(iso)=>lang==="fr"?(ident[iso]?.regFr||ident[iso]?.reg):ident[iso]?.reg },
+  { key:"pop",    t:{fr:"Population",en:"Population"}, get:(iso)=>ident[iso]?.pop, fmt:(v)=>v.toLocaleString(lang==="fr"?"fr-BE":"en-GB") },
+  { key:"gdp",    t:{fr:"PIB",en:"GDP"},              get:(iso)=>ind(iso,"NGDPD"), fmt:(v)=>fmtMoney(v,"Md") },
   { key:"gdppc",  t:{fr:"PIB/hab.",en:"GDP/cap."},              get:(iso)=>ind(iso,"NGDPDPC"), fmt:(v)=>fmtMoney(v,"") },
-  { key:"growth", t:{fr:"Croissance",en:"Growth"},    on:true,  get:(iso)=>ind(iso,"NGDP_RPCH"), fmt:pctCell },
-  { key:"infl",   t:{fr:"Inflation",en:"Inflation"},  on:true,  get:(iso)=>ind(iso,"PCPIPCH"), fmt:pctCell },
-  { key:"debt",   t:{fr:"Dette",en:"Debt"},           on:true,  get:(iso)=>ind(iso,"GGXWDG_NGDP"), fmt:pctCell },
+  { key:"growth", t:{fr:"Croissance",en:"Growth"},    get:(iso)=>ind(iso,"NGDP_RPCH"), fmt:pctCell },
+  { key:"infl",   t:{fr:"Inflation",en:"Inflation"},  get:(iso)=>ind(iso,"PCPIPCH"), fmt:pctCell },
+  { key:"debt",   t:{fr:"Dette",en:"Debt"},           get:(iso)=>ind(iso,"GGXWDG_NGDP"), fmt:pctCell },
   { key:"budget", t:{fr:"Solde budg.",en:"Budget"},             get:(iso)=>ind(iso,"GGXCNL_NGDP"), fmt:pctCell },
   { key:"cab",    t:{fr:"Bal. courante",en:"Curr. acc."},       get:(iso)=>ind(iso,"BCA_NGDPD"), fmt:pctCell },
   { key:"unemp",  t:{fr:"Chômage",en:"Unemp."},                 get:(iso)=>ind(iso,"LUR"), fmt:pctCell },
   { key:"yield",  t:{fr:"Rend. 10a",en:"10y yield"},            get:(iso)=>yields.countries?.[iso]?.yield, fmt:pctCell },
   { key:"spread", t:{fr:"Spread",en:"Spread"},                  get:(iso)=>yields.countries?.[iso]?.spread, fmt:(v)=>(v>=0?"+":"−")+Math.abs(Math.round(v*100))+" pb" },
-  { key:"sp",     t:{fr:"S&P",en:"S&P"},              on:true,  rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.sp },
+  { key:"sp",     t:{fr:"S&P",en:"S&P"},              rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.sp },
   { key:"moody",  t:{fr:"Moody's",en:"Moody's"},                rank:RANK_MOODY, get:(iso)=>ratings.countries?.[iso]?.moody },
   { key:"fitch",  t:{fr:"Fitch",en:"Fitch"},                    rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.fitch },
 ];
-let dbVisible = new Set(DB_COLS.filter(c => c.always || c.on).map(c => c.key));
+let dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));   // tout coché par défaut
 let dbSort = "gdp";
 let dbDir = -1;   // -1 = décroissant, 1 = croissant
 let dbQuery = "";  // filtre de la recherche du tableur
+const dbPicked = new Set();   // pays épinglés : restent affichés malgré la recherche
 
 function renderDatabase(){
   const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
   const toggleable = DB_COLS.filter(c => !c.always);
-  const allOn = toggleable.every(c => dbVisible.has(c.key));
-  const allBtn = `<button class="db-all" data-dball="${allOn ? "off" : "on"}">${allOn ? (lang === "fr" ? "Tout décocher" : "Uncheck all") : (lang === "fr" ? "Tout cocher" : "Check all")}</button>`;
+  const allBtn = `<button class="db-all" data-dbreset title="${lang === "fr" ? "Tout réafficher, vider recherche et épingles" : "Show all, clear search and pins"}">⟳ ${lang === "fr" ? "Réinitialiser" : "Reset"}</button>`;
   const toggles = toggleable.map(c =>
     `<label class="db-chk"><input type="checkbox" data-col="${c.key}"${dbVisible.has(c.key) ? " checked" : ""}>${esc(c.t[lang])}</label>`
   ).join("");
@@ -1218,21 +1222,23 @@ function renderDatabase(){
   const fold = (s) => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const q = fold(dbQuery.trim());
   const nameCol = DB_COLS[0];
-  const shown = q ? isos.filter(iso => fold(nameCol.get(iso)).includes(q)) : isos;
+  // Un pays épinglé reste affiché quelle que soit la recherche.
+  const shown = isos.filter(iso => dbPicked.has(iso) || !q || fold(nameCol.get(iso)).includes(q));
   const thead = cols.map(c =>
     `<th class="${c.text ? "" : "num"}${c.key === dbSort ? " sorted" : ""}" data-sort="${c.key}">${esc(c.t[lang])}${c.key === dbSort ? arrow : ""}</th>`
   ).join("");
-  const tbody = shown.map(iso => `<tr>${cols.map(c => {
+  const tbody = shown.map(iso => `<tr${dbPicked.has(iso) ? ' class="picked"' : ""}>${cols.map(c => {
     const v = c.get(iso);
     const disp = (v == null || v === "") ? "—" : (c.fmt ? c.fmt(v) : esc(String(v)));
+    if (c.key === "name") return `<td><label class="pickcell"><input type="checkbox" data-pick="${iso}"${dbPicked.has(iso) ? " checked" : ""}>${disp}</label></td>`;
     return `<td class="${c.text ? "" : "num"}">${disp}</td>`;
   }).join("")}</tr>`).join("")
     || `<tr><td colspan="${cols.length}" class="db-none">${lang === "fr" ? "Aucun pays ne correspond." : "No country matches."}</td></tr>`;
   return `<div class="page db-page"><div class="db-in">
     <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
     <p class="lead">${lang === "fr"
-      ? "Tous les pays, tous les indicateurs. Coche les colonnes à afficher, clique un en-tête pour trier (deux clics pour inverser)."
-      : "All countries, all indicators. Tick the columns to show, click a header to sort (click again to reverse)."}</p>
+      ? "Tous les pays, tous les indicateurs. Clique un en-tête pour trier, coche un pays pour l'épingler : il reste affiché pendant tes recherches."
+      : "All countries, all indicators. Click a header to sort, tick a country to pin it: it stays visible while you search."}</p>
     <div class="db-cols">${allBtn}${toggles}</div>
     <input class="db-search" type="text" autocomplete="off" spellcheck="false"
       value="${esc(dbQuery)}" placeholder="${lang === "fr" ? "Rechercher un pays…" : "Search a country…"}"
@@ -1269,10 +1275,10 @@ async function boot(){
   });
   // Base de données : tri par en-tête, colonnes cochables.
   el("view-benchmark").addEventListener("click", (e) => {
-    const allBtn = e.target.closest("[data-dball]");
-    if (allBtn){
-      const on = allBtn.dataset.dball === "on";
-      for (const c of DB_COLS) if (!c.always){ if (on) dbVisible.add(c.key); else dbVisible.delete(c.key); }
+    const rst = e.target.closest("[data-dbreset]");
+    if (rst){
+      dbQuery = ""; dbPicked.clear(); dbSort = "gdp"; dbDir = -1;
+      dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));
       el("view-benchmark").innerHTML = renderDatabase();
       return;
     }
@@ -1295,6 +1301,12 @@ async function boot(){
     if (s2){ s2.focus(); s2.setSelectionRange(pos, pos); }   // le curseur ne saute pas
   });
   el("view-benchmark").addEventListener("change", (e) => {
+    const pk = e.target.closest("input[data-pick]");
+    if (pk){
+      if (pk.checked) dbPicked.add(pk.dataset.pick); else dbPicked.delete(pk.dataset.pick);
+      el("view-benchmark").innerHTML = renderDatabase();
+      return;
+    }
     const cb = e.target.closest("input[data-col]");
     if (!cb) return;
     if (cb.checked) dbVisible.add(cb.dataset.col); else dbVisible.delete(cb.dataset.col);
