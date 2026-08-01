@@ -998,6 +998,10 @@ function renderTabs(){
 function setView(v){
   if (!VIEW_ORDER.includes(v)) v = "map";
   view = v;
+  // Mémorise l'onglet dans l'URL : survit au rechargement, partageable,
+  // et compatible précédent/suivant. La carte reste l'URL "propre" (pas de hash).
+  const want = v === "map" ? "" : "#view=" + v;
+  if (location.hash !== want) history.replaceState(null, "", want || location.pathname + location.search);
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
   renderTabs();
   renderView(v);
@@ -1233,6 +1237,10 @@ function renderGames(){
 
 async function boot(){
   renderTabs();
+  // La restauration de l'onglet depuis l'URL (#view=…) se fait plus bas,
+  // APRÈS le chargement des données — sinon le tableur se construit sur du vide.
+  const viewFromHash = () => (location.hash.match(/^#view=([a-z]+)$/) || [])[1] || "map";
+  window.addEventListener("hashchange", () => { if (viewFromHash() !== view) setView(viewFromHash()); });
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b) setView(b.dataset.view);
@@ -1291,6 +1299,8 @@ async function boot(){
   } catch {}
 
   const nCountries = Object.keys(macro.countries || {}).length;
+  // Les données sont chargées : on peut restaurer l'onglet mémorisé dans l'URL.
+  if (viewFromHash() !== "map") setView(viewFromHash());
   function renderStamp(){
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
     const gen = macro.generatedAt;

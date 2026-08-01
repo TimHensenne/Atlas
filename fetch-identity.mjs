@@ -253,7 +253,9 @@ async function main(){
     if (population != null) withPop++;
     const cap = (c.capital && c.capital[0]) || null;
     const curCode = c.currencies ? Object.keys(c.currencies)[0] : null;
-    const sym = cur && cur.symbol ? ` (${cur.symbol})` : "";
+    // Entre parenthèses : le code ISO 4217 (DZD, EUR…), pas le symbole — les
+    // symboles exotiques s'affichent mal selon les polices, le code est sûr.
+    const sym = curCode ? ` (${curCode})` : "";
     // monnaie FR : Intl.DisplayNames, repli sur le nom anglais si non résolu
     let curFrName = cur ? cur.name : null;
     if (curCode) { const n = curDN.of(curCode); if (n && n !== curCode) curFrName = cap1(n); }
