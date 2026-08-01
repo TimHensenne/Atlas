@@ -346,6 +346,34 @@
   .chip.on{background:var(--indigo);border-color:var(--indigo);color:#FFF;}
   .chip:disabled{opacity:.4;cursor:default;}
   .chip:disabled:hover{color:var(--dim);border-color:var(--rule);}
+  /* Jeu : trouve le pays */
+  .g-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;}
+  .g-searchwrap{position:relative;}
+  .g-in{font-family:var(--body);font-size:13px;width:240px;max-width:100%;padding:7px 11px;
+    background:var(--paper);border:1px solid var(--rule);border-radius:3px;color:var(--ink);
+    outline:none;box-sizing:border-box;}
+  .g-in:focus{border-color:var(--indigo);}
+  .g-in::placeholder{color:var(--dim);}
+  .g-sug{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:30;background:var(--panel);
+    border:1px solid var(--rule);box-shadow:0 4px 14px rgba(0,0,0,.14);}
+  .g-sug:empty{display:none;}
+  .g-sug button{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+    font-family:var(--body);font-size:13px;color:var(--ink);padding:8px 11px;}
+  .g-sug button:hover{background:var(--rule-soft);}
+  .g-count{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);}
+  .g-banner{background:#1E7A46;color:#FFF;font-size:14px;font-weight:600;padding:10px 14px;
+    border-radius:3px;margin:0 0 10px;}
+  .g-scroll{overflow:auto;flex:1;min-height:0;}
+  .g-row{display:grid;grid-template-columns:minmax(130px,1.4fr) repeat(6,minmax(96px,1fr));gap:6px;margin-bottom:6px;}
+  .g-head .g-cell{background:none;border:0;font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--dim);padding:2px 4px;min-height:0;}
+  .g-cell{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:9px 8px;
+    font-size:12.5px;color:var(--ink);display:flex;align-items:center;justify-content:center;
+    text-align:center;min-height:38px;font-variant-numeric:tabular-nums;line-height:1.25;}
+  .g-name{font-weight:600;justify-content:flex-start;text-align:left;}
+  .g-cell.g-ok{background:#1E7A46;border-color:#1E7A46;color:#FFF;}
+  .g-cell.g-close{background:#C9921E;border-color:#C9921E;color:#FFF;}
+  .g-empty{color:var(--dim);font-size:13px;padding:14px 2px;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1319,14 +1347,103 @@ function renderDatabase(){
   </div></div>`;
 }
 function renderBenchmark(){ return renderDatabase(); }
+// ── Jeu : trouve le pays (façon LoLdle/Worldle) ──
+// 6 indices par essai : Région, Population, PIB, Frontaliers, Densité, Fuseau.
+// Vert = exact · jaune = proche (±10 %) · flèche = le pays mystère est plus
+// grand/petit (↑↓) ou plus à l'est/ouest (→←, via le fuseau horaire).
+let gTarget = null;
+let gWon = false;
+const gGuesses = [];
+const gName = (iso) => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name || iso;
+const gDensity = (iso) => { const d = ident[iso]; return d && d.pop != null && d.area ? d.pop / d.area : null; };
+const tzOffset = (tz) => { const m = String(tz||"").match(/UTC([+-−])?(\d{2}):(\d{2})/); if (!tz) return null;
+  if (!m) return tz === "UTC" ? 0 : null; const s = m[1] === "+" || !m[1] ? 1 : -1; return s * (+m[2] + m[3]/60); };
+function gPool(){
+  return Object.keys(macro.countries || {}).filter(iso => {
+    const d = ident[iso];
+    return d && d.pop != null && d.area && d.reg && d.tz && d.bord != null && ind(iso, "NGDPD") != null;
+  });
+}
+function gNew(){
+  const pool = gPool();
+  gTarget = pool[Math.floor(Math.random() * pool.length)] || null;
+  gGuesses.length = 0; gWon = false;
+}
+// Compare une valeur numérique de l'essai à celle du mystère.
+function gCellNum(v, tv, fmt){
+  if (v == null || tv == null) return `<div class="g-cell">—</div>`;
+  const ratio = tv === 0 ? (v === 0 ? 0 : 1) : Math.abs(v - tv) / Math.abs(tv);
+  const cls = v === tv ? " g-ok" : ratio <= .10 ? " g-close" : "";
+  const arrow = v === tv ? "" : tv > v ? " ↑" : " ↓";
+  return `<div class="g-cell${cls}">${fmt(v)}${arrow}</div>`;
+}
 function renderGames(){
-  return `<div class="soon">
-    <span class="tag">${lang === "fr" ? "En construction" : "Coming soon"}</span>
-    <h1>${lang === "fr" ? "Jeux" : "Games"}</h1>
-    <p>${lang === "fr"
-      ? "Des mini-jeux pour tester ta connaissance du monde : deviner le pays d'après ses indicateurs, situer une capitale, classer des dettes… Dis-moi ce qui t'attire."
-      : "Mini-games to test your knowledge of the world: guess the country from its indicators, place a capital, rank public debts… Tell me what appeals to you."}</p>
-  </div>`;
+  if (!gTarget) gNew();
+  if (!gTarget) return `<div class="soon"><h1>…</h1></div>`;   // données pas prêtes
+  const L = lang === "fr";
+  const t = gTarget, td = ident[t];
+  const heads = [L?"Pays":"Country", L?"Région":"Region", L?"Population":"Population",
+    L?"PIB":"GDP", L?"Frontaliers":"Borders", L?"Densité":"Density", L?"Fuseau":"Time zone"];
+  const rows = [...gGuesses].reverse().map(iso => {
+    const d = ident[iso];
+    const reg = d?.reg === td.reg;
+    const tzV = tzOffset(d?.tz), tzT = tzOffset(td.tz);
+    const tzCell = tzV == null || tzT == null ? `<div class="g-cell">—</div>`
+      : `<div class="g-cell${tzV === tzT ? " g-ok" : ""}">${esc(d.tz)}${tzV === tzT ? "" : tzT > tzV ? " →" : " ←"}</div>`;
+    return `<div class="g-row${iso === t ? " g-win" : ""}">
+      <div class="g-cell g-name${iso === t ? " g-ok" : ""}">${esc(gName(iso))}</div>
+      <div class="g-cell${reg ? " g-ok" : ""}">${esc(L ? (d?.regFr || d?.reg) : d?.reg)}</div>
+      ${gCellNum(d?.pop, td.pop, v => v.toLocaleString(L ? "fr-BE" : "en-GB"))}
+      ${gCellNum(ind(iso,"NGDPD"), ind(t,"NGDPD"), v => fmtMoney(v, "Md"))}
+      ${gCellNum(d?.bord, td.bord, v => String(v))}
+      ${gCellNum(gDensity(iso), gDensity(t), v => Math.round(v).toLocaleString(L ? "fr-BE" : "en-GB") + (L ? " hab/km²" : "/km²"))}
+      ${tzCell}
+    </div>`;
+  }).join("");
+  const win = gWon ? `<div class="g-banner">🎉 ${L ? "Trouvé en" : "Found in"} ${gGuesses.length} ${L ? (gGuesses.length>1?"essais":"essai") : (gGuesses.length>1?"guesses":"guess")} — ${esc(gName(t))} !</div>` : "";
+  return `<div class="page db-page"><div class="db-in">
+    <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
+    <p class="lead">${L
+      ? "Un pays mystère est tiré au sort. Propose un pays : vert = exact, jaune = proche (±10 %), ↑↓ = le mystère est plus grand ou plus petit, →← = plus à l'est ou à l'ouest."
+      : "A mystery country is drawn. Guess one: green = exact, yellow = close (±10%), ↑↓ = the mystery is bigger or smaller, →← = further east or west."}</p>
+    <div class="g-bar">
+      <div class="g-searchwrap">
+        <input class="g-in" type="text" autocomplete="off" spellcheck="false"
+          placeholder="${L ? "Propose un pays…" : "Guess a country…"}"${gWon ? " disabled" : ""}>
+        <div class="g-sug"></div>
+      </div>
+      <span class="g-count">${gGuesses.length} ${L ? "essai" : "guess"}${gGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
+      <button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>
+    </div>
+    ${win}
+    <div class="g-scroll">
+      <div class="g-row g-head">${heads.map(h => `<div class="g-cell">${esc(h)}</div>`).join("")}</div>
+      ${rows || `<div class="g-empty">${L ? "Fais un premier essai pour obtenir des indices." : "Make a first guess to get clues."}</div>`}
+    </div>
+  </div></div>`;
+}
+function gSuggest(qRaw){
+  const foldG = (s) => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const q = foldG(qRaw.trim());
+  if (!q) return [];
+  return gPool()
+    .filter(iso => !gGuesses.includes(iso))
+    .filter(iso => foldG(gName(iso)).includes(q) || iso.toLowerCase() === q)
+    .sort((a, b) => {
+      const ai = a.toLowerCase() === q ? 0 : 1, bi = b.toLowerCase() === q ? 0 : 1;
+      if (ai !== bi) return ai - bi;
+      const ap = foldG(gName(a)).startsWith(q) ? 0 : 1, bp = foldG(gName(b)).startsWith(q) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return gName(a).localeCompare(gName(b), lang);
+    }).slice(0, 6);
+}
+function gGuess(iso){
+  if (gWon || gGuesses.includes(iso)) return;
+  gGuesses.push(iso);
+  if (iso === gTarget) gWon = true;
+  el("view-games").innerHTML = renderGames();
+  const inp = el("view-games").querySelector(".g-in");
+  if (inp && !gWon) inp.focus();
 }
 
 async function boot(){
@@ -1338,6 +1455,25 @@ async function boot(){
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b) setView(b.dataset.view);
+  });
+  // Jeu : suggestions à la saisie, choix au clic ou Entrée, nouvelle partie.
+  el("view-games").addEventListener("input", (e) => {
+    const inp = e.target.closest(".g-in"); if (!inp) return;
+    const sug = el("view-games").querySelector(".g-sug");
+    const hits = gSuggest(inp.value);
+    sug.innerHTML = hits.map(iso => `<button data-gpick="${iso}">${esc(gName(iso))}</button>`).join("");
+  });
+  el("view-games").addEventListener("keydown", (e) => {
+    const inp = e.target.closest(".g-in"); if (!inp || e.key !== "Enter") return;
+    const first = gSuggest(inp.value)[0];
+    if (first) gGuess(first);
+  });
+  el("view-games").addEventListener("click", (e) => {
+    const nb = e.target.closest("[data-gnew]");
+    if (nb){ gNew(); el("view-games").innerHTML = renderGames();
+      el("view-games").querySelector(".g-in")?.focus(); return; }
+    const pk = e.target.closest("[data-gpick]");
+    if (pk) gGuess(pk.dataset.gpick);
   });
   el("view-purpose").addEventListener("submit", (e) => {
     if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
