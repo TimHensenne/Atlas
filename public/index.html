@@ -444,24 +444,37 @@
   .serie-round .sr-s{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);}
   .serie-round.done .sr-s{color:#1E7A46;}
   /* Jeu : devine le drapeau */
-  .fg-flag{display:block;width:min(340px,74%);aspect-ratio:4/3;margin:4px auto 20px;
+  .fg-main{display:flex;gap:22px;align-items:flex-start;justify-content:center;margin:2px 0 20px;}
+  .fg-left{flex:0 0 auto;width:300px;max-width:100%;}
+  .fg-right{flex:1 1 340px;min-width:0;max-width:560px;}
+  .fg-flag{display:block;width:100%;aspect-ratio:4/3;
     border:1px solid var(--rule);border-radius:6px;object-fit:cover;
     box-shadow:0 6px 22px rgba(19,26,46,.16);background:var(--panel);}
-  .fg-tiers{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;margin:0 0 22px;}
-  .fg-tier{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);}
-  .fg-tier .n{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--indigo);
-    border:1px solid var(--rule);border-radius:2px;padding:2px 6px;}
-  .fg-hints{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:0 auto 14px;}
-  .fg-hint{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:12px 14px;text-align:center;}
-  .fg-hint .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--indigo);margin-bottom:8px;}
-  .fg-shape{width:100%;max-width:300px;height:auto;display:block;margin:0 auto;}
+  .fg-answer{margin-top:12px;background:#1E7A46;color:#FFF;border-radius:4px;
+    padding:12px 14px;text-align:center;font-family:var(--display);font-weight:700;font-size:18px;
+    display:flex;flex-direction:column;gap:3px;}
+  .fg-answer-sub{font-family:var(--mono);font-weight:400;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;opacity:.85;}
+  .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .fg-cell{border:1px solid var(--rule);border-radius:4px;background:var(--panel);
+    padding:12px 14px;text-align:center;min-height:78px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+  .fg-cell.shape{grid-column:1 / -1;}
+  .fg-cell.locked{background:var(--paper);border-style:dashed;}
+  .fg-cell .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--indigo);}
+  .fg-cell.locked .lbl{color:var(--dim);}
+  .fg-wait{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--dim);}
+  .fg-shape{width:100%;max-width:260px;height:auto;display:block;margin:0 auto;}
   .fg-shape path{fill:var(--indigo);stroke:var(--panel);stroke-width:.6;
     stroke-linejoin:round;vector-effect:non-scaling-stroke;}
-  .fg-code{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink);letter-spacing:.04em;}
-  .fg-masked{font-family:var(--mono);font-size:20px;color:var(--ink);}
-  .fg-lock{font-size:12.5px;color:var(--dim);text-align:center;margin:0 auto 16px;}
-  .fg-guesses{display:flex;flex-direction:column;gap:6px;max-width:420px;margin:0 auto;width:100%;}
+  .fg-code{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink);letter-spacing:.12em;}
+  .fg-masked{font-family:var(--mono);font-size:19px;color:var(--ink);}
+  @media(max-width:640px){
+    .fg-main{flex-direction:column;align-items:center;}
+    .fg-left,.fg-right{width:100%;max-width:360px;}
+  }
+  .fg-guesses{display:flex;flex-direction:column;gap:6px;max-width:480px;margin:0 auto;width:100%;}
   .fg-g{display:flex;align-items:center;justify-content:space-between;gap:10px;
     background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:9px 13px;font-size:13.5px;}
   .fg-g.g-ok{background:#1E7A46;border-color:#1E7A46;color:#FFF;}
@@ -1639,11 +1652,11 @@ function gGuess(iso){
 
 // ── Jeu « Devine le drapeau » ────────────────────────────────────────────
 // Un drapeau, un pays à trouver. Trois indices se dévoilent au fil des essais
-// ratés : la forme du pays (3), l'indicatif téléphonique (6), le nom masqué (9).
+// ratés : la forme du pays (3), le code pays à deux lettres (6), le nom masqué (9).
 const F_TIERS = [
-  { at: 3, fr: "Forme du pays",          en: "Country shape" },
-  { at: 6, fr: "Indicatif téléphonique", en: "Dialing code" },
-  { at: 9, fr: "Nom masqué",             en: "Masked name" },
+  { at: 3, fr: "Forme du pays", en: "Country shape" },
+  { at: 6, fr: "Code pays",     en: "Country code" },
+  { at: 9, fr: "Nom masqué",    en: "Masked name" },
 ];
 function fNew(daily){
   const pool = gPool().sort();   // ordre stable → graine quotidienne identique pour tous
@@ -1708,21 +1721,23 @@ function renderFlagGame(){
   const t = fTarget, fails = fGuesses.length;
   const flagUrl = `https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${t.toLowerCase()}.svg`;
   const open = (at) => fWon || fails >= at;
-  // Indices dévoilés.
-  const cards = [];
-  if (open(3)){ const s = gShape(t);
-    cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Forme du pays" : "Country shape"}</div>${s || `<div class="fg-lock">${L ? "Silhouette indisponible" : "Shape unavailable"}</div>`}</div>`); }
-  if (open(6)){ const call = ident[t]?.call;
-    if (call) cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Indicatif" : "Dialing code"}</div><div class="fg-code">${esc(call)}</div></div>`); }
-  if (open(9)) cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Nom masqué" : "Masked name"}</div><div class="fg-masked">${esc(gMask(t))}</div></div>`);
-  const next = fWon ? null : F_TIERS.find(h => fails < h.at);
-  const lock = next
-    ? `<div class="fg-lock">💡 ${L
-        ? `${next.fr} dans ${next.at - fails} essai${next.at - fails > 1 ? "s" : ""}`
-        : `${next.en} in ${next.at - fails} guess${next.at - fails > 1 ? "es" : ""}`}</div>`
-    : "";
-  const win = fWon
-    ? `<div class="g-banner">🎉 ${fDaily ? (L ? "Série du jour réussie en" : "Today's series done in") : (L ? "Trouvé en" : "Found in")} ${fGuesses.length} ${L ? (fGuesses.length > 1 ? "essais" : "essai") : (fGuesses.length > 1 ? "guesses" : "guess")} — ${esc(gName(t))} !</div>`
+  const [tShape, tCode, tName] = F_TIERS;
+  // Une cellule de la grille d'indices : verrouillée (compte à rebours) ou dévoilée.
+  const cell = (tier, cls, inner) => {
+    const locked = !open(tier.at);
+    const left = tier.at - fails;
+    const body = locked
+      ? `<div class="fg-wait">🔒 ${L ? `${left} essai${left > 1 ? "s" : ""}` : `${left} guess${left > 1 ? "es" : ""}`}</div>`
+      : inner;
+    return `<div class="fg-cell ${cls}${locked ? " locked" : ""}"><div class="lbl">${esc(L ? tier.fr : tier.en)}</div>${body}</div>`;
+  };
+  const shapeInner = gShape(t) || `<div class="fg-wait">${L ? "Silhouette indisponible" : "Shape unavailable"}</div>`;
+  const grid =
+    cell(tShape, "shape", shapeInner) +
+    cell(tCode,  "code",  `<div class="fg-code">${esc(t)}</div>`) +
+    cell(tName,  "name",  `<div class="fg-masked">${esc(gMask(t))}</div>`);
+  const answer = fWon
+    ? `<div class="fg-answer">✓ ${esc(gName(t))}<span class="fg-answer-sub">${fDaily ? (L ? "série du jour · " : "daily · ") : ""}${fGuesses.length} ${L ? (fGuesses.length > 1 ? "essais" : "essai") : (fGuesses.length > 1 ? "guesses" : "guess")}</span></div>`
     : "";
   const rows = [...fGuesses].reverse().map(iso => {
     const ok = iso === t;
@@ -1735,14 +1750,15 @@ function renderFlagGame(){
       : (L ? "Jeu" : "Game")}</div>
     <h1 class="g-title">${L ? "Devine le drapeau" : "Guess the flag"}</h1>
     <p class="lead">${L
-      ? "Un drapeau s'affiche : à toi de nommer le pays. Trois indices se débloquent au fil des essais ratés — la forme du pays, son indicatif téléphonique, puis son nom masqué. Essais illimités."
-      : "A flag is shown — name the country. Three clues unlock as you miss — the country's shape, its dialing code, then its masked name. Unlimited guesses."}</p>
-    <div class="fg-tiers">
-      ${F_TIERS.map(h => `<span class="fg-tier"><span class="n">${h.at}</span>${esc(L ? h.fr : h.en)}</span>`).join("")}
+      ? "Un drapeau s'affiche : à toi de nommer le pays. Trois indices se débloquent au fil des essais ratés — la forme du pays, son code pays (deux lettres), puis son nom masqué. Essais illimités."
+      : "A flag is shown — name the country. Three clues unlock as you miss — the country's shape, its two-letter country code, then its masked name. Unlimited guesses."}</p>
+    <div class="fg-main">
+      <div class="fg-left">
+        <img class="fg-flag" src="${flagUrl}" alt="${L ? "Drapeau à deviner" : "Flag to guess"}" onerror="this.style.opacity=.25">
+        ${answer}
+      </div>
+      <div class="fg-right"><div class="fg-grid">${grid}</div></div>
     </div>
-    <img class="fg-flag" src="${flagUrl}" alt="${L ? "Drapeau à deviner" : "Flag to guess"}" onerror="this.style.opacity=.25">
-    ${cards.length ? `<div class="fg-hints">${cards.join("")}</div>` : ""}
-    ${lock}
     <div class="g-bar">
       <div class="g-searchwrap">
         <input class="g-in" type="text" autocomplete="off" spellcheck="false"
@@ -1752,7 +1768,6 @@ function renderFlagGame(){
       <span class="g-count">${fGuesses.length} ${L ? "essai" : "guess"}${fGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
       ${fDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
     </div>
-    ${win}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
   </div></div>`;
 }
