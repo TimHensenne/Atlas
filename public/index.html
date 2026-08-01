@@ -425,6 +425,43 @@
   .tagmini{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
     color:var(--dim);border:1px solid var(--rule);border-radius:2px;padding:3px 8px;align-self:flex-start;}
   .tagmini.on{color:var(--indigo);border-color:var(--indigo);}
+  /* Super Série : manches (une par jeu) */
+  .serie-prog{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--dim);margin:0 0 14px;}
+  .serie-rounds{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .serie-round{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:11px 15px;
+    cursor:pointer;min-width:150px;transition:border-color .15s ease,transform .15s ease;}
+  .serie-round:hover{border-color:var(--indigo);transform:translateY(-1px);}
+  .serie-round.done{border-color:#1E7A46;}
+  .serie-round .sr-t{font-family:var(--display);font-weight:700;font-size:13.5px;color:var(--ink);}
+  .serie-round .sr-s{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);}
+  .serie-round.done .sr-s{color:#1E7A46;}
+  /* Jeu : devine le drapeau */
+  .fg-flag{display:block;width:min(340px,74%);aspect-ratio:4/3;margin:4px auto 20px;
+    border:1px solid var(--rule);border-radius:6px;object-fit:cover;
+    box-shadow:0 6px 22px rgba(19,26,46,.16);background:var(--panel);}
+  .fg-tiers{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;margin:0 0 22px;}
+  .fg-tier{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);}
+  .fg-tier .n{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--indigo);
+    border:1px solid var(--rule);border-radius:2px;padding:2px 6px;}
+  .fg-hints{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:0 auto 14px;}
+  .fg-hint{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:12px 14px;text-align:center;}
+  .fg-hint .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--indigo);margin-bottom:8px;}
+  .fg-shape{width:100%;max-width:300px;height:auto;display:block;margin:0 auto;}
+  .fg-shape path{fill:var(--indigo);stroke:var(--panel);stroke-width:.6;
+    stroke-linejoin:round;vector-effect:non-scaling-stroke;}
+  .fg-code{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink);letter-spacing:.04em;}
+  .fg-masked{font-family:var(--mono);font-size:20px;color:var(--ink);}
+  .fg-lock{font-size:12.5px;color:var(--dim);text-align:center;margin:0 auto 16px;}
+  .fg-guesses{display:flex;flex-direction:column;gap:6px;max-width:420px;margin:0 auto;width:100%;}
+  .fg-g{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:9px 13px;font-size:13.5px;}
+  .fg-g.g-ok{background:#1E7A46;border-color:#1E7A46;color:#FFF;}
+  .fg-gn{font-weight:600;}
+  .fg-gm{font-family:var(--mono);font-size:13px;color:var(--accent);}
+  .fg-g.g-ok .fg-gm{color:#FFF;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -654,6 +691,7 @@ let ident = {};                   // fiches d'identité locales (countries.json)
 let yields = { countries:{} };    // rendements 10 ans + spreads (yields.json), par ISO
 let ratings = { countries:{} };   // notations S&P/Moody's/Fitch (ratings.json), par ISO
 const NAME_EN = {};               // nom anglais par ISO (rempli au chargement de la carte)
+const GEO = {};                   // géométrie GeoJSON par ISO : silhouette du jeu « Drapeau »
 
 // Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
 // milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
@@ -1406,15 +1444,21 @@ let gHint = false;   // indice (code ISO) révélé après 8 essais, sur demande
 let gScreen = "hub"; // "hub" (choix du jeu) ou "country" (Trouve le pays)
 let gDaily = false;  // partie en cours = manche de la Super Série (pays du jour)
 const gGuesses = [];
+// État du jeu « Devine le drapeau » (parallèle à celui de « Trouve le pays »).
+let fTarget = null, fWon = false, fDaily = false;
+const fGuesses = [];
 // Clé du jour (locale) + graine déterministe : même pays pour tout le monde.
 const todayKey = () => { const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
-const dailyPick = (pool) => { let h = 0; for (const c of todayKey()) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return pool[h % pool.length]; };
-// Mémorise la réussite de la série du jour (léger, local au navigateur).
-const serieState = () => { try { const j = JSON.parse(localStorage.getItem("atlas-serie") || "null");
-  return j && j.date === todayKey() ? j : null; } catch { return null; } };
-const serieSave = (tries) => { try { localStorage.setItem("atlas-serie", JSON.stringify({ date: todayKey(), tries })); } catch {} };
+const seedHash = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+// Tire un pays du jour, déterministe : « sel » distinct → pays distinct par jeu.
+const dailyPick = (pool, salt = "") => pool.length ? pool[seedHash(salt + todayKey()) % pool.length] : null;
+// Super Série : une manche par jeu et par jour, mémorisée localement.
+const serieRead = () => { try { const j = JSON.parse(localStorage.getItem("atlas-serie") || "null");
+  return (j && j.date === todayKey() && j.games) ? j.games : {}; } catch { return {}; } };
+const serieGet  = (game) => serieRead()[game] || null;
+const serieSave = (game, tries) => { try { const games = serieRead(); games[game] = { tries };
+  localStorage.setItem("atlas-serie", JSON.stringify({ date: todayKey(), games })); } catch {} };
 const gName = (iso) => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name || iso;
 const gDensity = (iso) => { const d = ident[iso]; return d && d.pop != null && d.area ? d.pop / d.area : null; };
 // Direction du pays mystère vue depuis l'essai : flèche parmi 8 (↑ = nord).
@@ -1447,16 +1491,20 @@ function gCellNum(v, tv, fmt){
 }
 function renderGames(){
   if (gScreen === "hub") return renderGameHub();
+  if (gScreen === "flag") return renderFlagGame();
   return renderCountryGame();
 }
 function renderGameHub(){
   const L = lang === "fr";
-  const done = serieState();
   const dateStr = new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" });
-  const serieBtn = done
-    ? `<div class="serie-done">✓ ${L ? "Série du jour réussie en" : "Today's series done in"} ${done.tries} ${L ? (done.tries>1?"essais":"essai") : (done.tries>1?"guesses":"guess")}</div>
-       <button class="db-all" data-gserie>${L ? "Rejouer la manche" : "Replay the round"}</button>`
-    : `<button class="db-all serie-play" data-gserie>${L ? "Jouer la série du jour" : "Play today's series"}</button>`;
+  const cDone = serieGet("country"), fDone = serieGet("flag");
+  const doneN = (cDone ? 1 : 0) + (fDone ? 1 : 0);
+  const round = (game, label, st) => `<button class="serie-round${st ? " done" : ""}" data-gserie="${game}">
+      <span class="sr-t">${label}</span>
+      <span class="sr-s">${st
+        ? `✓ ${st.tries} ${L ? (st.tries > 1 ? "essais" : "essai") : (st.tries > 1 ? "guesses" : "guess")}`
+        : (L ? "À jouer →" : "Play →")}</span>
+    </button>`;
   const off = (name) => `<div class="g-card off">
       <div class="g-card-t">${name}</div>
       <div class="g-card-d">?</div>
@@ -1469,9 +1517,15 @@ function renderGameHub(){
       <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
       <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
       <p class="serie-d">${L
-        ? "Une manche de chaque jeu, une fois par jour — le même défi pour tout le monde. Pour l'instant : 1 jeu sur 4 ; les manches s'ajouteront avec les nouveaux jeux."
-        : "One round of each game, once a day — the same challenge for everyone. For now: 1 of 4 games; rounds will be added as new games arrive."}</p>
-      ${serieBtn}
+        ? "Une manche de chaque jeu, une fois par jour — le même défi pour tout le monde. 2 jeux sur 4 pour l'instant ; les manches s'ajouteront avec les nouveaux jeux."
+        : "One round of each game, once a day — the same challenge for everyone. 2 of 4 games for now; rounds will be added as new games arrive."}</p>
+      <div class="serie-prog">${doneN === 2
+        ? (L ? "✓ Série du jour complétée" : "✓ Today's series complete")
+        : `${doneN} / 2 ${L ? "manches" : "rounds"}`}</div>
+      <div class="serie-rounds">
+        ${round("country", L ? "Trouve le pays" : "Guess the country", cDone)}
+        ${round("flag", L ? "Devine le drapeau" : "Guess the flag", fDone)}
+      </div>
     </div>
     <div class="g-grid">
       <div class="g-card" data-gplay>
@@ -1479,7 +1533,11 @@ function renderGameHub(){
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
-      ${off(L ? "Jeu n°2" : "Game #2")}
+      <div class="g-card" data-gflag>
+        <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
+        <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, indicatif et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, dialing code and name unlock as you try."}</div>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+      </div>
       ${off(L ? "Jeu n°3" : "Game #3")}
       ${off(L ? "Jeu n°4" : "Game #4")}
     </div>
@@ -1549,12 +1607,12 @@ function renderCountryGame(){
     </div>
   </div></div>`;
 }
-function gSuggest(qRaw){
+function gSuggest(qRaw, exclude = gGuesses){
   const foldG = (s) => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const q = foldG(qRaw.trim());
   if (!q) return [];
   return gPool()
-    .filter(iso => !gGuesses.includes(iso))
+    .filter(iso => !exclude.includes(iso))
     .filter(iso => foldG(gName(iso)).includes(q) || iso.toLowerCase() === q)
     .sort((a, b) => {
       const ai = a.toLowerCase() === q ? 0 : 1, bi = b.toLowerCase() === q ? 0 : 1;
@@ -1567,10 +1625,130 @@ function gSuggest(qRaw){
 function gGuess(iso){
   if (gWon || gGuesses.includes(iso)) return;
   gGuesses.push(iso);
-  if (iso === gTarget){ gWon = true; if (gDaily) serieSave(gGuesses.length); }
+  if (iso === gTarget){ gWon = true; if (gDaily) serieSave("country", gGuesses.length); }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !gWon) inp.focus();
+}
+
+// ── Jeu « Devine le drapeau » ────────────────────────────────────────────
+// Un drapeau, un pays à trouver. Trois indices se dévoilent au fil des essais
+// ratés : la forme du pays (3), l'indicatif téléphonique (6), le nom masqué (9).
+const F_TIERS = [
+  { at: 3, fr: "Forme du pays",          en: "Country shape" },
+  { at: 6, fr: "Indicatif téléphonique", en: "Dialing code" },
+  { at: 9, fr: "Nom masqué",             en: "Masked name" },
+];
+function fNew(daily){
+  const pool = gPool().sort();   // ordre stable → graine quotidienne identique pour tous
+  fDaily = !!daily;
+  fTarget = daily ? dailyPick(pool, "flag") : pool[Math.floor(Math.random() * pool.length)] || null;
+  fGuesses.length = 0; fWon = false;
+}
+function fGuess(iso){
+  if (fWon || fGuesses.includes(iso)) return;
+  fGuesses.push(iso);
+  if (iso === fTarget){ fWon = true; if (fDaily) serieSave("flag", fGuesses.length); }
+  el("view-games").innerHTML = renderGames();
+  const inp = el("view-games").querySelector(".g-in");
+  if (inp && !fWon) inp.focus();
+}
+// Plus grande partie d'un pays : évite qu'un archipel ou un État transcontinental
+// (antiméridien) ne déforme la silhouette.
+function largestPart(feature){
+  const gm = feature && feature.geometry; if (!gm) return feature;
+  if (gm.type === "Polygon") return feature;
+  let best = feature, bestA = -1;
+  for (const coords of gm.coordinates){
+    const pf = { type: "Feature", geometry: { type: "Polygon", coordinates: coords } };
+    let a = 0; try { a = d3.geoArea(pf); } catch {}
+    if (a > bestA){ bestA = a; best = pf; }
+  }
+  return best;
+}
+// Silhouette SVG d'un pays (aucune frontière ni étiquette), recadrée sur lui seul.
+function gShape(iso){
+  const f = GEO[iso]; if (!f) return "";
+  let feat = f;
+  try { const [[w], [e]] = d3.geoBounds(f);            // longitudes ouest / est
+    if (e < w || (e - w) > 160) feat = largestPart(f); // antiméridien / très étalé
+  } catch {}
+  const W = 320, H = 200, pad = 14;
+  let d = "";
+  try {
+    const proj = d3.geoMercator().fitExtent([[pad, pad], [W - pad, H - pad]], feat);
+    d = d3.geoPath(proj)(feat) || "";
+  } catch {}
+  if (!d) return "";
+  return `<svg class="fg-shape" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+// Nom masqué : 1re et dernière lettre de chaque mot ; le reste en « _ ».
+function gMask(iso){
+  const isL = (ch) => /\p{L}/u.test(ch);
+  const masked = gName(iso).split(/(\s+)/).map(tok => {
+    if (!tok.trim()) return tok;
+    const chars = [...tok];
+    const idx = chars.map((ch, i) => isL(ch) ? i : -1).filter(i => i >= 0);
+    if (idx.length <= 2) return tok;                    // mots très courts : montrés
+    const first = idx[0], last = idx[idx.length - 1];
+    return chars.map((ch, i) => !isL(ch) ? ch : (i === first || i === last) ? ch : "_").join("");
+  }).join("");
+  return [...masked].join("\u2009");                    // espace fine entre chaque signe
+}
+function renderFlagGame(){
+  if (!fTarget) fNew(fDaily);
+  if (!fTarget) return `<div class="soon"><h1>…</h1></div>`;   // données pas prêtes
+  const L = lang === "fr";
+  const t = fTarget, fails = fGuesses.length;
+  const flagUrl = `https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${t.toLowerCase()}.svg`;
+  const open = (at) => fWon || fails >= at;
+  // Indices dévoilés.
+  const cards = [];
+  if (open(3)){ const s = gShape(t);
+    cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Forme du pays" : "Country shape"}</div>${s || `<div class="fg-lock">${L ? "Silhouette indisponible" : "Shape unavailable"}</div>`}</div>`); }
+  if (open(6)){ const call = ident[t]?.call;
+    if (call) cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Indicatif" : "Dialing code"}</div><div class="fg-code">${esc(call)}</div></div>`); }
+  if (open(9)) cards.push(`<div class="fg-hint"><div class="lbl">${L ? "Nom masqué" : "Masked name"}</div><div class="fg-masked">${esc(gMask(t))}</div></div>`);
+  const next = fWon ? null : F_TIERS.find(h => fails < h.at);
+  const lock = next
+    ? `<div class="fg-lock">💡 ${L
+        ? `${next.fr} dans ${next.at - fails} essai${next.at - fails > 1 ? "s" : ""}`
+        : `${next.en} in ${next.at - fails} guess${next.at - fails > 1 ? "es" : ""}`}</div>`
+    : "";
+  const win = fWon
+    ? `<div class="g-banner">🎉 ${fDaily ? (L ? "Série du jour réussie en" : "Today's series done in") : (L ? "Trouvé en" : "Found in")} ${fGuesses.length} ${L ? (fGuesses.length > 1 ? "essais" : "essai") : (fGuesses.length > 1 ? "guesses" : "guess")} — ${esc(gName(t))} !</div>`
+    : "";
+  const rows = [...fGuesses].reverse().map(iso => {
+    const ok = iso === t;
+    return `<div class="fg-g${ok ? " g-ok" : ""}"><span class="fg-gn">${esc(gName(iso))}</span><span class="fg-gm">${ok ? "✓" : "✗"}</span></div>`;
+  }).join("");
+  return `<div class="page db-page g-page"><div class="db-in g-center">
+    <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    <div class="g-eyebrow">${fDaily
+      ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
+      : (L ? "Jeu" : "Game")}</div>
+    <h1 class="g-title">${L ? "Devine le drapeau" : "Guess the flag"}</h1>
+    <p class="lead">${L
+      ? "Un drapeau s'affiche : à toi de nommer le pays. Trois indices se débloquent au fil des essais ratés — la forme du pays, son indicatif téléphonique, puis son nom masqué. Essais illimités."
+      : "A flag is shown — name the country. Three clues unlock as you miss — the country's shape, its dialing code, then its masked name. Unlimited guesses."}</p>
+    <div class="fg-tiers">
+      ${F_TIERS.map(h => `<span class="fg-tier"><span class="n">${h.at}</span>${esc(L ? h.fr : h.en)}</span>`).join("")}
+    </div>
+    <img class="fg-flag" src="${flagUrl}" alt="${L ? "Drapeau à deviner" : "Flag to guess"}" onerror="this.style.opacity=.25">
+    ${cards.length ? `<div class="fg-hints">${cards.join("")}</div>` : ""}
+    ${lock}
+    <div class="g-bar">
+      <div class="g-searchwrap">
+        <input class="g-in" type="text" autocomplete="off" spellcheck="false"
+          placeholder="${L ? "Propose un pays…" : "Guess a country…"}"${fWon ? " disabled" : ""}>
+        <div class="g-sug"></div>
+      </div>
+      <span class="g-count">${fGuesses.length} ${L ? "essai" : "guess"}${fGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
+      ${fDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
+    </div>
+    ${win}
+    <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
+  </div></div>`;
 }
 
 async function boot(){
@@ -1587,13 +1765,13 @@ async function boot(){
   el("view-games").addEventListener("input", (e) => {
     const inp = e.target.closest(".g-in"); if (!inp) return;
     const sug = el("view-games").querySelector(".g-sug");
-    const hits = gSuggest(inp.value);
+    const hits = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gGuesses);
     sug.innerHTML = hits.map(iso => `<button data-gpick="${iso}">${esc(gName(iso))}</button>`).join("");
   });
   el("view-games").addEventListener("keydown", (e) => {
     const inp = e.target.closest(".g-in"); if (!inp || e.key !== "Enter") return;
-    const first = gSuggest(inp.value)[0];
-    if (first) gGuess(first);
+    const first = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gGuesses)[0];
+    if (first) (gScreen === "flag" ? fGuess : gGuess)(first);
   });
   el("view-games").addEventListener("click", (e) => {
     if (e.target.closest("[data-ghub]")){ gScreen = "hub";
@@ -1603,19 +1781,26 @@ async function boot(){
       gScreen = "country";
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
-    if (e.target.closest("[data-gserie]")){
-      if (!gDaily) gNew(true);               // manche du jour (reprise si déjà entamée)
-      gScreen = "country";
+    if (e.target.closest("[data-gflag]")){
+      if (fDaily || !fTarget) fNew(false);
+      gScreen = "flag";
+      el("view-games").innerHTML = renderGames();
+      el("view-games").querySelector(".g-in")?.focus(); return; }
+    const serie = e.target.closest("[data-gserie]");
+    if (serie){                              // manche du jour du jeu choisi (reprise, ou rejeu si finie)
+      if (serie.dataset.gserie === "flag"){ if (!fDaily || fWon) fNew(true); gScreen = "flag"; }
+      else { if (!gDaily || gWon) gNew(true); gScreen = "country"; }
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const nb = e.target.closest("[data-gnew]");
-    if (nb){ gNew(); el("view-games").innerHTML = renderGames();
+    if (nb){ gScreen === "flag" ? fNew(false) : gNew(false);
+      el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const hb = e.target.closest("[data-ghint]");
     if (hb){ gHint = true; el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const pk = e.target.closest("[data-gpick]");
-    if (pk) gGuess(pk.dataset.gpick);
+    if (pk) (gScreen === "flag" ? fGuess : gGuess)(pk.dataset.gpick);
   });
   el("view-purpose").addEventListener("submit", (e) => {
     if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
@@ -1733,6 +1918,17 @@ async function boot(){
     return { iso, nameEn, nameFr, covered: hasContent(iso), feature: f };
   }).filter(x => x.nameEn || x.nameFr);
   for (const x of searchable) if (x.iso && x.nameEn) NAME_EN[x.iso] = x.nameEn;
+
+  // Mémorise la géométrie de chaque pays (on retient la plus grande empreinte
+  // quand plusieurs entités partagent un ISO) pour dessiner sa silhouette dans
+  // le jeu « Devine le drapeau ».
+  { const areaOf = (f) => { try { return d3.geoArea(f); } catch { return 0; } };
+    const best = {};
+    for (const x of searchable){
+      if (!x.iso) continue;
+      const a = areaOf(x.feature);
+      if (best[x.iso] == null || a > best[x.iso]){ best[x.iso] = a; GEO[x.iso] = x.feature; }
+    } }
 
   // Nom d'affichage d'un pays de la carte, selon la langue active :
   // macro.json (déjà en FR) → nom anglais de la carte.
