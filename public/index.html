@@ -1413,7 +1413,7 @@ function renderGames(){
   const hint = (!gWon && gGuesses.length >= 8)
     ? (gHint
       ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
-      : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : code du pays" : "Hint: country code"}</button></div>`)
+      : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`)
     : "";
   return `<div class="page db-page"><div class="db-in">
     <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
