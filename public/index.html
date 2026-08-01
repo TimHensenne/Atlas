@@ -330,6 +330,19 @@
   .pickcell input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
   table.db tr.picked td{background:var(--rule-soft);}
   table.db tr.picked td:first-child{background:var(--panel);box-shadow:inset 3px 0 0 var(--indigo);}
+  /* Filtres du tableur */
+  .db-filters{display:flex;flex-wrap:wrap;gap:8px 26px;margin:0 0 12px;}
+  .fgroup{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
+  .flab{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--dim);margin-right:4px;cursor:default;}
+  .fsep{color:var(--dim);font-size:11px;margin:0 2px;}
+  .chip{background:var(--paper);border:1px solid var(--rule);border-radius:20px;color:var(--dim);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;padding:4px 11px;cursor:pointer;
+    line-height:1;transition:background .12s ease,color .12s ease,border-color .12s ease;}
+  .chip:hover{color:var(--ink);border-color:var(--indigo);}
+  .chip.on{background:var(--indigo);border-color:var(--indigo);color:#FFF;}
+  .chip:disabled{opacity:.4;cursor:default;}
+  .chip:disabled:hover{color:var(--dim);border-color:var(--rule);}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
   table.db th,table.db td{padding:7px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;text-align:left;}
@@ -1199,6 +1212,28 @@ let dbSort = "gdp";
 let dbDir = -1;   // -1 = décroissant, 1 = croissant
 let dbQuery = "";  // filtre de la recherche du tableur
 const dbPicked = new Set();   // pays épinglés : restent affichés malgré la recherche
+const dbRegions = new Set();  // filtres région (clés EN stables : Europe, Asia…)
+const dbGrades = new Set();   // familles de notation : "A", "B", "C"
+let dbQInd = null;            // indicateur des quartiles : gdp|pop|debt|budget|cab
+const dbQuarts = new Set();   // quartiles retenus : 1..4
+const REG_LABELS = {
+  Europe:{fr:"Europe",en:"Europe"}, Asia:{fr:"Asie",en:"Asia"}, Africa:{fr:"Afrique",en:"Africa"},
+  Americas:{fr:"Amériques",en:"Americas"}, Oceania:{fr:"Océanie",en:"Oceania"},
+};
+const QIND_LABELS = {
+  gdp:{fr:"PIB",en:"GDP"}, pop:{fr:"Population",en:"Population"}, debt:{fr:"Dette",en:"Debt"},
+  budget:{fr:"Solde budg.",en:"Budget"}, cab:{fr:"Bal. courante",en:"Curr. acc."},
+};
+// Famille de notation d'un pays : S&P, sinon Fitch, sinon Moody's.
+// A = A- et mieux · B = BBB+ à B- · C = CCC+ et moins (défauts compris).
+function gradeOf(iso){
+  const r = ratings.countries?.[iso]; if (!r) return null;
+  const rank = r.sp != null ? RANK_SPF[r.sp]
+    : r.fitch != null ? RANK_SPF[r.fitch]
+    : r.moody != null ? RANK_MOODY[r.moody] : null;
+  if (rank == null) return null;
+  return rank >= 15 ? "A" : rank >= 6 ? "B" : "C";
+}
 
 function renderDatabase(){
   const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
@@ -1221,8 +1256,35 @@ function renderDatabase(){
   const fold = (s) => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const q = fold(dbQuery.trim());
   const nameCol = DB_COLS[0];
-  // Un pays épinglé reste affiché quelle que soit la recherche.
-  const shown = isos.filter(iso => dbPicked.has(iso) || !q || fold(nameCol.get(iso)).includes(q));
+  // Filtres : OU au sein d'un groupe, ET entre groupes. Épinglés toujours visibles.
+  const passRegion = (iso) => !dbRegions.size || dbRegions.has(ident[iso]?.reg);
+  const passGrade  = (iso) => !dbGrades.size || dbGrades.has(gradeOf(iso));
+  let quartOf = null;
+  if (dbQInd && dbQuarts.size){
+    const col = DB_COLS.find(c => c.key === dbQInd);
+    const vals = isos.map(i => col.get(i)).filter(v => v != null && v !== "").sort((a, b) => a - b);
+    if (vals.length >= 4){
+      const at = (p) => vals[Math.min(vals.length - 1, Math.floor(p * vals.length))];
+      const t1 = at(.25), t2 = at(.5), t3 = at(.75);
+      quartOf = (iso) => { const v = col.get(iso); if (v == null || v === "") return null;
+        return v <= t1 ? 1 : v <= t2 ? 2 : v <= t3 ? 3 : 4; };
+    }
+  }
+  const passQuart = (iso) => !quartOf || dbQuarts.has(quartOf(iso));
+  const shown = isos.filter(iso => dbPicked.has(iso)
+    || ((!q || fold(nameCol.get(iso)).includes(q)) && passRegion(iso) && passGrade(iso) && passQuart(iso)));
+  // Puces de filtres
+  const chip = (attr, val, on, label, dis) =>
+    `<button class="chip${on ? " on" : ""}" ${attr}="${val}"${dis ? " disabled" : ""}>${label}</button>`;
+  const regChips = Object.keys(REG_LABELS).map(r => chip("data-freg", r, dbRegions.has(r), esc(REG_LABELS[r][lang]))).join("");
+  const gradeChips = ["A","B","C"].map(g => chip("data-fgrade", g, dbGrades.has(g), g)).join("");
+  const qindChips = Object.keys(QIND_LABELS).map(k => chip("data-fqind", k, dbQInd === k, esc(QIND_LABELS[k][lang]))).join("");
+  const quartChips = [1,2,3,4].map(n => chip("data-fq", n, dbQuarts.has(n), "Q" + n, !dbQInd)).join("");
+  const filters = `<div class="db-filters">
+      <div class="fgroup"><span class="flab">${lang === "fr" ? "Région" : "Region"}</span>${regChips}</div>
+      <div class="fgroup"><span class="flab" title="${lang === "fr" ? "Meilleure note disponible : A = A− et mieux · B = BBB+ à B− · C = CCC+ et moins" : "Best available rating: A = A− and above · B = BBB+ to B− · C = CCC+ and below"}">${lang === "fr" ? "Notation" : "Rating"}</span>${gradeChips}</div>
+      <div class="fgroup"><span class="flab" title="${lang === "fr" ? "Q1 = 25 % les plus bas … Q4 = les plus hauts" : "Q1 = lowest 25% … Q4 = highest"}">${lang === "fr" ? "Quartile" : "Quartile"}</span>${qindChips}<span class="fsep">→</span>${quartChips}</div>
+    </div>`;
   const thead = cols.map(c =>
     `<th class="${c.text ? "" : "num"}${c.key === dbSort ? " sorted" : ""}" data-sort="${c.key}">${esc(c.t[lang])}${c.key === dbSort ? arrow : ""}</th>`
   ).join("");
@@ -1239,6 +1301,7 @@ function renderDatabase(){
       ? "Tous les pays, tous les indicateurs. Clique un en-tête pour trier, coche un pays pour l'épingler : il reste affiché pendant tes recherches."
       : "All countries, all indicators. Click a header to sort, tick a country to pin it: it stays visible while you search."}</p>
     <div class="db-cols">${allBtn}${toggles}</div>
+    ${filters}
     <input class="db-search" type="text" autocomplete="off" spellcheck="false"
       value="${esc(dbQuery)}" placeholder="${lang === "fr" ? "Rechercher un pays…" : "Search a country…"}"
       aria-label="${lang === "fr" ? "Rechercher dans le tableau" : "Search the table"}">
@@ -1277,10 +1340,23 @@ async function boot(){
     const rst = e.target.closest("[data-dbreset]");
     if (rst){
       dbQuery = ""; dbPicked.clear(); dbSort = "gdp"; dbDir = -1;
+      dbRegions.clear(); dbGrades.clear(); dbQInd = null; dbQuarts.clear();
       dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));
       el("view-benchmark").innerHTML = renderDatabase();
       return;
     }
+    const freg = e.target.closest("[data-freg]");
+    if (freg){ const r = freg.dataset.freg; dbRegions.has(r) ? dbRegions.delete(r) : dbRegions.add(r);
+      el("view-benchmark").innerHTML = renderDatabase(); return; }
+    const fgr = e.target.closest("[data-fgrade]");
+    if (fgr){ const g = fgr.dataset.fgrade; dbGrades.has(g) ? dbGrades.delete(g) : dbGrades.add(g);
+      el("view-benchmark").innerHTML = renderDatabase(); return; }
+    const fqi = e.target.closest("[data-fqind]");
+    if (fqi){ dbQInd = dbQInd === fqi.dataset.fqind ? null : fqi.dataset.fqind;
+      el("view-benchmark").innerHTML = renderDatabase(); return; }
+    const fq = e.target.closest("[data-fq]");
+    if (fq){ const n = +fq.dataset.fq; dbQuarts.has(n) ? dbQuarts.delete(n) : dbQuarts.add(n);
+      el("view-benchmark").innerHTML = renderDatabase(); return; }
     const th = e.target.closest("th[data-sort]");
     if (!th) return;
     const key = th.dataset.sort;
