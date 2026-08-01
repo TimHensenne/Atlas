@@ -382,8 +382,19 @@
   /* Vue jeu : colonne centrée, largeur bornée */
   .g-center{max-width:940px;margin:0 auto;width:100%;}
   .g-page h1,.g-page .lead{text-align:center;}
-  .g-page .lead{max-width:640px;margin-left:auto;margin-right:auto;}
-  .g-bar{justify-content:center;}
+  .g-page .lead{max-width:680px;margin:0 auto 18px;font-size:14px;line-height:1.65;}
+  .g-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--indigo);text-align:center;margin:14px 0 6px;}
+  .g-page .g-title{font-size:34px;margin:0 0 12px;letter-spacing:-.02em;}
+  .g-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 20px;margin:0 0 24px;}
+  .g-leg{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);}
+  .g-leg .sw{width:24px;height:24px;border-radius:3px;display:flex;align-items:center;
+    justify-content:center;font-size:12px;font-style:normal;flex:none;
+    background:var(--panel);border:1px solid var(--rule);color:var(--ink);}
+  .g-leg .sw.g-ok{background:#1E7A46;border-color:#1E7A46;color:#FFF;}
+  .g-leg .sw.g-close{background:#C9921E;border-color:#C9921E;color:#FFF;}
+  .g-leg .sw.g-swdir{color:var(--indigo);font-size:15px;}
+  .g-bar{justify-content:center;margin-bottom:16px;}
   .g-banner,.g-hintbox{text-align:center;}
   .db-scroll{overflow:auto;border:1px solid var(--rule);flex:1;min-height:0;}
   table.db{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;}
@@ -1426,10 +1437,17 @@ function renderGames(){
       ? `<div class="g-hintbox">💡 ${L ? "Le code du pays est" : "The country code is"} <b>${esc(t)}</b></div>`
       : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`));
   return `<div class="page db-page g-page"><div class="db-in g-center">
-    <h1>${L ? "Trouve le pays" : "Guess the country"}</h1>
+    <div class="g-eyebrow">${L ? "Jeu" : "Game"}</div>
+    <h1 class="g-title">${L ? "Trouve le pays" : "Guess the country"}</h1>
     <p class="lead">${L
-      ? "Un pays mystère est tiré au sort. Propose un pays : vert = exact, jaune = proche (±10 %), ↑↓ = le mystère est plus grand ou plus petit, et la flèche Direction pointe vers lui."
-      : "A mystery country is drawn. Guess one: green = exact, yellow = close (±10%), ↑↓ = the mystery is bigger or smaller, and the Direction arrow points towards it."}</p>
+      ? "Un pays mystère est tiré au sort parmi les quelque 180 pays d'Atlas. À chaque proposition, six données te disent si tu chauffes : région, population, PIB, pays frontaliers, densité, et une flèche qui pointe vers le pays mystère. Essais illimités — un indice se débloque après huit tentatives."
+      : "A mystery country is drawn from Atlas's ~180 countries. Each guess reveals six clues telling you how close you are: region, population, GDP, land borders, density, and an arrow pointing towards the mystery country. Unlimited guesses — a hint unlocks after eight tries."}</p>
+    <div class="g-legend">
+      <span class="g-leg"><i class="sw g-ok">✓</i>${L ? "Exact" : "Exact"}</span>
+      <span class="g-leg"><i class="sw g-close">≈</i>${L ? "Proche (±10 %)" : "Close (±10%)"}</span>
+      <span class="g-leg"><i class="sw">↑↓</i>${L ? "Le mystère est plus grand / plus petit" : "The mystery is bigger / smaller"}</span>
+      <span class="g-leg"><i class="sw g-swdir">↗</i>${L ? "Direction du pays mystère" : "Direction of the mystery country"}</span>
+    </div>
     <div class="g-bar">
       <div class="g-searchwrap">
         <input class="g-in" type="text" autocomplete="off" spellcheck="false"
