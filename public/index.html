@@ -2750,6 +2750,15 @@ const Auth = (() => {
     document.addEventListener("mousedown", (e) => {
       if (e.target && e.target.id === "authModal") closeModal();
     });
+    // Entrée dans un champ de la modale = clic sur le bouton du formulaire.
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const modal = el("authModal");
+      if (!modal || modal.hidden) return;                 // modale fermée → on ignore
+      if (!e.target || e.target.tagName !== "INPUT") return;
+      e.preventDefault();
+      if (el("su-pseudo")) doSignup(); else if (el("au-id")) doLogin();
+    });
   }
 
   return { init, isLoggedIn, configured: cfgOK, onSeriesComplete, fillLeaderboard, promptSeries };
