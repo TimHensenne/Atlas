@@ -1190,7 +1190,6 @@ const DB_COLS = [
   { key:"cab",    t:{fr:"Bal. courante",en:"Curr. acc."},       get:(iso)=>ind(iso,"BCA_NGDPD"), fmt:pctCell },
   { key:"unemp",  t:{fr:"Chômage",en:"Unemp."},                 get:(iso)=>ind(iso,"LUR"), fmt:pctCell },
   { key:"yield",  t:{fr:"Rend. 10a",en:"10y yield"},            get:(iso)=>yields.countries?.[iso]?.yield, fmt:pctCell },
-  { key:"spread", t:{fr:"Spread",en:"Spread"},                  get:(iso)=>yields.countries?.[iso]?.spread, fmt:(v)=>(v>=0?"+":"−")+Math.abs(Math.round(v*100))+" pb" },
   { key:"sp",     t:{fr:"S&P",en:"S&P"},              rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.sp },
   { key:"moody",  t:{fr:"Moody's",en:"Moody's"},                rank:RANK_MOODY, get:(iso)=>ratings.countries?.[iso]?.moody },
   { key:"fitch",  t:{fr:"Fitch",en:"Fitch"},                    rank:RANK_SPF,   get:(iso)=>ratings.countries?.[iso]?.fitch },
