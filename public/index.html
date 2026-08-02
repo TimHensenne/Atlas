@@ -933,6 +933,19 @@
   /* Tooltip carte : verre + pop. */
   #tip{border-radius:var(--r-s);background:var(--glass);backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:var(--elev2);}
+  /* Bandeau bas de page : fin, verre, présent sous toutes les fenêtres. */
+  .foot{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:8px 22px;border-top:1px solid var(--rule-soft);
+    background:var(--topbar-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--dim);}
+  .foot .f-l{white-space:nowrap;}
+  .foot .f-m{flex:1;min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .foot .f-r{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .foot button{background:none;border:0;padding:0;cursor:pointer;color:var(--dim);
+    font:inherit;text-decoration:underline;text-underline-offset:2px;}
+  .foot button:hover{color:var(--indigo);}
+  .foot .f-sep{opacity:.6;}
+  @media(max-width:720px){ .foot .f-m{display:none;} }
   /* Mouvement réduit : tout redevient sage. */
   @media(prefers-reduced-motion:reduce){
     .view.v-enter,.modal:not([hidden]) .modal-card,
@@ -1012,6 +1025,8 @@
 <section id="view-games"    class="view" hidden></section>
 <section id="view-data"     class="view" hidden></section>
 <section id="view-purpose"  class="view" hidden></section>
+
+<footer class="foot" id="foot"></footer>
 
 <div id="tip"><b></b><span></span></div>
 
@@ -2961,6 +2976,7 @@ async function boot(){
     renderStamp();
     renderPanel();  // le panneau se retraduit intégralement
     renderTabs();
+    paintFoot();
     renderView(view);  // retraduit la vue active (lexique, données, but…)
     g.selectAll("path.country").attr("aria-label", d => mapName(d)); // lecteurs d'écran
     if (searchBox.value.trim()) runSearch();  // réafficher les noms traduits
@@ -2995,6 +3011,72 @@ async function boot(){
     try { localStorage.setItem("atlas-theme", dark ? "dark" : "light"); } catch {}
   });
 })();
+
+// ── Pied de page & pages légales (RGPD) ─────────────────────────────────
+// Confidentialité : obligatoire dès qu'on collecte des données de compte
+// (art. 13 RGPD). Pas de bandeau cookies : Atlas n'utilise ni cookies tiers
+// ni traceurs — seulement du localStorage strictement nécessaire (préférences,
+// session, parties), exempté de consentement.
+function legalHTML(kind, L){
+  if (kind === "mentions"){
+    return L
+      ? '<div class="m-h">Mentions légales</div><div class="m-legal">'
+        + '<h4>Éditeur</h4><p>Atlas est un projet personnel et éducatif édité par Tim Hensenne, étudiant (M. Sc. Financial Economics, Université de Maastricht). Contact : timhensenne@gmail.com.</p>'
+        + '<h4>Hébergement</h4><p>Site statique hébergé par GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (États-Unis). Les données de comptes sont hébergées par Supabase, région Union européenne (Francfort).</p>'
+        + '<h4>Données affichées</h4><p>FMI (World Economic Outlook), OCDE via FRED, Banque mondiale, Wikipédia (notations, CC BY-SA), exchange-api (taux de change), world-countries. Les données sont fournies à titre informatif et pédagogique ; elles peuvent comporter des erreurs ou des délais.</p>'
+        + '<h4>Avertissement</h4><p>Atlas ne fournit aucun conseil en investissement, juridique ou fiscal. Aucune décision financière ne doit être fondée sur ce site.</p>'
+        + '</div>'
+      : '<div class="m-h">Legal notice</div><div class="m-legal">'
+        + '<h4>Publisher</h4><p>Atlas is a personal, educational project by Tim Hensenne, student (M. Sc. Financial Economics, Maastricht University). Contact: timhensenne@gmail.com.</p>'
+        + '<h4>Hosting</h4><p>Static site hosted on GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (USA). Account data is hosted by Supabase, European Union region (Frankfurt).</p>'
+        + '<h4>Displayed data</h4><p>IMF (World Economic Outlook), OECD via FRED, World Bank, Wikipedia (ratings, CC BY-SA), exchange-api (FX rates), world-countries. Data is provided for information and education; it may contain errors or delays.</p>'
+        + '<h4>Disclaimer</h4><p>Atlas provides no investment, legal or tax advice. No financial decision should rely on this site.</p>'
+        + '</div>';
+  }
+  // kind === "privacy" — politique de confidentialité complète (RGPD art. 13)
+  return L
+    ? '<div class="m-h">Confidentialité</div><div class="m-legal">'
+      + '<p>Cette politique explique quelles données Atlas traite, pourquoi, et tes droits (RGPD).</p>'
+      + '<h4>Responsable du traitement</h4><p>Tim Hensenne — contact : timhensenne@gmail.com.</p>'
+      + '<h4>Données collectées</h4><p>Compte (obligatoire) : pseudo, email, mot de passe (haché par Supabase, jamais lisible). Profil (facultatif, uniquement avec ton consentement) : prénom, année de naissance, sexe, pays. Jeu : scores quotidiens de la Super Série. Aucune adresse postale, aucune donnée sensible (santé, opinions, etc.).</p>'
+      + '<h4>Finalités et bases légales</h4><p>Créer ton compte, te connecter et afficher le classement (exécution du service demandé) ; champs facultatifs (consentement, retirable à tout moment).</p>'
+      + '<h4>Cookies et stockage local</h4><p>Atlas n\'utilise ni cookies publicitaires ni traceurs d\'audience. Le navigateur conserve localement des éléments strictement nécessaires : préférences (thème, langue, devise), parties en cours, et jeton de session Supabase si tu te connectes. Ce stockage nécessaire est exempté de bandeau de consentement.</p>'
+      + '<h4>Destinataires et hébergement</h4><p>Données de compte stockées chez Supabase (Union européenne, Francfort), transport chiffré (HTTPS). Le classement public n\'affiche que ton pseudo et ton score. Aucune vente ni partage de données.</p>'
+      + '<h4>Durées de conservation</h4><p>Jusqu\'à la suppression de ton compte ; les scores quotidiens peuvent être purgés périodiquement.</p>'
+      + '<h4>Tes droits</h4><p>Accès, rectification, effacement, portabilité, limitation et opposition : écris à timhensenne@gmail.com. Tu peux aussi introduire une réclamation auprès de l\'Autorité de protection des données (autoriteprotectiondonnees.be).</p>'
+      + '</div>'
+    : '<div class="m-h">Privacy</div><div class="m-legal">'
+      + '<p>This policy explains what data Atlas processes, why, and your rights (GDPR).</p>'
+      + '<h4>Controller</h4><p>Tim Hensenne — contact: timhensenne@gmail.com.</p>'
+      + '<h4>Data collected</h4><p>Account (required): pseudonym, email, password (hashed by Supabase, never readable). Profile (optional, only with your consent): first name, birth year, sex, country. Play: daily Super Series scores. No postal address, no sensitive data.</p>'
+      + '<h4>Purposes and legal bases</h4><p>Create your account, log you in and show the leaderboard (performance of the requested service); optional fields (consent, withdrawable anytime).</p>'
+      + '<h4>Cookies and local storage</h4><p>Atlas uses no advertising cookies and no analytics trackers. The browser locally stores strictly necessary items: preferences (theme, language, currency), games in progress, and the Supabase session token if you log in. Such necessary storage is exempt from consent banners.</p>'
+      + '<h4>Recipients and hosting</h4><p>Account data is stored with Supabase (European Union, Frankfurt), encrypted in transit (HTTPS). The public leaderboard shows only your pseudonym and score. No selling or sharing of data.</p>'
+      + '<h4>Retention</h4><p>Until you delete your account; daily scores may be purged periodically.</p>'
+      + '<h4>Your rights</h4><p>Access, rectification, erasure, portability, restriction and objection: write to timhensenne@gmail.com. You may also lodge a complaint with your data protection authority.</p>'
+      + '</div>';
+}
+// Ouvre une page légale dans la modale commune (fermeture gérée par Auth.bindOnce).
+function openLegal(kind){
+  const card = el("authModal").querySelector(".modal-card");
+  card.innerHTML = '<button class="m-close" data-auth="close" aria-label="Fermer">×</button>'
+    + legalHTML(kind, lang === "fr");
+  el("authModal").hidden = false;
+}
+// Bandeau bas de page, présent sous toutes les fenêtres.
+function paintFoot(){
+  const L = lang === "fr";
+  el("foot").innerHTML =
+    '<span class="f-l">© ' + new Date().getFullYear() + ' Atlas · Tim Hensenne</span>'
+    + '<span class="f-m">' + (L
+        ? "Données : FMI · OCDE · Banque mondiale · Wikipédia · exchange-api — à titre informatif, pas un conseil d'investissement"
+        : "Data: IMF · OECD · World Bank · Wikipedia · exchange-api — for information only, not investment advice") + '</span>'
+    + '<span class="f-r">'
+    + '<button data-legal="privacy">' + (L ? "Confidentialité" : "Privacy") + '</button>'
+    + '<span class="f-sep">·</span>'
+    + '<button data-legal="mentions">' + (L ? "Mentions légales" : "Legal notice") + '</button>'
+    + '</span>';
+}
 
 // ═══ Comptes & classement partagé (Supabase) ══════════════════════════════
 // Entièrement isolé : si atlas-config.js n'est pas renseigné, cfgOK() est faux
@@ -3210,22 +3292,8 @@ const Auth = (() => {
       + '<div class="m-alt"><button data-auth="tab-login">' + (L ? "Déjà un compte ? Se connecter" : "Have an account? Log in") + '</button></div>';
   }
   function privacyHTML(L){
-    if (!L) return '<div class="m-h">Privacy</div>'
-      + '<div class="m-legal"><p>Atlas stores the data below to run accounts and the daily leaderboard.</p>'
-      + '<h4>Data</h4><p>Required: pseudonym, email, password (hashed by Supabase). Optional (with consent): first name, birth year, sex, country. We never collect your postal address or any sensitive data.</p>'
-      + '<h4>Purpose & basis</h4><p>Account &amp; login (necessity); optional fields and leaderboard display (your consent).</p>'
-      + '<h4>Hosting</h4><p>Data is stored via Supabase. Transport is encrypted (HTTPS).</p>'
-      + '<h4>Your rights</h4><p>Access, rectify, delete — contact [YOUR EMAIL]. You can delete your account at any time.</p>'
-      + '<h4>Retention</h4><p>Until you delete your account. Daily scores may be purged periodically.</p></div>'
-      + '<button class="m-go" data-auth="back">Back</button>';
-    return '<div class="m-h">Confidentialité</div>'
-      + '<div class="m-legal"><p>Atlas conserve les données ci-dessous pour gérer les comptes et le classement du jour.</p>'
-      + '<h4>Données</h4><p>Obligatoires : pseudo, email, mot de passe (haché par Supabase, jamais en clair). Facultatives (avec ton consentement) : prénom, année de naissance, sexe, pays. Nous ne collectons ni adresse postale ni donnée sensible.</p>'
-      + '<h4>Finalité &amp; base légale</h4><p>Compte et connexion (nécessité du service) ; champs facultatifs et affichage au classement (ton consentement, retirable).</p>'
-      + '<h4>Hébergement</h4><p>Les données sont stockées via Supabase. Le transport est chiffré (HTTPS).</p>'
-      + '<h4>Tes droits</h4><p>Accès, rectification, suppression — écris à [TON EMAIL]. Tu peux supprimer ton compte à tout moment.</p>'
-      + '<h4>Conservation</h4><p>Jusqu\'à la suppression de ton compte. Les scores quotidiens peuvent être purgés régulièrement.</p></div>'
-      + '<button class="m-go" data-auth="back">Retour</button>';
+    return legalHTML("privacy", L)
+      + '<button class="m-go" data-auth="back">' + (L ? "Retour" : "Back") + '</button>';
   }
   function renderModal(tab){
     const L = lang === "fr";
@@ -3299,6 +3367,11 @@ const Auth = (() => {
 // L'accueil est statique : on le peint tout de suite (avant les données),
 // pour éviter une page blanche pendant le chargement.
 if (!location.hash){ el("view-home").innerHTML = renderHome(); homeReveal(); }
+paintFoot();
+el("foot").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-legal]");
+  if (b) openLegal(b.dataset.legal);
+});
 boot();
 Auth.init();
 </script>
