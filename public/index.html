@@ -552,7 +552,6 @@
   .hvl-item .l1,.hvl-item .l2{border-radius:2px;background:var(--rule-soft);}
   .hvl-item .l2{width:70%;}
   .hvl-item.i1{animation-delay:.15s;} .hvl-item.i2{animation-delay:.4s;} .hvl-item.i3{animation-delay:.65s;}
-  .hv-src{flex-direction:row;flex-wrap:wrap;gap:10px;padding:0 24px;}
   .hvs-badge{font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--rule);
     border-radius:20px;padding:8px 16px;background:var(--paper);opacity:0;animation:hpop .5s ease forwards;}
   .hvs-badge.b1{animation-delay:.1s;} .hvs-badge.b2{animation-delay:.3s;}
@@ -933,6 +932,18 @@
   /* Tooltip carte : verre + pop. */
   #tip{border-radius:var(--r-s);background:var(--glass);backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:var(--elev2);}
+  /* Page Références : deux sections (Lexique, Sources) + ancres de saut. */
+  .refs-jump{display:flex;align-items:center;gap:10px;margin:0 0 26px;font-family:var(--mono);
+    font-size:11px;letter-spacing:.05em;text-transform:uppercase;}
+  .refs-jump button{background:none;border:0;padding:0;cursor:pointer;color:var(--indigo);
+    font:inherit;text-decoration:underline;text-underline-offset:3px;}
+  .refs-jump button:hover{color:var(--indigo-hi);}
+  .refs-h{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em;
+    color:var(--ink);margin:34px 0 6px;scroll-margin-top:12px;}
+  .refs-h:first-of-type{margin-top:6px;}
+  .refs-sub{color:var(--dim);font-size:13.5px;line-height:1.6;margin:0 0 18px;}
+  .hvs-row{display:flex;gap:8px;justify-content:center;margin-top:4px;}
+  .hvs-row .hvs-badge{padding:5px 11px;font-size:10.5px;}
   /* Bandeau bas de page : fin, verre, présent sous toutes les fenêtres. */
   .foot{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
     padding:8px 22px;border-top:1px solid var(--rule-soft);
@@ -1021,9 +1032,8 @@
 
 <section id="view-benchmark" class="view" hidden></section>
 <section id="view-fx"       class="view" hidden></section>
-<section id="view-lexicon"  class="view" hidden></section>
+<section id="view-refs"     class="view" hidden></section>
 <section id="view-games"    class="view" hidden></section>
-<section id="view-data"     class="view" hidden></section>
 <section id="view-purpose"  class="view" hidden></section>
 
 <footer class="foot" id="foot"></footer>
@@ -1568,14 +1578,13 @@ el("panel").addEventListener("mouseleave", () => {
 });
 
 // ════════════════ Onglets / vues ════════════════
-const VIEW_ORDER = ["map", "benchmark", "fx", "games", "lexicon", "data", "purpose"];
+const VIEW_ORDER = ["map", "benchmark", "fx", "games", "refs", "purpose"];
 const NAV_LABELS = {
   map:      { fr:"Carte",       en:"Map" },
   benchmark:{ fr:"Base de données", en:"Database" },
   fx:       { fr:"FX / Devises", en:"FX / Currency" },
   games:    { fr:"Jeux",        en:"Games" },
-  lexicon:  { fr:"Lexique",     en:"Glossary" },
-  data:     { fr:"Sources",     en:"Sources" },
+  refs:     { fr:"Références",  en:"Reference" },
   purpose:  { fr:"But",         en:"Purpose" },
 };
 let view = "home";
@@ -1596,6 +1605,9 @@ function renderTabs(){
   }
 }
 function setView(v){
+  // Compatibilité : les anciens liens #view=lexicon / #view=data pointent
+  // vers la page fusionnée « Références ».
+  if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
   view = v;
   // Mémorise l'onglet dans l'URL : survit au rechargement, partageable,
@@ -1611,8 +1623,7 @@ function setView(v){
 }
 function renderView(v){
   if (v === "home")           { el("view-home").innerHTML   = renderHome(); homeReveal(); }
-  else if (v === "lexicon")   el("view-lexicon").innerHTML  = renderLexicon();
-  else if (v === "data")      el("view-data").innerHTML     = renderData();
+  else if (v === "refs")      el("view-refs").innerHTML     = renderRefs();
   else if (v === "purpose")   el("view-purpose").innerHTML  = renderPurpose();
   else if (v === "benchmark") el("view-benchmark").innerHTML = renderBenchmark();
   else if (v === "games")     el("view-games").innerHTML    = renderGames();
@@ -1657,11 +1668,9 @@ function renderHome(){
       <div class="hvg-flag"><span></span><span></span><span></span></div>
       <div class="hvg-tiles"><span class="t1">?</span><span class="t2">?</span><span class="t3">?</span></div>
     </div>`;
-  const vLex = `<div class="hv hv-lex">
-      ${[1,2,3].map(i => `<div class="hvl-item i${i}"><span class="w"></span><span class="l1"></span><span class="l2"></span></div>`).join("")}
-    </div>`;
-  const vSrc = `<div class="hv hv-src">
-      ${["FMI","OCDE","BM","Wiki"].map((s,i) => `<span class="hvs-badge b${i+1}">${s}</span>`).join("")}
+  const vRefs = `<div class="hv hv-lex">
+      ${[1,2].map(i => `<div class="hvl-item i${i}"><span class="w"></span><span class="l1"></span><span class="l2"></span></div>`).join("")}
+      <div class="hvs-row">${["FMI","OCDE","BM","Wiki"].map((s,i) => `<span class="hvs-badge b${i+1}">${s}</span>`).join("")}</div>
     </div>`;
   const vBut = `<div class="hv hv-but"><svg viewBox="0 0 120 120" aria-hidden="true">
       <circle cx="60" cy="60" r="46" class="hvb-ring"/>
@@ -1674,8 +1683,7 @@ function renderHome(){
     ["benchmark", L?"Base de données":"Database", L?"Tous les pays, toutes les colonnes : trie, filtre par région, notation ou quartile, épingle tes pays et compare.":"Every country, every column: sort, filter by region, rating or quartile, pin your countries and compare.", vDb],
     ["fx",        L?"FX / Devises":"FX / Currency", L?"Plus de 200 devises : un convertisseur libre et les grandes paires face à l'euro et au dollar, en direct.":"200+ currencies: a free converter and the major pairs against the euro and the dollar, live.", vFx],
     ["games",     L?"Jeux":"Games",             L?"Apprendre en jouant : pays mystère, drapeaux, et la Super Série quotidienne avec son classement.":"Learn by playing: mystery countries, flags, and the daily Super Series with its leaderboard.", vGames],
-    ["lexicon",   L?"Lexique":"Glossary",       L?"PIB, spread, notation souveraine… chaque terme utilisé dans Atlas, défini simplement et en deux langues.":"GDP, spread, sovereign rating… every term used in Atlas, plainly defined in two languages.", vLex],
-    ["data",      L?"Sources":"Sources",        L?"FMI, OCDE, Banque mondiale, Wikipédia : des données publiques, actualisées automatiquement chaque mois.":"IMF, OECD, World Bank, Wikipedia: public data, refreshed automatically every month.", vSrc],
+    ["refs",      L?"Références":"Reference",   L?"Les termes définis simplement, et les sources publiques — FMI, OCDE, Banque mondiale, Wikipédia — d'où viennent les données, actualisées chaque mois.":"Terms plainly defined, and the public sources — IMF, OECD, World Bank, Wikipedia — the data comes from, refreshed monthly.", vRefs],
     ["purpose",   L?"But":"Purpose",            L?"Pourquoi Atlas existe, ce qu'il montre — et, honnêtement, ce qu'il ne montre pas.":"Why Atlas exists, what it shows — and, honestly, what it doesn't.", vBut],
   ];
   return `<div class="page home-page">
@@ -1823,17 +1831,36 @@ const LEX = [
   { t:["Investment grade / spéculatif","Investment / speculative grade"], d:["Au-dessus de BBB−/Baa3 la dette est « de qualité » ; en dessous, « spéculative » (junk).","At BBB−/Baa3 and above, debt is 'investment grade'; below, it is 'speculative' (junk)."] },
   { t:["Taux de change","Exchange rate"], d:["Le prix d'une monnaie exprimé dans une autre.","The price of one currency expressed in another."] },
 ];
-function renderLexicon(){
-  const i = lang === "fr" ? 0 : 1;
-  const items = LEX.map(x =>
+// ── Références : Lexique + Sources fusionnés en une page consultative ──
+function renderRefs(){
+  const L = lang === "fr";
+  const i = L ? 0 : 1;
+  const lexItems = LEX.map(x =>
     `<div class="lex-item"><div class="lex-term">${esc(x.t[i])}<small>${esc(x.t[i === 0 ? 1 : 0])}</small></div><div class="lex-def">${esc(x.d[i])}</div></div>`
   ).join("");
+  const srcItems = SRC.map(s =>
+    `<div class="src-item"><span class="src-name">${esc(s.n)}</span><span class="src-freq">${esc(s.f[i])}</span><span class="src-desc">${esc(s.d[i])}</span></div>`
+  ).join("");
   return `<div class="page"><div class="page-in">
-    <h1>${lang === "fr" ? "Lexique" : "Glossary"}</h1>
-    <p class="lead">${lang === "fr"
+    <h1>${L ? "Références" : "Reference"}</h1>
+    <p class="lead">${L
+      ? "Tout ce qu'il faut pour comprendre les données d'Atlas : les termes utilisés, puis les sources dont elles proviennent."
+      : "Everything you need to read Atlas's data: the terms used, then the sources it comes from."}</p>
+    <div class="refs-jump">
+      <button data-refjump="ref-lex">${L ? "Lexique" : "Glossary"}</button>
+      <span class="f-sep">·</span>
+      <button data-refjump="ref-src">${L ? "Sources" : "Sources"}</button>
+    </div>
+    <h2 class="refs-h" id="ref-lex">${L ? "Lexique" : "Glossary"}</h2>
+    <p class="refs-sub">${L
       ? "Les termes économiques et financiers utilisés dans Atlas, définis simplement."
       : "The economic and financial terms used across Atlas, defined plainly."}</p>
-    <div class="lex">${items}</div>
+    <div class="lex">${lexItems}</div>
+    <h2 class="refs-h" id="ref-src">${L ? "Sources" : "Sources"}</h2>
+    <p class="refs-sub">${L
+      ? "Toutes les données viennent de sources publiques, récupérées automatiquement. Voici lesquelles, et à quel rythme elles se rafraîchissent."
+      : "All data comes from public sources, fetched automatically. Here they are, and how often they refresh."}</p>
+    <div class="src">${srcItems}</div>
   </div></div>`;
 }
 
@@ -1846,19 +1873,6 @@ const SRC = [
   { n:"exchange-api", f:["Quotidien (en direct)","Daily (live)"], d:["Taux de change de 200+ devises, récupérés dans le navigateur à chaque visite.","Exchange rates for 200+ currencies, fetched in the browser on each visit."] },
   { n:"world-countries", f:["Statique","Static"], d:["Capitales, monnaies, langues, superficie et drapeaux.","Capitals, currencies, languages, area and flags."] },
 ];
-function renderData(){
-  const i = lang === "fr" ? 0 : 1;
-  const items = SRC.map(s =>
-    `<div class="src-item"><span class="src-name">${esc(s.n)}</span><span class="src-freq">${esc(s.f[i])}</span><span class="src-desc">${esc(s.d[i])}</span></div>`
-  ).join("");
-  return `<div class="page"><div class="page-in">
-    <h1>${lang === "fr" ? "Sources" : "Sources"}</h1>
-    <p class="lead">${lang === "fr"
-      ? "Toutes les données d'Atlas viennent de sources publiques, récupérées automatiquement. Voici lesquelles, et à quel rythme elles se rafraîchissent."
-      : "All of Atlas's data comes from public sources, fetched automatically. Here they are, and how often they refresh."}</p>
-    <div class="src">${items}</div>
-  </div></div>`;
-}
 
 // ── But / À propos ──
 const PROFILE = {
@@ -2497,6 +2511,10 @@ async function boot(){
   el("view-home").addEventListener("click", (e) => {
     const b = e.target.closest("[data-goto]");
     if (b) setView(b.dataset.goto);
+  });
+  el("view-refs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-refjump]");
+    if (b) el(b.dataset.refjump)?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   // Onglet FX : montant mis à jour en place (pas de re-render → focus conservé),
   // sélecteurs et swap re-rendent la vue.
