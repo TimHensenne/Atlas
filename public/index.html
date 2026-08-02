@@ -462,15 +462,16 @@
   .serie-step.todo{opacity:.6;}
   .serie-cta .serie-play{font-size:12px;padding:11px 24px;}
   .serie-cont{text-align:center;margin:14px 0 4px;display:flex;flex-direction:column;align-items:center;gap:10px;}
-  /* Fin de manche : « Jeu suivant → » ÉPINGLÉ en haut à droite de la zone de
-     jeu (symétrique du bouton retour), identique sur les 4 jeux. sticky +
-     height:0 : il reste visible au défilement sans pousser le contenu. */
-  .serie-cont.next{position:sticky;top:6px;z-index:6;height:0;margin:0;padding:0;max-width:none;
-    display:flex;justify-content:flex-end;align-items:flex-start;}
-  .serie-nextbtn{font-size:14px;font-weight:800;letter-spacing:.03em;padding:14px 26px;opacity:0;
-    box-shadow:0 8px 24px color-mix(in srgb, var(--indigo) 45%, transparent);
+  /* Fin de manche : « Jeu suivant → » en LAYER FLOTTANT, fixé en bas à
+     droite de la page (au-dessus du pied de page), insensible au scroll —
+     identique sur les 4 jeux. */
+  .serie-cont.next{position:fixed;right:26px;bottom:58px;z-index:120;height:auto;
+    margin:0;padding:0;max-width:none;display:block;}
+  .serie-nextbtn{font-size:14px;font-weight:800;letter-spacing:.03em;padding:15px 28px;opacity:0;
+    box-shadow:0 10px 30px color-mix(in srgb, var(--indigo) 50%, transparent);
     animation:snext .5s cubic-bezier(.22,.8,.3,1) .45s forwards;}
-  @keyframes snext{from{opacity:0;transform:translateX(18px);}to{opacity:1;transform:none;}}
+  @keyframes snext{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+  @media(max-width:680px){ .serie-cont.next{right:14px;bottom:52px;} }
   @media(prefers-reduced-motion:reduce){ .serie-nextbtn{animation:none;opacity:1;} }
   /* Pop-up de fin de série : récap du score + classement du jour. */
   .sp-emoji{font-size:38px;text-align:center;margin:2px 0 6px;}
