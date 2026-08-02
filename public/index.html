@@ -718,6 +718,75 @@
   .dr-side .dl-mark{top:50%;transform:translateY(-50%);right:8px;font-size:15px;}
   .hs-cta:disabled{opacity:.45;cursor:default;transform:none!important;box-shadow:none!important;}
   @media(max-width:560px){ .dr-duel{flex-direction:column;} .dr-vs{align-self:center;} }
+  /* ── Salle de jeux : cartes animées ─────────────────────────────────── */
+  /* Entrée en cascade des cartes et de la rangée série. */
+  @keyframes gcIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+  #view-games .serie-row{animation:gcIn .45s cubic-bezier(.22,.8,.3,1) both;}
+  #view-games .g-grid .g-card{animation:gcIn .45s cubic-bezier(.22,.8,.3,1) both;}
+  #view-games .g-grid .g-card:nth-child(1){animation-delay:.08s;}
+  #view-games .g-grid .g-card:nth-child(2){animation-delay:.16s;}
+  #view-games .g-grid .g-card:nth-child(3){animation-delay:.24s;}
+  #view-games .g-grid .g-card:nth-child(4){animation-delay:.32s;}
+  /* Étape courante de la série : halo qui respire. */
+  @keyframes stepGlow{0%,100%{box-shadow:0 0 0 1px var(--indigo) inset;}
+    50%{box-shadow:0 0 0 1px var(--indigo) inset,0 0 16px color-mix(in srgb, var(--indigo) 45%, transparent);}}
+  .serie-step.current{animation:stepGlow 2.4s ease-in-out infinite;}
+  /* Vignette commune des cartes. */
+  .gc-viz{height:64px;display:flex;align-items:center;justify-content:center;gap:10px;
+    margin:2px 0 12px;position:relative;}
+  .g-card:hover .gc-viz{transform:scale(1.07);}
+  .gc-viz{transition:transform .25s ease;}
+  /* 1 — Trouve le pays : cible qui pulse, flèche qui vise. */
+  .gc-target svg{width:58px;height:58px;}
+  .gt-ring{fill:none;stroke:var(--rule);stroke-width:2;}
+  .gt-ring.r2{stroke:var(--indigo);opacity:.45;}
+  .gt-core{fill:var(--indigo);animation:gtPulse 1.8s ease-in-out infinite;transform-origin:32px 32px;}
+  @keyframes gtPulse{0%,100%{transform:scale(1);opacity:.8;}50%{transform:scale(1.5);opacity:1;}}
+  .gt-arrow{stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;}
+  .gt-tip{fill:var(--accent);}
+  .gt-arrow,.gt-tip{animation:gtAim 2.6s ease-in-out infinite;transform-origin:50px 14px;}
+  @keyframes gtAim{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-14deg);}}
+  /* 2 — Drapeau : étendard qui ondule + « ? » qui rebondit. */
+  .gf-flag{width:58px;height:40px;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
+    border:1px solid var(--rule);box-shadow:0 4px 12px rgba(19,26,46,.18);
+    animation:gfWave 2.8s ease-in-out infinite;transform-origin:left center;}
+  @keyframes gfWave{0%,100%{transform:skewY(0deg);}30%{transform:skewY(2.6deg);}65%{transform:skewY(-2.2deg);}}
+  .gf-flag span{flex:1;}
+  .gf-flag span:nth-child(1){background:var(--indigo);}
+  .gf-flag span:nth-child(2){background:#F4F1EA;}
+  .gf-flag span:nth-child(3){background:var(--teal);}
+  .gf-q{position:absolute;right:calc(50% - 46px);top:-4px;width:22px;height:22px;border-radius:50%;
+    background:var(--accent);color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.25);
+    animation:gfQ 1.9s ease-in-out infinite;}
+  @keyframes gfQ{0%,100%{transform:translateY(0);}45%{transform:translateY(-7px) rotate(8deg);}}
+  /* 3 — Duel : deux barres en balance. */
+  .gc-duel{gap:12px;}
+  .gd-bar{width:16px;border-radius:4px 4px 2px 2px;background:var(--grad);align-self:flex-end;}
+  .gd-bar.a{height:42px;animation:gdA 2.2s ease-in-out infinite;}
+  .gd-bar.b{height:26px;animation:gdB 2.2s ease-in-out infinite;}
+  @keyframes gdA{0%,100%{height:42px;}50%{height:24px;}}
+  @keyframes gdB{0%,100%{height:26px;}50%{height:44px;}}
+  .gd-vs{font-family:var(--display);font-weight:800;font-size:13px;color:var(--dim);align-self:center;}
+  /* 4 — Podium : marches qui montent, médailles qui flottent. */
+  .gc-podium{gap:5px;align-items:flex-end;}
+  .gp-step{width:26px;border-radius:4px 4px 0 0;background:var(--panel);border:1px solid var(--rule);
+    border-bottom:0;position:relative;animation:gpRise .6s cubic-bezier(.22,.8,.3,1) both;}
+  .gp-step.s1{height:44px;background:color-mix(in srgb, var(--indigo) 14%, var(--panel));
+    border-color:var(--indigo);animation-delay:.25s;}
+  .gp-step.s2{height:32px;animation-delay:.1s;}
+  .gp-step.s3{height:22px;animation-delay:.4s;}
+  @keyframes gpRise{from{transform:scaleY(0);transform-origin:bottom;}to{transform:scaleY(1);transform-origin:bottom;}}
+  .gp-step i{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:14px;
+    animation:gpFloat 2.4s ease-in-out infinite;}
+  .gp-step.s2 i{animation-delay:.3s;} .gp-step.s3 i{animation-delay:.6s;}
+  @keyframes gpFloat{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-4px);}}
+  @media(prefers-reduced-motion:reduce){
+    #view-games .serie-row,#view-games .g-grid .g-card,.gp-step{animation:none;}
+    .serie-step.current{animation:none;box-shadow:0 0 0 1px var(--indigo) inset;}
+    .gt-core,.gt-arrow,.gt-tip,.gf-flag,.gf-q,.gd-bar.a,.gd-bar.b,.gp-step i{animation:none;}
+    .g-card:hover .gc-viz{transform:none;}
+  }
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -2388,21 +2457,38 @@ function renderGameHub(){
     <p class="serie-free">${L ? "Ou joue librement, hors série (parties illimitées) :" : "Or play freely, outside the series (unlimited games):"}</p>
     <div class="g-grid">
       <div class="g-card" data-gplay>
+        <div class="gc-viz gc-target" aria-hidden="true"><svg viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" class="gt-ring"/>
+          <circle cx="32" cy="32" r="16" class="gt-ring r2"/>
+          <circle cx="32" cy="32" r="6"  class="gt-core"/>
+          <line x1="50" y1="14" x2="38" y2="26" class="gt-arrow"/>
+          <polygon points="36,22 40,30 32,29" class="gt-tip"/>
+        </svg></div>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
       <div class="g-card" data-gflag>
+        <div class="gc-viz gc-flag" aria-hidden="true">
+          <div class="gf-flag"><span></span><span></span><span></span></div>
+          <span class="gf-q">?</span>
+        </div>
         <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
         <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, code pays et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, country code and name unlock as you try."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
       <div class="g-card" data-gduel>
+        <div class="gc-viz gc-duel" aria-hidden="true">
+          <span class="gd-bar a"></span><span class="gd-vs">VS</span><span class="gd-bar b"></span>
+        </div>
         <div class="g-card-t">${L ? "Duel" : "Duel"}</div>
         <div class="g-card-d">${L ? "Deux pays, une stat : clique le plus haut. Une erreur et la série tombe — bats ton record." : "Two countries, one stat: click the higher. One miss ends the streak — beat your best."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
       <div class="g-card" data-gpodium>
+        <div class="gc-viz gc-podium" aria-hidden="true">
+          <span class="gp-step s2"><i>🥈</i></span><span class="gp-step s1"><i>🥇</i></span><span class="gp-step s3"><i>🥉</i></span>
+        </div>
         <div class="g-card-t">${L ? "Podium" : "Podium"}</div>
         <div class="g-card-d">${L ? "Trouve le top 3 mondial de la stat du jour. Chaque raté révèle son rang réel." : "Find the world top 3 for today's stat. Each miss reveals its real rank."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
