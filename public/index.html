@@ -581,7 +581,10 @@
     flex:1;min-height:0;}
   /* Convertisseur : même hauteur que la liste (bas alignés), source en pied. */
   .fxv-left{flex:0 0 300px;align-self:stretch;display:flex;}
-  .fxv-card{flex:1;}
+  .fxv-card{flex:1;gap:14px;}
+  .fxv-card .m-in,.fxv-card .m-sel{padding-top:11px;padding-bottom:11px;}
+  .fxv-swapbtn{width:38px;height:34px;}
+  .fxv-res b{font-size:21px;}
   .fxv-card .macro-src{text-align:center;margin-top:auto;}
   .fxv-rightwrap{flex:1;min-width:0;align-self:stretch;position:relative;display:flex;}
   .fxv-right{flex:1;min-width:0;overflow-y:auto;padding-bottom:8px;
@@ -601,10 +604,9 @@
   .fxv-amt{width:100%;text-align:right;font-size:16px;}
   .fxv-sel{width:100%;max-width:none;}
   .fxv-swapbtn{align-self:center;width:34px;height:30px;}
-  .fxv-res{font-size:15px;color:var(--dim);text-align:center;}
+  .fxv-res{font-size:15px;color:var(--dim);text-align:center;margin-top:auto;padding-top:10px;}
   .fxv-res b{color:var(--ink);font-family:var(--mono);font-weight:600;font-size:18px;}
   .fxv-unit{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--dim);margin:0;}
-  .fxv-card .macro-src{text-align:center;margin:2px 0 0;}
   .fxv-table{margin:0;max-width:none;}
   /* Hauts alignés : l'en-tête du tableau est collant dans sa colonne. */
   .fxv-table thead th{position:sticky;top:0;background:var(--panel);z-index:1;}
