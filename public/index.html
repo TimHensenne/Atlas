@@ -815,6 +815,21 @@
     .tiltable::after{display:none;}
     #heroGlobe{display:none;}
   }
+  /* Super Série : bordure lumineuse qui parcourt le cadre — le contenu (et
+     ses boutons) ne bouge pas d'un pixel. Un simple rotate GPU, très léger. */
+  .serie-glow{position:relative;overflow:hidden;border-color:transparent;}
+  .serie-glow::before{content:"";position:absolute;inset:-120%;z-index:0;
+    background:conic-gradient(transparent 0deg 265deg,
+      color-mix(in srgb, var(--indigo) 85%, transparent) 305deg,
+      color-mix(in srgb, var(--teal) 85%, transparent) 340deg, transparent 360deg);
+    animation:sglow 5.5s linear infinite;}
+  @keyframes sglow{to{transform:rotate(360deg);}}
+  .serie-glow::after{content:"";position:absolute;inset:1px;z-index:0;
+    background:var(--panel);border-radius:calc(var(--r-m) - 1px);}
+  .serie-glow > *{position:relative;z-index:1;}
+  @media(prefers-reduced-motion:reduce){ .serie-glow::before{animation:none;} .serie-glow{border-color:var(--indigo);} }
+  /* Landing : kickers de sections + sections un peu plus denses */
+  .hs{min-height:44vh;}
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -1018,7 +1033,6 @@
       repeating-linear-gradient(0deg,  var(--rule-soft) 0 1px, transparent 1px 84px),
       repeating-linear-gradient(90deg, var(--rule-soft) 0 1px, transparent 1px 84px),
       var(--paper);
-    background-attachment:fixed;
   }
   /* Chrome : barre verre dépoli + onglets à pilule glissante. */
   .topbar{background:var(--topbar-bg);backdrop-filter:blur(16px) saturate(1.25);
@@ -1098,20 +1112,10 @@
   .fxv-table tbody tr:hover td,.lb tbody tr:hover td{background:var(--rule-soft);}
   /* Landing : héro cinétique (dégradé animé sur le titre) + orbes flottants. */
   .hero{isolation:isolate;}
-  .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;z-index:-1;
-    filter:blur(46px);opacity:.5;pointer-events:none;}
-  .hero::before{width:340px;height:340px;left:8%;top:6%;
-    background:color-mix(in srgb, var(--indigo) 34%, transparent);animation:orb 11s ease-in-out infinite;}
-  .hero::after{width:280px;height:280px;right:6%;bottom:2%;
-    background:color-mix(in srgb, var(--teal) 30%, transparent);animation:orb 13s ease-in-out -4s infinite reverse;}
-  @keyframes orb{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(26px,-20px) scale(1.08);}}
-  .hero-t{background:var(--grad);background-size:200% 200%;-webkit-background-clip:text;
-    background-clip:text;color:transparent;animation:heroInk 9s ease-in-out infinite;}
-  @keyframes heroInk{0%,100%{background-position:0% 40%;}50%{background-position:100% 60%;}}
+  .hero-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @keyframes heroUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
   .hero-eyebrow{animation:heroUp .6s ease both .05s;}
-  .hero-t{animation-name:heroInk,heroUp;animation-duration:9s,.7s;animation-timing-function:ease-in-out,cubic-bezier(.22,.8,.3,1);
-    animation-iteration-count:infinite,1;animation-fill-mode:both,both;animation-delay:0s,.12s;}
+  .hero-t{animation:heroUp .7s cubic-bezier(.22,.8,.3,1) both .12s;}
   .hero-d{animation:heroUp .7s ease both .24s;}
   .hero-ctas{animation:heroUp .7s ease both .36s;}
   .hs-n{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
@@ -1151,7 +1155,7 @@
   /* Mouvement réduit : tout redevient sage. */
   @media(prefers-reduced-motion:reduce){
     .view.v-enter,.modal:not([hidden]) .modal-card,
-    .hero::before,.hero::after,.hero-t,.hero-eyebrow,.hero-d,.hero-ctas{animation:none;}
+    .hero-t,.hero-eyebrow,.hero-d,.hero-ctas{animation:none;}
     .tabs button,.hs-cta,.m-go,.db-all,.g-card,.hv{transition:none;}
   }
 </style>
@@ -1827,13 +1831,13 @@ function renderView(v){
 // animée en CSS pur ; l'apparition au scroll est gérée par homeReveal().
 function renderHome(){
   const L = lang === "fr";
-  const S = (n, id, title, desc, visual, flip) => `
+  const S = (n, id, kicker, title, desc, cta, visual, flip) => `
     <section class="hs${flip ? " flip" : ""} reveal">
       <div class="hs-txt">
-        <div class="hs-n">${n}</div>
+        <div class="hs-n">${n} — ${kicker}</div>
         <h2 class="hs-t">${title}</h2>
         <p class="hs-d">${desc}</p>
-        <button class="hs-cta" data-goto="${id}">${L ? "Ouvrir" : "Open"} ${title} →</button>
+        <button class="hs-cta" data-goto="${id}">${cta} →</button>
       </div>
       <div class="hs-vis">${visual}</div>
     </section>`;
@@ -1871,12 +1875,30 @@ function renderHome(){
       <g class="hvb-needle"><line x1="60" y1="60" x2="60" y2="22"/><circle cx="60" cy="60" r="4"/></g>
     </svg></div>`;
   const secs = [
-    ["map",       L?"Carte":"Map",              L?"Le monde en un coup d'œil : clique un pays et sa fiche s'ouvre — identité, économie, marchés, rendements et notations.":"The world at a glance: click a country to open its profile — identity, economy, markets, yields and ratings.", vMap],
-    ["benchmark", L?"Base de données":"Database", L?"Tous les pays, toutes les colonnes : trie, filtre par région, notation ou quartile, épingle tes pays et compare.":"Every country, every column: sort, filter by region, rating or quartile, pin your countries and compare.", vDb],
-    ["fx",        L?"FX / Devises":"FX / Currency", L?"Plus de 200 devises : un convertisseur libre et les grandes paires face à l'euro et au dollar, en direct.":"200+ currencies: a free converter and the major pairs against the euro and the dollar, live.", vFx],
-    ["games",     L?"Jeux":"Games",             L?"Apprendre en jouant : pays mystère, drapeaux, et la Super Série quotidienne avec son classement.":"Learn by playing: mystery countries, flags, and the daily Super Series with its leaderboard.", vGames],
-    ["refs",      L?"Références":"Reference",   L?"Les termes définis simplement, et les sources publiques — FMI, OCDE, Banque mondiale, Wikipédia — d'où viennent les données, actualisées chaque mois.":"Terms plainly defined, and the public sources — IMF, OECD, World Bank, Wikipedia — the data comes from, refreshed monthly.", vRefs],
-    ["purpose",   L?"But":"Purpose",            L?"Pourquoi Atlas existe, ce qu'il montre — et, honnêtement, ce qu'il ne montre pas.":"Why Atlas exists, what it shows — and, honestly, what it doesn't.", vBut],
+    ["map", L?"Explorer":"Explore", L?"La carte":"The map",
+      L?"Plus de 180 économies sur un planisphère interactif. Un clic sur un pays ouvre sa fiche complète : PIB et croissance, inflation, dette, rendement à 10 ans, spread face aux États-Unis, notations S&P, Fitch et Moody's."
+       :"180+ economies on an interactive world map. One click opens a country's full profile: GDP and growth, inflation, debt, 10-year yield, spread vs the US, and S&P, Fitch and Moody's ratings.",
+      L?"Explorer la carte":"Explore the map", vMap],
+    ["benchmark", L?"Comparer":"Compare", L?"La base de données":"The database",
+      L?"Le monde entier dans un seul tableur : trie n'importe quelle colonne, filtre par région, notation ou quartile, épingle tes pays pour les garder sous les yeux — et bascule tout en euros ou en dollars."
+       :"The whole world in one spreadsheet: sort any column, filter by region, rating or quartile, pin countries to keep them in sight — and flip everything between euros and dollars.",
+      L?"Ouvrir le tableur":"Open the sheet", vDb],
+    ["fx", L?"Convertir":"Convert", L?"FX / Devises":"FX / Currency",
+      L?"Plus de 200 devises, des taux du jour. Convertis n'importe quel montant dans les deux sens et garde un œil sur les grandes paires face à l'euro et au dollar — le tout en direct dans ton navigateur."
+       :"200+ currencies, today's rates. Convert any amount both ways and keep an eye on the major pairs against the euro and the dollar — all live, in your browser.",
+      L?"Convertir des devises":"Convert currencies", vFx],
+    ["games", L?"Jouer":"Play", L?"Les jeux":"The games",
+      L?"Quatre jeux nerveux pour apprendre sans t'en rendre compte — pays mystère, drapeaux, duels de stats, podiums mondiaux. Et chaque jour, la Super Série : le même défi pour tous, un classement, une seule tentative."
+       :"Four fast games that teach without trying — mystery countries, flags, stat duels, world podiums. And every day, the Super Series: one shared challenge, one leaderboard, one attempt.",
+      L?"Entrer dans l'arène":"Enter the arena", vGames],
+    ["refs", L?"Comprendre":"Understand", L?"Les références":"The reference",
+      L?"PIB nominal, spread souverain, notation investment grade… chaque terme du site est défini en une phrase claire, et chaque chiffre est tracé jusqu'à sa source — FMI, OCDE, Banque mondiale, Wikipédia."
+       :"Nominal GDP, sovereign spread, investment grade… every term on the site is defined in one clear sentence, and every figure is traced to its source — IMF, OECD, World Bank, Wikipedia.",
+      L?"Consulter les références":"Browse the reference", vRefs],
+    ["purpose", L?"Pourquoi":"Why", L?"La démarche":"The purpose",
+      L?"Atlas est un projet d'étudiant en Financial Economics : montrer ce que des données publiques bien assemblées peuvent raconter — et dire honnêtement ce qu'elles ne peuvent pas."
+       :"Atlas is a Financial Economics student project: showing what well-assembled public data can tell — and being honest about what it can't.",
+      L?"Lire la démarche":"Read the purpose", vBut],
   ];
   return `<div class="page home-page">
     <div class="hero reveal">
@@ -1885,8 +1907,8 @@ function renderHome(){
         <div class="hero-eyebrow">${L ? "Marchés & macroéconomie" : "Markets & macroeconomics"}</div>
         <h1 class="hero-t">Atlas</h1>
         <p class="hero-d">${L
-          ? "Un atlas économique mondial : données du FMI, rendements, notations et devises — réunis, comparables, et mis à jour tout seuls."
-          : "A world economic atlas: IMF data, yields, ratings and currencies — gathered, comparable, and self-updating."}</p>
+          ? "Le monde économique, en un seul endroit : données du FMI, rendements souverains, notations et devises — assemblés, comparables, actualisés chaque mois automatiquement. Et un globe qui se laisse tourner."
+          : "The economic world in one place: IMF data, sovereign yields, ratings and currencies — assembled, comparable, auto-refreshed monthly. Plus a globe you can spin."}</p>
         <div class="hero-ctas">
           <button class="hs-cta big magnet" data-goto="map">${L ? "Explorer la carte" : "Explore the map"} →</button>
           <button class="hs-cta ghost magnet" data-goto="games">${L ? "Jouer" : "Play"}</button>
@@ -1894,7 +1916,7 @@ function renderHome(){
       </div>
       <div class="hero-cue" aria-hidden="true">▾</div>
     </div>
-    ${secs.map((s, i) => S(String(i + 1).padStart(2, "0"), s[0], s[1], s[2], s[3], i % 2 === 1)).join("")}
+    ${secs.map((s, i) => S(String(i + 1).padStart(2, "0"), s[0], s[1], s[2], s[3], s[4], s[5], i % 2 === 1)).join("")}
     <div class="home-foot reveal">
       <button class="hs-cta big" data-goto="map">${L ? "Entrer dans Atlas" : "Enter Atlas"} →</button>
     </div>
@@ -1912,7 +1934,7 @@ function homeReveal(){
     els.forEach(x => io.observe(x));
   }
   initGlobe();        // no-op tant que les données carte ne sont pas là
-  homeParallax();
+  heroMagnet();
 }
 
 // ── FX / Devises (onglet) ───────────────────────────────────────────────
@@ -2332,7 +2354,7 @@ const serieReset = () => { try { localStorage.removeItem("atlas-serie"); } catch
 // le jeu suivant, ou annonce la fin de la série.
 function serieContHTML(L){
   const nxt = serieNext();
-  return `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn magnet" ${nxt ? 'data-gserie' : 'data-ghub'}>${nxt
+  return `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn" ${nxt ? 'data-gserie' : 'data-ghub'}>${nxt
     ? (L ? "Jeu suivant" : "Next game")
     : (L ? "Revenir au menu" : "Back to menu")} →</button></div>`;
 }
@@ -2503,7 +2525,7 @@ function renderGameHub(){
     <div class="g-eyebrow">${L ? "Jeux" : "Games"}</div>
     <h1 class="g-title">${L ? "Salle de jeux" : "Game room"}</h1>
     <div class="serie-row">
-      <div class="serie-card tiltable">
+      <div class="serie-card serie-glow">
         <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
         <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
         <p class="serie-d">${L
@@ -3606,8 +3628,8 @@ function initGlobe(){
   const cv = el("heroGlobe");
   if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
   cv.dataset.on = "1";
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const size = () => Math.min(560, Math.max(340, window.innerWidth * 0.42));
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const size = () => Math.min(500, Math.max(320, window.innerWidth * 0.38));
   let S = size();
   const ctx = cv.getContext("2d");
   const proj = d3.geoOrthographic().clipAngle(90);
@@ -3615,7 +3637,10 @@ function initGlobe(){
   const grat = d3.geoGraticule10();
   const sphere = { type: "Sphere" };
   let rot = [-15, -18], vel = 0.045, dragging = false, last = null;
-  let cols = {}, colTick = 0;
+  let cols = {}, colTick = 0, lastDraw = 0, onScreen = true;
+  // Pause complète quand le globe sort du viewport (scroll de la landing).
+  if ("IntersectionObserver" in window)
+    new IntersectionObserver((en) => { onScreen = en[0].isIntersecting; }).observe(cv);
   const fit = () => { S = size();
     cv.width = S * dpr; cv.height = S * dpr;
     cv.style.width = S + "px"; cv.style.height = S + "px";
@@ -3626,7 +3651,9 @@ function initGlobe(){
     line: themeVar("--rule"), glow: themeVar("--indigo") }; };
   readCols();
   function frame(elapsed){
-    if (view !== "home" || !cv.isConnected){ return; }      // en veille hors accueil
+    if (view !== "home" || !cv.isConnected || !onScreen) return;   // en veille
+    if (elapsed - lastDraw < 33 && !dragging) return;              // ~30 fps suffisent
+    lastDraw = elapsed;
     if (++colTick % 40 === 0) readCols();                    // suit le thème jour/nuit
     if (!dragging && FX_ON) rot = [rot[0] + vel * 4, rot[1]];
     proj.rotate(rot);
@@ -3678,41 +3705,28 @@ if (FX_ON && FX_POINTER){
   document.addEventListener("pointerleave", () => { if (tiltEl){ tiltEl.style.transform = ""; tiltEl = null; } });
 }
 
-// ── Boutons magnétiques : attirés par le curseur à l'approche. ───────────
-if (FX_ON && FX_POINTER){
-  document.addEventListener("pointermove", (e) => {
-    for (const b of document.querySelectorAll(".magnet")){
-      const r = b.getBoundingClientRect();
-      if (!r.width) continue;
-      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      const dx = e.clientX - cx, dy = e.clientY - cy;
-      const dist = Math.hypot(dx, dy), R = 110;
-      if (dist < R){ const k = (1 - dist / R) * .35;
-        b.style.translate = `${(dx * k).toFixed(1)}px ${(dy * k).toFixed(1)}px`; }
-      else if (b.style.translate) b.style.translate = "";
-    }
-  });
-}
-
-// ── Parallaxe : les vignettes de la landing glissent moins vite. ─────────
-function homeParallax(){
-  if (!FX_ON) return;
-  const pageEl = el("view-home").querySelector(".home-page");
-  if (!pageEl || pageEl.dataset.par) return;
-  pageEl.dataset.par = "1";
-  let raf = null;
-  pageEl.addEventListener("scroll", () => {
+// ── Boutons magnétiques : uniquement dans le hero (aucun coût ailleurs). ──
+function heroMagnet(){
+  if (!FX_ON || !FX_POINTER) return;
+  const hero = el("view-home").querySelector(".hero");
+  if (!hero || hero.dataset.mag) return;
+  hero.dataset.mag = "1";
+  const btns = [...hero.querySelectorAll(".magnet")];
+  let raf = null, ev = null;
+  hero.addEventListener("pointermove", (e) => { ev = e;
     if (raf) return;
     raf = requestAnimationFrame(() => { raf = null;
-      const mid = pageEl.clientHeight / 2;
-      for (const v of pageEl.querySelectorAll(".hs-vis")){
-        const r = v.getBoundingClientRect();
-        const d = (r.top + r.height / 2) - mid;
-        v.style.transform = `translateY(${(d * -0.06).toFixed(1)}px)`;
+      for (const b of btns){
+        const r = b.getBoundingClientRect();
+        const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
+        const dist = Math.hypot(dx, dy), R = 110;
+        b.style.translate = dist < R ? `${(dx * (1 - dist / R) * .35).toFixed(1)}px ${(dy * (1 - dist / R) * .35).toFixed(1)}px` : "";
       }
     });
-  }, { passive: true });
+  });
+  hero.addEventListener("pointerleave", () => btns.forEach(b => b.style.translate = ""));
 }
+
 
 // ── Pied de page & pages légales (RGPD) ─────────────────────────────────
 // Confidentialité : obligatoire dès qu'on collecte des données de compte
