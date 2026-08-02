@@ -2342,6 +2342,11 @@ function gSuggest(qRaw, exclude = gGuesses){
     }).slice(0, 6);
 }
 function gGuess(iso){
+  // Manche de la Super Série : la connexion est exigée à CHAQUE instant.
+  // Déconnecté (session fermée ou expirée) → la proposition est refusée
+  // et on revient à la salle de jeux.
+  if (gDaily && Auth.configured() && !Auth.isLoggedIn()){
+    gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
   if (gWon || gGuesses.includes(iso)) return;
   gGuesses.push(iso);
   if (iso === gTarget){ gWon = true; if (gDaily){ serieSave("country", gGuesses.length); serieRecord(); Auth.onSeriesComplete(); } }
@@ -2365,6 +2370,9 @@ function fNew(daily){
   fGuesses.length = 0; fWon = false;
 }
 function fGuess(iso){
+  // Même garde que le jeu 1 : en manche de série, déconnecté = kick au hub.
+  if (fDaily && Auth.configured() && !Auth.isLoggedIn()){
+    gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
   if (fWon || fGuesses.includes(iso)) return;
   fGuesses.push(iso);
   if (iso === fTarget){ fWon = true; if (fDaily){ serieSave("flag", fGuesses.length); serieRecord(); Auth.onSeriesComplete(); } }
@@ -3199,7 +3207,8 @@ const Auth = (() => {
   }
 
   async function logout(){
-    try { await supa.auth.signOut(); } catch {}
+    kickFromSerie();                     // redirection IMMÉDIATE si on est dans la série,
+    try { await supa.auth.signOut(); } catch {}   // avant même l'appel réseau
     user = null; profile = null; paintBar(); kickFromSerie(); refreshHub();
   }
 
