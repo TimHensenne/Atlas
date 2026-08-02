@@ -3102,7 +3102,7 @@ const Auth = (() => {
       if (data && data.session && data.session.user){ user = data.session.user; await ensureProfile(); }
       supa.auth.onAuthStateChange(async (_e, session) => {
         user = (session && session.user) || null;
-        if (user) await ensureProfile(); else profile = null;
+        if (user) await ensureProfile(); else { profile = null; kickFromSerie(); }
         paintBar(); refreshHub();
       });
       paintBar();
@@ -3200,7 +3200,7 @@ const Auth = (() => {
 
   async function logout(){
     try { await supa.auth.signOut(); } catch {}
-    user = null; profile = null; paintBar(); refreshHub();
+    user = null; profile = null; paintBar(); kickFromSerie(); refreshHub();
   }
 
   // ── Score du jour : une insertion (la RLS + clé primaire garantissent 1×/jour)
@@ -3258,6 +3258,15 @@ const Auth = (() => {
     }
   }
   function refreshHub(){ if (view === "games" && gScreen === "hub"){ el("view-games").innerHTML = renderGames(); } }
+  // Déconnecté en pleine manche de la Super Série → retour au hub
+  // (la série exige un compte ; le jeu libre, lui, reste accessible).
+  function kickFromSerie(){
+    if (view !== "games") return;
+    const inDaily = (gScreen === "country" && gDaily) || (gScreen === "flag" && fDaily);
+    if (!inDaily) return;
+    gScreen = "hub";
+    el("view-games").innerHTML = renderGames();
+  }
 
   // ── Modale ──────────────────────────────────────────────────────────────
   const EYE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
