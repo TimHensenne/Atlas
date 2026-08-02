@@ -10,29 +10,38 @@
 <style>
   :root{
     /* Carte marine par grand jour : papier, eau pâle, encre indigo. */
-    --paper:#F4F5F0; --panel:#FFFFFF;
+    --paper:#F3F5F9; --panel:#FFFFFF;
     --ocean:#DCE7F0; --land:#C4CCD6; --land-hi:#9AA6B6;
     --ink:#131A2E; --dim:#5E6B84;
-    --indigo:#24357C; --indigo-hi:#3B54C4; --accent:#E23A2E; --accent-line:#B02419;
-    --rule:rgba(19,26,46,.13); --rule-soft:rgba(19,26,46,.07);
+    --indigo:#2F45C8; --indigo-hi:#4257E6; --accent:#E23A2E; --accent-line:#B02419;
+    --teal:#0FA8A0;
+    --grad:linear-gradient(118deg,var(--indigo) 0%,var(--teal) 100%);
+    --rule:rgba(19,26,46,.12); --rule-soft:rgba(19,26,46,.06);
     --scroll:rgba(19,26,46,.26); --scroll-hi:rgba(19,26,46,.42);
-    --ctrl:rgba(255,255,255,.92); --shadow:rgba(19,26,46,.14); --topbar-bg:var(--paper);
+    --ctrl:rgba(255,255,255,.92); --shadow:rgba(19,26,46,.14); --topbar-bg:rgba(243,245,249,.82);
+    --glass:rgba(255,255,255,.78);
+    --r-s:8px; --r-m:12px; --r-l:16px;
+    --elev1:0 1px 2px rgba(19,26,46,.06),0 4px 14px rgba(19,26,46,.07);
+    --elev2:0 2px 6px rgba(19,26,46,.08),0 14px 34px rgba(19,26,46,.13);
     --display:'Bricolage Grotesque',system-ui,sans-serif;
     --body:'IBM Plex Sans',system-ui,sans-serif;
     --mono:'IBM Plex Mono',monospace;
   }
-  /* ── Mode nuit : carte marine de nuit. Mer profonde, terres ardoise, pays
-     couverts en bleu lumineux qui ressort, sélection rouge vif. Frontières
-     assurées par --paper (sombre) sur des terres plus claires. ── */
+  /* ── Mode nuit : carte marine de nuit, augmentée — mer profonde, panneaux
+     de verre, lueurs d'aurore indigo/sarcelle. ── */
   :root[data-theme="dark"]{
-    --paper:#0C1522; --panel:#202E44;
+    --paper:#070D1B; --panel:#131E33;
     --ocean:#081321; --land:#33445B; --land-hi:#45587A;
-    --ink:#F5F8FE; --dim:#A0AEC4;
-    --indigo:#5B74EC; --indigo-hi:#7E93F6; --accent:#F1503F; --accent-line:#B02419;
-    --rule:rgba(233,237,245,.16); --rule-soft:rgba(233,237,245,.07);
+    --ink:#F2F6FD; --dim:#93A1BB;
+    --indigo:#6B84F4; --indigo-hi:#8CA0F8; --accent:#F1503F; --accent-line:#B02419;
+    --teal:#2FC8B9;
+    --rule:rgba(233,237,245,.14); --rule-soft:rgba(233,237,245,.06);
     --scroll:rgba(233,237,245,.22); --scroll-hi:rgba(233,237,245,.4);
-    --ctrl:rgba(32,46,68,.95); --shadow:rgba(0,0,0,.45);
-    --topbar-bg:var(--panel);   /* barre = teinte chrome, nettement plus claire que la mer */
+    --ctrl:rgba(19,30,51,.92); --shadow:rgba(0,0,0,.5);
+    --topbar-bg:rgba(9,15,29,.72);
+    --glass:rgba(19,30,51,.66);
+    --elev1:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.28);
+    --elev2:0 4px 10px rgba(0,0,0,.35),0 22px 50px rgba(0,0,0,.45);
   }
   /* Transition douce au changement de thème (désactivée si mouvement réduit). */
   body,.topbar,.panel,.cell,.reports a,.results,#tip,.soon,.zoomctl button,.ocean-bg,.macro{
@@ -762,6 +771,104 @@
   .hint{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
     text-transform:uppercase;margin:auto;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+  /* ═══════════════════════════════════════════════════════════════════
+     REFONTE VISUELLE — « carte marine augmentée ».
+     Couche d'habillage en fin de cascade : elle ne change AUCUN
+     comportement, seulement l'apparence et le mouvement.
+     Signature : canvas aurore (indigo→sarcelle) + graticule, panneaux de
+     verre, dégradé --grad sur les éléments actifs. Motion < 400 ms,
+     coupée par prefers-reduced-motion.
+     ═══════════════════════════════════════════════════════════════════ */
+  /* Canvas : aurores + graticule cartographique en fond de tout le site. */
+  body{
+    background:
+      radial-gradient(58% 42% at 12% -6%, color-mix(in srgb, var(--indigo) 13%, transparent), transparent 62%),
+      radial-gradient(50% 38% at 96% 4%,  color-mix(in srgb, var(--teal) 10%, transparent), transparent 60%),
+      radial-gradient(70% 55% at 50% 112%, color-mix(in srgb, var(--indigo) 8%, transparent), transparent 65%),
+      repeating-linear-gradient(0deg,  var(--rule-soft) 0 1px, transparent 1px 84px),
+      repeating-linear-gradient(90deg, var(--rule-soft) 0 1px, transparent 1px 84px),
+      var(--paper);
+    background-attachment:fixed;
+  }
+  /* Chrome : barre verre dépoli + onglets à pilule glissante. */
+  .topbar{background:var(--topbar-bg);backdrop-filter:blur(16px) saturate(1.25);
+    -webkit-backdrop-filter:blur(16px) saturate(1.25);box-shadow:0 1px 0 var(--rule-soft);}
+  .wordmark{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .tabs{background:transparent;border-bottom:1px solid var(--rule-soft);padding:6px 12px;gap:4px;}
+  .tabs button{border-bottom:0;border-radius:999px;padding:9px 15px;
+    transition:color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;}
+  .tabs button:hover{background:var(--rule-soft);transform:translateY(-1px);}
+  .tabs button.on{color:#FFF;background:var(--grad);box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
+  :root[data-theme="light"] .tabs button.on{color:#FFF;}
+  /* Entrée de vue : fondu + légère montée à chaque changement d'onglet. */
+  @keyframes vEnter{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .view.v-enter{animation:vEnter .34s cubic-bezier(.22,.8,.3,1) both;}
+  /* Boutons & contrôles : rayons, élévation au survol, appui tactile. */
+  .fx,.lang,.theme,.authbar{border-radius:999px;overflow:hidden;background:var(--glass);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .hs-cta,.m-go,.db-all,.g-back,.serie-play{border-radius:999px;
+    transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease;}
+  .hs-cta:hover,.m-go:hover,.serie-play:hover{transform:translateY(-2px);
+    box-shadow:0 8px 22px color-mix(in srgb, var(--indigo) 38%, transparent);}
+  .hs-cta:active,.m-go:active,.db-all:active,.tabs button:active{transform:translateY(0) scale(.97);}
+  .hs-cta,.m-go,.serie-play{background:var(--grad);}
+  .m-in,.m-sel,.g-in,.fx-in,.fxv-amt,.fxv-sel{border-radius:var(--r-s);
+    transition:border-color .16s ease,box-shadow .16s ease;}
+  .m-in:focus,.m-sel:focus,.g-in:focus,.fx-in:focus,.fxv-amt:focus,.fxv-sel:focus{
+    border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb, var(--indigo) 22%, transparent);outline:none;}
+  :focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:4px;}
+  /* Cartes & panneaux : verre, rayons larges, ombres douces, hover vivant. */
+  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,.hv,.lex-item,.src-item,
+  .macro,.results,.reports a{border-radius:var(--r-m);}
+  .serie-card,.lb-card,.modal-card{background:var(--glass);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);box-shadow:var(--elev1);}
+  .modal-card{box-shadow:var(--elev2);border-radius:var(--r-l);}
+  .modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  @keyframes mPop{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
+  .modal:not([hidden]) .modal-card{animation:mPop .3s cubic-bezier(.22,.8,.3,1) both;}
+  .g-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+  .g-card:not(.off):hover{transform:translateY(-4px);box-shadow:var(--elev2);border-color:var(--indigo);}
+  .hv{box-shadow:var(--elev1);transition:transform .25s ease,box-shadow .25s ease;}
+  .hs:hover .hv{transform:translateY(-4px) rotate(-.4deg);box-shadow:var(--elev2);}
+  .serie-step,.serie-round,.fg-g,.hvf-pair .cur{border-radius:var(--r-s);}
+  .fg-flag{border-radius:var(--r-m);box-shadow:var(--elev2);}
+  .fg-answer{border-radius:var(--r-s);box-shadow:0 8px 24px rgba(30,122,70,.35);}
+  /* Tableaux : lignes aérées, survol lavé, en-têtes discrets. */
+  .fxv-table tbody tr,.lb tbody tr{transition:background .15s ease;}
+  .fxv-table tbody tr:hover td,.lb tbody tr:hover td{background:var(--rule-soft);}
+  /* Landing : héro cinétique (dégradé animé sur le titre) + orbes flottants. */
+  .hero{isolation:isolate;}
+  .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;z-index:-1;
+    filter:blur(46px);opacity:.5;pointer-events:none;}
+  .hero::before{width:340px;height:340px;left:8%;top:6%;
+    background:color-mix(in srgb, var(--indigo) 34%, transparent);animation:orb 11s ease-in-out infinite;}
+  .hero::after{width:280px;height:280px;right:6%;bottom:2%;
+    background:color-mix(in srgb, var(--teal) 30%, transparent);animation:orb 13s ease-in-out -4s infinite reverse;}
+  @keyframes orb{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(26px,-20px) scale(1.08);}}
+  .hero-t{background:var(--grad);background-size:200% 200%;-webkit-background-clip:text;
+    background-clip:text;color:transparent;animation:heroInk 9s ease-in-out infinite;}
+  @keyframes heroInk{0%,100%{background-position:0% 40%;}50%{background-position:100% 60%;}}
+  @keyframes heroUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+  .hero-eyebrow{animation:heroUp .6s ease both .05s;}
+  .hero-t{animation-name:heroInk,heroUp;animation-duration:9s,.7s;animation-timing-function:ease-in-out,cubic-bezier(.22,.8,.3,1);
+    animation-iteration-count:infinite,1;animation-fill-mode:both,both;animation-delay:0s,.12s;}
+  .hero-d{animation:heroUp .7s ease both .24s;}
+  .hero-ctas{animation:heroUp .7s ease both .36s;}
+  .hs-n{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  /* Jeux & FX : touches assorties. */
+  .g-title{letter-spacing:-.02em;}
+  .serie-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .fxv-code{color:var(--teal);}
+  .authbar button.pri{background:var(--grad);}
+  /* Tooltip carte : verre + pop. */
+  #tip{border-radius:var(--r-s);background:var(--glass);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);box-shadow:var(--elev2);}
+  /* Mouvement réduit : tout redevient sage. */
+  @media(prefers-reduced-motion:reduce){
+    .view.v-enter,.modal:not([hidden]) .modal-card,
+    .hero::before,.hero::after,.hero-t,.hero-eyebrow,.hero-d,.hero-ctas{animation:none;}
+    .tabs button,.hs-cta,.m-go,.db-all,.g-card,.hv{transition:none;}
+  }
 </style>
 <script>
   /* Applique le thème AVANT le premier rendu (pas de flash blanc au chargement) :
@@ -1389,9 +1496,19 @@ const NAV_LABELS = {
 let view = "home";
 
 function renderTabs(){
-  el("tabs").innerHTML = VIEW_ORDER.map(v =>
-    `<button data-view="${v}" class="${v === view ? "on" : ""}" role="tab" aria-selected="${v === view}">${esc(NAV_LABELS[v][lang])}</button>`
-  ).join("");
+  // Construit les boutons une seule fois, puis ne fait que basculer .on :
+  // le DOM persiste, donc la pilule active peut s'animer en CSS.
+  const host = el("tabs");
+  if (host.childElementCount !== VIEW_ORDER.length || host.dataset.lang !== lang){
+    host.dataset.lang = lang;
+    host.innerHTML = VIEW_ORDER.map(v =>
+      `<button data-view="${v}" role="tab">${esc(NAV_LABELS[v][lang])}</button>`).join("");
+  }
+  for (const b of host.children){
+    const on = b.dataset.view === view;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", String(on));
+  }
 }
 function setView(v){
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
@@ -1403,6 +1520,9 @@ function setView(v){
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
   renderTabs();
   renderView(v);
+  // Entrée animée de la vue (retrigger via reflow ; inerte si mouvement réduit).
+  const sec = el("view-" + v);
+  if (sec){ sec.classList.remove("v-enter"); void sec.offsetWidth; sec.classList.add("v-enter"); }
 }
 function renderView(v){
   if (v === "home")           { el("view-home").innerHTML   = renderHome(); homeReveal(); }
