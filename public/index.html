@@ -462,9 +462,13 @@
   .serie-step.todo{opacity:.6;}
   .serie-cta .serie-play{font-size:12px;padding:11px 24px;}
   .serie-cont{text-align:center;margin:14px 0 4px;display:flex;flex-direction:column;align-items:center;gap:10px;}
-  /* Fin de manche : bouton « Jeu suivant → » à droite, en fondu après le score. */
-  .serie-cont.next{align-items:flex-end;max-width:560px;margin-left:auto;margin-right:auto;width:100%;}
-  .serie-nextbtn{font-size:13.5px;padding:14px 26px;opacity:0;
+  /* Fin de manche : « Jeu suivant → » ÉPINGLÉ en haut à droite de la zone de
+     jeu (symétrique du bouton retour), identique sur les 4 jeux. sticky +
+     height:0 : il reste visible au défilement sans pousser le contenu. */
+  .serie-cont.next{position:sticky;top:6px;z-index:6;height:0;margin:0;padding:0;max-width:none;
+    display:flex;justify-content:flex-end;align-items:flex-start;}
+  .serie-nextbtn{font-size:14px;font-weight:800;letter-spacing:.03em;padding:14px 26px;opacity:0;
+    box-shadow:0 8px 24px color-mix(in srgb, var(--indigo) 45%, transparent);
     animation:snext .5s cubic-bezier(.22,.8,.3,1) .45s forwards;}
   @keyframes snext{from{opacity:0;transform:translateX(18px);}to{opacity:1;transform:none;}}
   @media(prefers-reduced-motion:reduce){ .serie-nextbtn{animation:none;opacity:1;} }
@@ -2439,6 +2443,7 @@ function renderCountryGame(){
       : `<div class="g-hintbox"><button class="db-all" data-ghint>💡 ${L ? "Indice : cliquez pour découvrir le code du pays" : "Hint: click to reveal the country code"}</button></div>`));
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    ${gDaily && gWon ? serieContHTML(L) : ""}
     <div class="g-eyebrow">${gDaily
       ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
       : (L ? "Jeu" : "Game")}</div>
@@ -2467,7 +2472,6 @@ function renderCountryGame(){
       <div class="g-row g-head">${heads.map(h => `<div class="g-cell">${esc(h)}</div>`).join("")}</div>
       ${rows || `<div class="g-empty">${L ? "Fais un premier essai pour obtenir des indices." : "Make a first guess to get clues."}</div>`}
     </div>
-    ${gDaily && gWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 function gSuggest(qRaw, exclude = gGuesses){
@@ -2523,9 +2527,6 @@ function fGuess(iso){
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !fWon) inp.focus();
-  // Victoire : rendre le bouton « Jeu suivant » entièrement visible.
-  if (fWon) requestAnimationFrame(() =>
-    el("view-games").querySelector(".serie-nextbtn")?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 // Plus grande partie d'un pays : évite qu'un archipel ou un État transcontinental
 // (antiméridien) ne déforme la silhouette.
@@ -2600,6 +2601,7 @@ function renderFlagGame(){
   }).join("");
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    ${fDaily && fWon ? serieContHTML(L) : ""}
     <div class="g-eyebrow">${fDaily
       ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
       : (L ? "Jeu" : "Game")}</div>
@@ -2625,7 +2627,6 @@ function renderFlagGame(){
     </div>`}
     ${fWon && !fDaily ? `<div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button></div>` : ""}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
-    ${fDaily && fWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 
@@ -2757,10 +2758,10 @@ function renderDuelGame(){
     const foot = dRevealAll
       ? `<div class="g-banner">${dCorrect === D_LEN ? "🎉" : "🏁"} ${dCorrect} / ${D_LEN} — ${errs === 0
           ? (L ? "sans faute, +0 au score !" : "flawless, +0 to your score!")
-          : `+${errs} ${L ? (errs > 1 ? "erreurs" : "erreur") : (errs > 1 ? "errors" : "error")} ${L ? "au score" : "to your score"}`}</div>
-         ${serieContHTML(L)}`
+          : `+${errs} ${L ? (errs > 1 ? "erreurs" : "erreur") : (errs > 1 ? "errors" : "error")} ${L ? "au score" : "to your score"}`}</div>`
       : `<div class="serie-cont"><button class="hs-cta big" data-dvalidate${allPicked ? "" : " disabled"}>${L ? "Valider mes réponses" : "Submit my answers"} (${dPicks.filter(Boolean).length}/${D_LEN})</button></div>`;
     return `<div class="page db-page g-page"><div class="db-in g-center">
+      ${dRevealAll ? serieContHTML(L) : ""}
       ${head(L ? "Huit duels : pour chacun, clique le pays le plus élevé sur la statistique indiquée. Tu peux changer d'avis, puis valide — tout se révèle d'un coup. Chaque erreur ajoute +1 à ton score du jour."
                : "Eight duels: for each, click the country that ranks higher on the stat shown. Change your mind freely, then submit — everything reveals at once. Each error adds +1 to your daily score.")}
       <div class="dr-list">${rows}</div>
@@ -2849,6 +2850,7 @@ function renderPodiumGame(){
     : "";
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    ${pDaily && pWon ? serieContHTML(L) : ""}
     <div class="g-eyebrow">${pDaily
       ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
       : (L ? "Jeu" : "Game")}</div>
@@ -2868,7 +2870,6 @@ function renderPodiumGame(){
     </div>
     ${win}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
-    ${pDaily && pWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 
