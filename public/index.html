@@ -662,11 +662,6 @@
   .dl-mark{position:absolute;top:8px;right:10px;font-weight:800;font-size:18px;}
   .dl-mark.ok{color:#1E7A46;}
   .dl-mark.ko{color:var(--accent);}
-  .dl-badge{max-width:420px;margin:0 auto 14px;text-align:center;border-radius:var(--r-s);
-    padding:10px 14px;font-weight:700;font-family:var(--display);font-size:15px;
-    animation:ppop .25s ease;}
-  .dl-badge.ok{background:#1E7A46;color:#FFF;box-shadow:0 6px 20px rgba(30,122,70,.35);}
-  .dl-badge.ko{background:var(--accent);color:#FFF;box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent);}
   @keyframes dshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
   .dl-flag{width:84px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;
     border:1px solid var(--rule);box-shadow:0 4px 12px rgba(19,26,46,.16);}
@@ -688,6 +683,36 @@
   .pd-name.dim{color:var(--dim);font-weight:400;}
   .pd-val{font-family:var(--mono);font-size:12.5px;color:var(--teal);}
   .pd-rank{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--indigo);}
+  /* Duel quotidien : les 8 en liste, révélation unique après validation. */
+  .dr-list{display:flex;flex-direction:column;gap:10px;max-width:640px;margin:0 auto 18px;width:100%;}
+  .dr-row{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
+    padding:12px 14px;box-shadow:var(--elev1);}
+  .dr-row.ok{border-color:#1E7A46;}
+  .dr-row.ko{border-color:var(--accent);}
+  .dr-meta{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+  .dr-n{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--rule);
+    border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .dr-met{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--indigo);}
+  .dr-duel{display:flex;align-items:stretch;gap:8px;}
+  .dr-vs{align-self:center;font-family:var(--mono);font-size:11px;color:var(--dim);flex:none;}
+  .dr-side{flex:1;min-width:0;display:flex;align-items:center;gap:9px;position:relative;
+    background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-s);
+    padding:9px 30px 9px 10px;cursor:pointer;text-align:left;
+    transition:border-color .14s ease,box-shadow .14s ease,transform .14s ease;}
+  .dr-side:hover:not(:disabled){border-color:var(--indigo);transform:translateY(-1px);}
+  .dr-side:disabled{cursor:default;}
+  .dr-side.sel{border-color:var(--indigo);box-shadow:0 0 0 2px color-mix(in srgb, var(--indigo) 30%, transparent);
+    background:color-mix(in srgb, var(--indigo) 8%, var(--paper));}
+  .dr-side.right{border-color:#1E7A46;box-shadow:0 0 0 2px rgba(30,122,70,.35);
+    background:color-mix(in srgb, #1E7A46 9%, var(--paper));}
+  .dr-side.wrong{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);}
+  .dr-flag{width:34px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;border:1px solid var(--rule);flex:none;}
+  .dr-name{font-weight:600;font-size:13.5px;color:var(--ink);flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dr-val{font-family:var(--mono);font-size:11.5px;color:var(--teal);flex:none;}
+  .dr-side .dl-mark{top:50%;transform:translateY(-50%);right:8px;font-size:15px;}
+  .hs-cta:disabled{opacity:.45;cursor:default;transform:none!important;box-shadow:none!important;}
+  @media(max-width:560px){ .dr-duel{flex-direction:column;} .dr-vs{align-self:center;} }
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -2197,9 +2222,9 @@ const serieReset = () => { try { localStorage.removeItem("atlas-serie"); } catch
 // le jeu suivant, ou annonce la fin de la série.
 function serieContHTML(L){
   const nxt = serieNext();
-  return nxt
-    ? `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn" data-gserie>${L ? "Jeu suivant" : "Next game"} : ${esc(serieLabel(nxt, L))} →</button></div>`
-    : `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn" data-ghub>${L ? "Retour aux jeux" : "Back to games"} →</button></div>`;
+  return `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn" ${nxt ? 'data-gserie' : 'data-ghub'}>${nxt
+    ? (L ? "Jeu suivant" : "Next game")
+    : (L ? "Revenir au menu" : "Back to menu")} →</button></div>`;
 }
 // Fin de la 4e manche : petit délai, puis pop-up récapitulatif (score du jour
 // + classement du joueur), fermable à la croix.
@@ -2437,12 +2462,12 @@ function renderCountryGame(){
       ${gDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
     </div>
     ${win}
-    ${gDaily && gWon ? serieContHTML(L) : ""}
     ${hint}
     <div class="g-scroll">
       <div class="g-row g-head">${heads.map(h => `<div class="g-cell">${esc(h)}</div>`).join("")}</div>
       ${rows || `<div class="g-empty">${L ? "Fais un premier essai pour obtenir des indices." : "Make a first guess to get clues."}</div>`}
     </div>
+    ${gDaily && gWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 function gSuggest(qRaw, exclude = gGuesses){
@@ -2595,8 +2620,8 @@ function renderFlagGame(){
       <span class="g-count">${fGuesses.length} ${L ? "essai" : "guess"}${fGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
       ${fDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
     </div>
-    ${fDaily && fWon ? serieContHTML(L) : ""}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
+    ${fDaily && fWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 
@@ -2642,35 +2667,33 @@ function dDraw(rand){
 const D_LEN = 8;                      // longueur de la manche quotidienne
 let dDaily = false, dQ = [], dIdx = 0, dTries = 0, dStreak = 0, dOver = false, dWon = false;
 let dLastWrong = null;                // pays cliqué à tort (feedback visuel, mode libre)
-let dReveal = false, dPicked = null, dCorrect = 0, dTimer = null;  // manche quotidienne
+let dPicks = [], dRevealAll = false;  // quotidien : choix par duel, révélation unique
 function dNew(daily){
   dDaily = !!daily; dIdx = 0; dTries = 0; dStreak = 0; dOver = false; dWon = false;
-  dLastWrong = null; dReveal = false; dPicked = null; dCorrect = 0;
-  if (dTimer){ clearTimeout(dTimer); dTimer = null; }
-  if (daily){ const r = dRng("duel"); dQ = []; while (dQ.length < D_LEN){ const q = dDraw(r); if (q) dQ.push(q); } }
+  dLastWrong = null; dPicks = []; dRevealAll = false; dCorrect = 0;
+  if (daily){ const r = dRng("duel"); dQ = []; while (dQ.length < D_LEN){ const q = dDraw(r); if (q) dQ.push(q); }
+    dPicks = new Array(D_LEN).fill(null); }
   else { dQ = [dDraw(Math.random)].filter(Boolean); }
+}
+let dCorrect = 0;
+// Quotidien : sélectionne (ou change) son choix pour le duel n° i.
+function dSelect(i, iso){
+  if (dRevealAll) return;
+  dPicks[i] = iso;
+  el("view-games").innerHTML = renderGames();
+}
+// Quotidien : valide les 8 choix — révélation UNIQUE, retour en haut de liste.
+function dValidate(){
+  if (dRevealAll || dPicks.some(p => !p)) return;
+  dCorrect = dQ.reduce((n, q, i) => n + (dPicks[i] === q.win ? 1 : 0), 0);
+  dRevealAll = true; dWon = true;
+  serieSave("duel", D_LEN - dCorrect); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate();
+  el("view-games").innerHTML = renderGames();
+  el("view-games").querySelector(".g-page")?.scrollTo({ top: 0 });
 }
 function dPick(iso){
   if (dOver || dWon) return;
   const q = dQ[dIdx]; if (!q) return;
-  if (dDaily){
-    // Quotidien : UN clic par duel — on révèle (vert/rouge + valeurs), on
-    // laisse le temps de lire, puis on avance automatiquement, juste ou pas.
-    if (dReveal) return;
-    dReveal = true; dPicked = iso;
-    if (iso === q.win) dCorrect++;
-    el("view-games").innerHTML = renderGames();
-    dTimer = setTimeout(() => {
-      dTimer = null; dReveal = false; dPicked = null; dIdx++;
-      if (dIdx >= D_LEN){
-        dWon = true;
-        // Score de la manche = nombre d'ERREURS (0 à 8) — le moins, le mieux.
-        serieSave("duel", D_LEN - dCorrect); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate();
-      }
-      el("view-games").innerHTML = renderGames();
-    }, 1800);
-    return;
-  }
   // Libre : série infinie, une erreur met fin à la course.
   dTries++;
   if (iso === q.win){
@@ -2685,54 +2708,77 @@ function dPick(iso){
 function renderDuelGame(){
   const L = lang === "fr";
   if (!dQ.length) dNew(dDaily);
-  const q = dQ[Math.min(dIdx, dQ.length - 1)];
-  if (!q) return `<div class="soon"><h1>…</h1></div>`;
-  const met = D_METRICS.find(x => x.k === q.m);
-  const reveal = dOver || (dDaily && dReveal);
-  const side = (iso) => {
-    const cls = reveal
-      ? (iso === q.win ? " right" : (iso === dPicked || iso === dLastWrong ? " wrong" : ""))
-      : (dLastWrong === iso ? " wrong" : "");
-    return `<button class="dl-side${cls}" data-dpick="${iso}"${reveal || dWon ? " disabled" : ""}>
-      <img class="dl-flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="">
-      <span class="dl-name">${esc(gName(iso))}</span>
-      ${reveal ? `<span class="dl-val">${met.f(dVal(iso, q.m), L)}</span>` : ""}
-      ${reveal && iso === q.win ? `<span class="dl-mark ok">✓</span>` : ""}
-      ${reveal && iso !== q.win && (iso === dPicked || iso === dLastWrong) ? `<span class="dl-mark ko">✗</span>` : ""}
-    </button>`;
-  };
-  const badge = (dDaily && dReveal)
-    ? `<div class="dl-badge ${dPicked === q.win ? "ok" : "ko"}">${dPicked === q.win
-        ? (L ? "✓ Bonne réponse !" : "✓ Correct!")
-        : (L ? "✗ Raté — c'était " : "✗ Missed — it was ") + esc(gName(q.win))}</div>`
-    : "";
-  const status = dDaily
-    ? `<span class="g-count">${L ? "Duel" : "Duel"} ${Math.min(dIdx + 1, D_LEN)} / ${D_LEN} · ✓ ${dCorrect} ${L ? "bonne" : "right"}${dCorrect > 1 ? "s" : ""}</span>`
-    : `<span class="g-count">${L ? "Série" : "Streak"} : ${dStreak}</span>`;
-  const errs = D_LEN - dCorrect;
-  const done = dWon
-    ? `<div class="g-banner">🎉 ${L ? "Manche du jour :" : "Daily round:"} ${dCorrect} / ${D_LEN} — ${errs === 0
-        ? (L ? "sans faute, +0 au score !" : "flawless, +0 to your score!")
-        : `+${errs} ${L ? (errs > 1 ? "erreurs" : "erreur") : (errs > 1 ? "errors" : "error")} ${L ? "au score" : "to your score"}`}</div>${serieContHTML(L)}`
-    : dOver
-    ? `<div class="g-banner">💥 ${L ? "Raté ! Série de" : "Missed! Streak of"} ${dStreak}.</div>
-       <div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Retenter" : "Try again"}</button></div>`
-    : "";
-  return `<div class="page db-page g-page"><div class="db-in g-center">
+  if (!dQ.length) return `<div class="soon"><h1>…</h1></div>`;
+  const head = (mode) => `
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
     <div class="g-eyebrow">${dDaily
       ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
       : (L ? "Jeu" : "Game")}</div>
     <h1 class="g-title">${L ? "Duel" : "Duel"}</h1>
-    <p class="lead">${dDaily
-      ? (L ? "Huit duels, un clic chacun : la réponse s'affiche puis on passe au suivant. Chaque erreur ajoute +1 à ton score du jour."
-           : "Eight duels, one click each: the answer shows, then on to the next. Each error adds +1 to your daily score.")
-      : (L ? "Deux pays, une statistique : clique celui qui est au-dessus. Une erreur met fin à la série — enchaîne pour battre ton record."
-           : "Two countries, one stat: click the higher one. One miss ends the streak — chain runs to beat your best.")}</p>
+    <p class="lead">${mode}</p>`;
+  if (dDaily){
+    // ── Quotidien : les 8 duels en LISTE, révélation unique après validation.
+    const allPicked = !dPicks.some(p => !p);
+    const rows = dQ.map((q, i) => {
+      const met = D_METRICS.find(x => x.k === q.m);
+      const side = (iso) => {
+        const sel = dPicks[i] === iso;
+        const cls = dRevealAll
+          ? (iso === q.win ? " right" : (sel ? " wrong" : ""))
+          : (sel ? " sel" : "");
+        return `<button class="dr-side${cls}" data-dsel="${i}:${iso}"${dRevealAll ? " disabled" : ""}>
+          <img class="dr-flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="">
+          <span class="dr-name">${esc(gName(iso))}</span>
+          ${dRevealAll ? `<span class="dr-val">${met.f(dVal(iso, q.m), L)}</span>` : ""}
+          ${dRevealAll && iso === q.win ? `<span class="dl-mark ok">✓</span>` : ""}
+          ${dRevealAll && iso !== q.win && sel ? `<span class="dl-mark ko">✗</span>` : ""}
+        </button>`;
+      };
+      return `<div class="dr-row${dRevealAll ? (dPicks[i] === q.win ? " ok" : " ko") : ""}">
+        <div class="dr-meta"><span class="dr-n">${i + 1}</span><span class="dr-met">${esc(L ? met.fr : met.en)}</span></div>
+        <div class="dr-duel">${side(q.a)}<span class="dr-vs">vs</span>${side(q.b)}</div>
+      </div>`;
+    }).join("");
+    const errs = D_LEN - dCorrect;
+    const foot = dRevealAll
+      ? `<div class="g-banner">${dCorrect === D_LEN ? "🎉" : "🏁"} ${dCorrect} / ${D_LEN} — ${errs === 0
+          ? (L ? "sans faute, +0 au score !" : "flawless, +0 to your score!")
+          : `+${errs} ${L ? (errs > 1 ? "erreurs" : "erreur") : (errs > 1 ? "errors" : "error")} ${L ? "au score" : "to your score"}`}</div>
+         ${serieContHTML(L)}`
+      : `<div class="serie-cont"><button class="hs-cta big" data-dvalidate${allPicked ? "" : " disabled"}>${L ? "Valider mes réponses" : "Submit my answers"} (${dPicks.filter(Boolean).length}/${D_LEN})</button></div>`;
+    return `<div class="page db-page g-page"><div class="db-in g-center">
+      ${head(L ? "Huit duels : pour chacun, clique le pays le plus élevé sur la statistique indiquée. Tu peux changer d'avis, puis valide — tout se révèle d'un coup. Chaque erreur ajoute +1 à ton score du jour."
+               : "Eight duels: for each, click the country that ranks higher on the stat shown. Change your mind freely, then submit — everything reveals at once. Each error adds +1 to your daily score.")}
+      <div class="dr-list">${rows}</div>
+      ${foot}
+    </div></div>`;
+  }
+  // ── Libre : arène un duel à la fois, série à ne pas casser.
+  const q = dQ[Math.min(dIdx, dQ.length - 1)];
+  const met = D_METRICS.find(x => x.k === q.m);
+  const reveal = dOver;
+  const side = (iso) => {
+    const cls = reveal
+      ? (iso === q.win ? " right" : (iso === dLastWrong ? " wrong" : ""))
+      : "";
+    return `<button class="dl-side${cls}" data-dpick="${iso}"${reveal ? " disabled" : ""}>
+      <img class="dl-flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="">
+      <span class="dl-name">${esc(gName(iso))}</span>
+      ${reveal ? `<span class="dl-val">${met.f(dVal(iso, q.m), L)}</span>` : ""}
+      ${reveal && iso === q.win ? `<span class="dl-mark ok">✓</span>` : ""}
+      ${reveal && iso !== q.win && iso === dLastWrong ? `<span class="dl-mark ko">✗</span>` : ""}
+    </button>`;
+  };
+  const done = dOver
+    ? `<div class="g-banner">💥 ${L ? "Raté ! Série de" : "Missed! Streak of"} ${dStreak}.</div>
+       <div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Retenter" : "Try again"}</button></div>`
+    : "";
+  return `<div class="page db-page g-page"><div class="db-in g-center">
+    ${head(L ? "Deux pays, une statistique : clique celui qui est au-dessus. Une erreur met fin à la série — enchaîne pour battre ton record."
+             : "Two countries, one stat: click the higher one. One miss ends the streak — chain runs to beat your best.")}
     <div class="dl-metric">${esc(L ? met.fr : met.en)} ${L ? "le plus élevé" : "— which is higher?"}</div>
-    ${badge}
     <div class="dl-arena">${side(q.a)}<span class="dl-vs">VS</span>${side(q.b)}</div>
-    <div class="g-bar" style="justify-content:center">${status}</div>
+    <div class="g-bar" style="justify-content:center"><span class="g-count">${L ? "Série" : "Streak"} : ${dStreak}</span></div>
     ${done}
   </div></div>`;
 }
@@ -2785,7 +2831,7 @@ function renderPodiumGame(){
   }).join("");
   const win = pWon
     ? `<div class="g-banner">🎉 ${L ? "Podium complet en" : "Podium complete in"} ${pTries} ${L ? (pTries > 1 ? "essais" : "essai") : (pTries > 1 ? "guesses" : "guess")} !</div>
-       ${pDaily ? serieContHTML(L) : `<div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Nouveau podium" : "New podium"}</button></div>`}`
+       ${pDaily ? "" : `<div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Nouveau podium" : "New podium"}</button></div>`}`
     : "";
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
@@ -2808,6 +2854,7 @@ function renderPodiumGame(){
     </div>
     ${win}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
+    ${pDaily && pWon ? serieContHTML(L) : ""}
   </div></div>`;
 }
 
@@ -2918,6 +2965,9 @@ async function boot(){
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const dp = e.target.closest("[data-dpick]");
     if (dp){ dPick(dp.dataset.dpick); return; }
+    const ds = e.target.closest("[data-dsel]");
+    if (ds){ const [i, iso] = ds.dataset.dsel.split(":"); dSelect(+i, iso); return; }
+    if (e.target.closest("[data-dvalidate]")){ dValidate(); return; }
     const hb = e.target.closest("[data-ghint]");
     if (hb){ gHint = true; el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
@@ -3628,7 +3678,6 @@ const Auth = (() => {
     const inDaily = (gScreen === "country" && gDaily) || (gScreen === "flag" && fDaily)
       || (gScreen === "duel" && dDaily) || (gScreen === "podium" && pDaily);
     if (!inDaily) return;
-    if (dTimer){ clearTimeout(dTimer); dTimer = null; }   // stoppe l'avance auto du Duel
     gScreen = "hub";
     el("view-games").innerHTML = renderGames();
   }
