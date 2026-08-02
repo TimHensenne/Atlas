@@ -2677,10 +2677,20 @@ function dNew(daily){
 }
 let dCorrect = 0;
 // Quotidien : sélectionne (ou change) son choix pour le duel n° i.
+// Mise à jour EN PLACE (classes + compteur), sans re-render : le défilement
+// de la liste ne bouge pas d'un pixel.
 function dSelect(i, iso){
   if (dRevealAll) return;
   dPicks[i] = iso;
-  el("view-games").innerHTML = renderGames();
+  const host = el("view-games");
+  host.querySelectorAll(`[data-dsel^="${i}:"]`).forEach(b =>
+    b.classList.toggle("sel", b.dataset.dsel === i + ":" + iso));
+  const btn = host.querySelector("[data-dvalidate]");
+  if (btn){
+    const n = dPicks.filter(Boolean).length;
+    btn.disabled = n < D_LEN;
+    btn.textContent = (lang === "fr" ? "Valider mes réponses" : "Submit my answers") + ` (${n}/${D_LEN})`;
+  }
 }
 // Quotidien : valide les 8 choix — révélation UNIQUE, retour en haut de liste.
 function dValidate(){
