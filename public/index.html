@@ -736,56 +736,84 @@
     margin:2px 0 12px;position:relative;}
   .g-card:hover .gc-viz{transform:scale(1.07);}
   .gc-viz{transition:transform .25s ease;}
-  /* 1 — Trouve le pays : cible qui pulse, flèche qui vise. */
-  .gc-target svg{width:58px;height:58px;}
-  .gt-ring{fill:none;stroke:var(--rule);stroke-width:2;}
-  .gt-ring.r2{stroke:var(--indigo);opacity:.45;}
-  .gt-core{fill:var(--indigo);animation:gtPulse 1.8s ease-in-out infinite;transform-origin:32px 32px;}
-  @keyframes gtPulse{0%,100%{transform:scale(1);opacity:.8;}50%{transform:scale(1.5);opacity:1;}}
-  .gt-arrow{stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;}
-  .gt-tip{fill:var(--accent);}
-  .gt-arrow,.gt-tip{animation:gtAim 2.6s ease-in-out infinite;transform-origin:50px 14px;}
-  @keyframes gtAim{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-14deg);}}
-  /* 2 — Drapeau : étendard qui ondule + « ? » qui rebondit. */
-  .gf-flag{width:58px;height:40px;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
-    border:1px solid var(--rule);box-shadow:0 4px 12px rgba(19,26,46,.18);
-    animation:gfWave 2.8s ease-in-out infinite;transform-origin:left center;}
-  @keyframes gfWave{0%,100%{transform:skewY(0deg);}30%{transform:skewY(2.6deg);}65%{transform:skewY(-2.2deg);}}
-  .gf-flag span{flex:1;}
-  .gf-flag span:nth-child(1){background:var(--indigo);}
-  .gf-flag span:nth-child(2){background:#F4F1EA;}
-  .gf-flag span:nth-child(3){background:var(--teal);}
-  .gf-q{position:absolute;right:calc(50% - 46px);top:-4px;width:22px;height:22px;border-radius:50%;
+  /* 1 — Trouve le pays : mini-carte réelle + balayage radar. */
+  .gc-radar{position:relative;width:150px;height:76px;border-radius:8px;overflow:hidden;
+    background:var(--ocean);border:1px solid var(--rule);}
+  .gc-map{display:block;}
+  .gc-sweep{position:absolute;inset:-40%;background:conic-gradient(from 0deg,
+    transparent 0 78%, color-mix(in srgb, var(--indigo) 55%, transparent) 92%, transparent 100%);
+    animation:gsweep 3.2s linear infinite;}
+  @keyframes gsweep{to{transform:rotate(360deg);}}
+  .gc-ping{position:absolute;left:62%;top:38%;width:6px;height:6px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+    animation:gping 2.1s ease-out infinite;}
+  @keyframes gping{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);}
+    70%{box-shadow:0 0 0 11px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+  /* 2 — Drapeau : éventail de vrais drapeaux qui s'ouvre au survol. */
+  .gc-fan{position:relative;width:120px;}
+  .gc-fanflag{width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;position:absolute;
+    left:50%;top:50%;border:1px solid var(--rule);box-shadow:0 6px 16px rgba(19,26,46,.28);
+    transition:transform .35s cubic-bezier(.22,.8,.3,1);}
+  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-10deg) translateX(-14px);}
+  .gc-fanflag.f2{transform:translate(-50%,-50%) rotate(0deg);z-index:1;}
+  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(10deg) translateX(14px);}
+  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-18deg) translateX(-26px) translateY(-4px);}
+  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-8px);}
+  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(18deg) translateX(26px) translateY(-4px);}
+  .gf-q{position:absolute;right:6px;top:-8px;width:22px;height:22px;border-radius:50%;z-index:2;
     background:var(--accent);color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
     display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.25);
     animation:gfQ 1.9s ease-in-out infinite;}
   @keyframes gfQ{0%,100%{transform:translateY(0);}45%{transform:translateY(-7px) rotate(8deg);}}
-  /* 3 — Duel : deux barres en balance. */
-  .gc-duel{gap:12px;}
-  .gd-bar{width:16px;border-radius:4px 4px 2px 2px;background:var(--grad);align-self:flex-end;}
-  .gd-bar.a{height:42px;animation:gdA 2.2s ease-in-out infinite;}
-  .gd-bar.b{height:26px;animation:gdB 2.2s ease-in-out infinite;}
-  @keyframes gdA{0%,100%{height:42px;}50%{height:24px;}}
-  @keyframes gdB{0%,100%{height:26px;}50%{height:44px;}}
-  .gd-vs{font-family:var(--display);font-weight:800;font-size:13px;color:var(--dim);align-self:center;}
-  /* 4 — Podium : marches qui montent, médailles qui flottent. */
+  /* 3 — Duel : deux vrais drapeaux, corde en tir à la corde. */
+  .gc-duel{gap:10px;}
+  .gc-duelflag{width:46px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
+    border:1px solid var(--rule);box-shadow:0 5px 14px rgba(19,26,46,.24);}
+  .gc-duelflag.da{animation:gtiltA 2.6s ease-in-out infinite;}
+  .gc-duelflag.db2{animation:gtiltB 2.6s ease-in-out infinite;}
+  @keyframes gtiltA{0%,100%{transform:rotate(-4deg) translateY(0);}50%{transform:rotate(2deg) translateY(-3px);}}
+  @keyframes gtiltB{0%,100%{transform:rotate(4deg) translateY(-3px);}50%{transform:rotate(-2deg) translateY(0);}}
+  .gd-tug{width:44px;height:5px;border-radius:3px;background:var(--rule);position:relative;overflow:hidden;}
+  .gd-tug i{position:absolute;inset:0;border-radius:3px;background:var(--grad);
+    animation:gtug 2.6s ease-in-out infinite;}
+  @keyframes gtug{0%,100%{transform:translateX(-26%);}50%{transform:translateX(26%);}}
+  /* 4 — Podium : marches qui montent, vrais drapeaux du top PIB. */
   .gc-podium{gap:5px;align-items:flex-end;}
-  .gp-step{width:26px;border-radius:4px 4px 0 0;background:var(--panel);border:1px solid var(--rule);
+  .gp-step{width:34px;border-radius:5px 5px 0 0;background:var(--panel);border:1px solid var(--rule);
     border-bottom:0;position:relative;animation:gpRise .6s cubic-bezier(.22,.8,.3,1) both;}
   .gp-step.s1{height:44px;background:color-mix(in srgb, var(--indigo) 14%, var(--panel));
     border-color:var(--indigo);animation-delay:.25s;}
   .gp-step.s2{height:32px;animation-delay:.1s;}
   .gp-step.s3{height:22px;animation-delay:.4s;}
   @keyframes gpRise{from{transform:scaleY(0);transform-origin:bottom;}to{transform:scaleY(1);transform-origin:bottom;}}
-  .gp-step i{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:14px;
+  .gp-flag{position:absolute;top:-15px;left:50%;width:26px;aspect-ratio:4/3;object-fit:cover;
+    border-radius:3px;border:1px solid var(--rule);box-shadow:0 4px 10px rgba(19,26,46,.25);
     animation:gpFloat 2.4s ease-in-out infinite;}
-  .gp-step.s2 i{animation-delay:.3s;} .gp-step.s3 i{animation-delay:.6s;}
+  .gp-step.s2 .gp-flag{animation-delay:.3s;} .gp-step.s3 .gp-flag{animation-delay:.6s;}
   @keyframes gpFloat{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-4px);}}
+  /* ── Hero : globe canvas + reflet des cartes inclinables ─────────────── */
+  #heroGlobe{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);z-index:-1;
+    opacity:.5;cursor:grab;touch-action:none;}
+  #heroGlobe:active{cursor:grabbing;}
+  :root[data-theme="dark"] #heroGlobe{opacity:.62;}
+  .hero-inner{position:relative;display:flex;flex-direction:column;align-items:center;
+    pointer-events:none;}
+  .hero-inner .hero-ctas,.hero-inner button{pointer-events:auto;}
+  .hero-t{text-shadow:0 2px 30px color-mix(in srgb, var(--paper) 70%, transparent);}
+  .tiltable{will-change:transform;position:relative;}
+  .tiltable::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(240px circle at var(--gx,50%) var(--gy,50%),
+      color-mix(in srgb, #FFFFFF 14%, transparent), transparent 70%);
+    opacity:0;transition:opacity .25s ease;}
+  .tiltable:hover::after{opacity:1;}
+  .magnet{transition:translate .18s ease;}
   @media(prefers-reduced-motion:reduce){
     #view-games .serie-row,#view-games .g-grid .g-card,.gp-step{animation:none;}
     .serie-step.current{animation:none;box-shadow:0 0 0 1px var(--indigo) inset;}
-    .gt-core,.gt-arrow,.gt-tip,.gf-flag,.gf-q,.gd-bar.a,.gd-bar.b,.gp-step i{animation:none;}
     .g-card:hover .gc-viz{transform:none;}
+    .gc-sweep,.gc-ping,.gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug i,.gp-flag{animation:none;}
+    .tiltable::after{display:none;}
+    #heroGlobe{display:none;}
   }
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
@@ -1310,6 +1338,7 @@ let yields = { countries:{} };    // rendements 10 ans + spreads (yields.json), 
 let ratings = { countries:{} };   // notations S&P/Moody's/Fitch (ratings.json), par ISO
 const NAME_EN = {};               // nom anglais par ISO (rempli au chargement de la carte)
 const GEO = {};                   // géométrie GeoJSON par ISO : silhouette du jeu « Drapeau »
+let GLOBE_FEATS = null;           // toutes les géométries : globe du héro + vignettes
 
 // Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
 // milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
@@ -1809,7 +1838,7 @@ function renderHome(){
       <div class="hs-vis">${visual}</div>
     </section>`;
   // Vignettes animées (CSS keyframes, coupées si prefers-reduced-motion).
-  const vMap = `<div class="hv hv-map"><svg viewBox="0 0 200 120" aria-hidden="true">
+  const vMap = `<div class="hv tiltable hv-map"><svg viewBox="0 0 200 120" aria-hidden="true">
       <circle cx="100" cy="60" r="50" class="hvm-globe"/>
       <ellipse cx="100" cy="60" rx="50" ry="18" class="hvm-lat"/>
       <ellipse cx="100" cy="60" rx="50" ry="38" class="hvm-lat"/>
@@ -1819,23 +1848,23 @@ function renderHome(){
       <circle cx="118" cy="70" r="3.5" class="hvm-dot d2"/>
       <circle cx="100" cy="34" r="3.5" class="hvm-dot d3"/>
     </svg></div>`;
-  const vDb = `<div class="hv hv-db">
+  const vDb = `<div class="hv tiltable hv-db">
       <div class="hvd-head"><span></span><span></span><span></span></div>
       ${[1,2,3,4].map(i => `<div class="hvd-row r${i}"><span class="c1"></span><span class="c2"></span><span class="c3"></span></div>`).join("")}
     </div>`;
-  const vFx = `<div class="hv hv-fx">
+  const vFx = `<div class="hv tiltable hv-fx">
       <div class="hvf-pair"><span class="cur a">EUR</span><span class="hvf-arrow">⇄</span><span class="cur b">USD</span></div>
       <svg viewBox="0 0 180 46" class="hvf-line" aria-hidden="true"><polyline points="0,34 22,30 44,36 66,24 88,28 110,16 132,22 154,10 180,14"/></svg>
     </div>`;
-  const vGames = `<div class="hv hv-games">
+  const vGames = `<div class="hv tiltable hv-games">
       <div class="hvg-flag"><span></span><span></span><span></span></div>
       <div class="hvg-tiles"><span class="t1">?</span><span class="t2">?</span><span class="t3">?</span></div>
     </div>`;
-  const vRefs = `<div class="hv hv-lex">
+  const vRefs = `<div class="hv tiltable hv-lex">
       ${[1,2].map(i => `<div class="hvl-item i${i}"><span class="w"></span><span class="l1"></span><span class="l2"></span></div>`).join("")}
       <div class="hvs-row">${["FMI","OCDE","BM","Wiki"].map((s,i) => `<span class="hvs-badge b${i+1}">${s}</span>`).join("")}</div>
     </div>`;
-  const vBut = `<div class="hv hv-but"><svg viewBox="0 0 120 120" aria-hidden="true">
+  const vBut = `<div class="hv tiltable hv-but"><svg viewBox="0 0 120 120" aria-hidden="true">
       <circle cx="60" cy="60" r="46" class="hvb-ring"/>
       <circle cx="60" cy="60" r="30" class="hvb-ring r2"/>
       <circle cx="60" cy="60" r="14" class="hvb-ring r3"/>
@@ -1851,14 +1880,17 @@ function renderHome(){
   ];
   return `<div class="page home-page">
     <div class="hero reveal">
-      <div class="hero-eyebrow">${L ? "Marchés & macroéconomie" : "Markets & macroeconomics"}</div>
-      <h1 class="hero-t">Atlas</h1>
-      <p class="hero-d">${L
-        ? "Un atlas économique mondial : données du FMI, rendements, notations et devises — réunis, comparables, et mis à jour tout seuls."
-        : "A world economic atlas: IMF data, yields, ratings and currencies — gathered, comparable, and self-updating."}</p>
-      <div class="hero-ctas">
-        <button class="hs-cta big" data-goto="map">${L ? "Explorer la carte" : "Explore the map"} →</button>
-        <button class="hs-cta ghost" data-goto="games">${L ? "Jouer" : "Play"}</button>
+      <canvas id="heroGlobe" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <div class="hero-eyebrow">${L ? "Marchés & macroéconomie" : "Markets & macroeconomics"}</div>
+        <h1 class="hero-t">Atlas</h1>
+        <p class="hero-d">${L
+          ? "Un atlas économique mondial : données du FMI, rendements, notations et devises — réunis, comparables, et mis à jour tout seuls."
+          : "A world economic atlas: IMF data, yields, ratings and currencies — gathered, comparable, and self-updating."}</p>
+        <div class="hero-ctas">
+          <button class="hs-cta big magnet" data-goto="map">${L ? "Explorer la carte" : "Explore the map"} →</button>
+          <button class="hs-cta ghost magnet" data-goto="games">${L ? "Jouer" : "Play"}</button>
+        </div>
       </div>
       <div class="hero-cue" aria-hidden="true">▾</div>
     </div>
@@ -1872,11 +1904,15 @@ function renderHome(){
 function homeReveal(){
   const host = el("view-home");
   const els = host.querySelectorAll(".reveal");
-  if (!("IntersectionObserver" in window)){ els.forEach(x => x.classList.add("vis")); return; }
-  const io = new IntersectionObserver((ents) => {
-    for (const en of ents) if (en.isIntersecting){ en.target.classList.add("vis"); io.unobserve(en.target); }
-  }, { root: host.querySelector(".home-page"), threshold: 0.18 });
-  els.forEach(x => io.observe(x));
+  if (!("IntersectionObserver" in window)){ els.forEach(x => x.classList.add("vis")); }
+  else {
+    const io = new IntersectionObserver((ents) => {
+      for (const en of ents) if (en.isIntersecting){ en.target.classList.add("vis"); io.unobserve(en.target); }
+    }, { root: host.querySelector(".home-page"), threshold: 0.18 });
+    els.forEach(x => io.observe(x));
+  }
+  initGlobe();        // no-op tant que les données carte ne sont pas là
+  homeParallax();
 }
 
 // ── FX / Devises (onglet) ───────────────────────────────────────────────
@@ -1945,7 +1981,7 @@ function renderFxView(){
       : "Convert freely between 200+ currencies and track the major pairs against the euro and the dollar. Daily rates, fetched live in the browser (exchange-api)."}</p>
     <div class="fxv-grid">
       <div class="fxv-left">
-        <div class="fxv-card">
+        <div class="fxv-card tiltable">
           <div class="fxv-h">${L ? "Convertisseur" : "Converter"}</div>
           <input class="m-in fxv-amt" id="fxv-amt" type="number" inputmode="decimal" step="any" value="${esc(fxvAmt)}" aria-label="${L ? "Montant" : "Amount"}">
           <select class="m-sel fxv-sel" id="fxv-from" aria-label="${L ? "Devise de départ" : "From currency"}">${fxvOptions(fxvFrom)}</select>
@@ -2296,7 +2332,7 @@ const serieReset = () => { try { localStorage.removeItem("atlas-serie"); } catch
 // le jeu suivant, ou annonce la fin de la série.
 function serieContHTML(L){
   const nxt = serieNext();
-  return `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn" ${nxt ? 'data-gserie' : 'data-ghub'}>${nxt
+  return `<div class="serie-cont next"><button class="hs-cta big serie-nextbtn magnet" ${nxt ? 'data-gserie' : 'data-ghub'}>${nxt
     ? (L ? "Jeu suivant" : "Next game")
     : (L ? "Revenir au menu" : "Back to menu")} →</button></div>`;
 }
@@ -2413,6 +2449,24 @@ function renderGames(){
   if (gScreen === "podium") return renderPodiumGame();
   return renderCountryGame();
 }
+// Mini-carte monde de la carte « Trouve le pays » (canvas, données réelles).
+function hubFx(){
+  const cv = el("view-games").querySelector(".gc-map");
+  if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
+  cv.dataset.on = "1";
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = 150, H = 76;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const proj = d3.geoNaturalEarth1().fitExtent([[2, 2], [W - 2, H - 2]], { type: "Sphere" });
+  const path = d3.geoPath(proj, ctx);
+  ctx.beginPath();
+  for (const f of GLOBE_FEATS) path(f);
+  ctx.fillStyle = themeVar("--land"); ctx.fill();
+}
+
 function renderGameHub(){
   const L = lang === "fr";
   const dateStr = new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" });
@@ -2438,11 +2492,18 @@ function renderGameHub(){
         : (L ? "Jouer la série du jour" : "Play today's series")} →</button>`
     : `<div class="serie-done">🎉 ${L ? "Série du jour terminée" : "Today's series complete"}</div>
        <button class="db-all" data-gserie-reset>⟳ ${L ? "Rejouer la série" : "Replay the series"}</button>`;
+  // Drapeaux réels du jour pour habiller les cartes (stables sur la journée).
+  const hpool = gPool().sort();
+  const hpick = (salt) => hpool.length ? hpool[seedHash(salt + todayKey()) % hpool.length] : "FR";
+  const hfl = (iso, cls) => `<img class="${cls}" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(iso).toLowerCase()}.svg" alt="" loading="lazy">`;
+  const hTop = hpool.map(iso => ({ iso, v: dVal(iso, "gdp") })).filter(x => x.v != null)
+    .sort((a, b) => b.v - a.v).slice(0, 3).map(x => x.iso);
+  setTimeout(hubFx, 0);   // dessine la mini-carte radar une fois le DOM posé
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <div class="g-eyebrow">${L ? "Jeux" : "Games"}</div>
     <h1 class="g-title">${L ? "Salle de jeux" : "Game room"}</h1>
     <div class="serie-row">
-      <div class="serie-card">
+      <div class="serie-card tiltable">
         <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
         <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
         <p class="serie-d">${L
@@ -2456,38 +2517,39 @@ function renderGameHub(){
     </div>
     <p class="serie-free">${L ? "Ou joue librement, hors série (parties illimitées) :" : "Or play freely, outside the series (unlimited games):"}</p>
     <div class="g-grid">
-      <div class="g-card" data-gplay>
-        <div class="gc-viz gc-target" aria-hidden="true"><svg viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="26" class="gt-ring"/>
-          <circle cx="32" cy="32" r="16" class="gt-ring r2"/>
-          <circle cx="32" cy="32" r="6"  class="gt-core"/>
-          <line x1="50" y1="14" x2="38" y2="26" class="gt-arrow"/>
-          <polygon points="36,22 40,30 32,29" class="gt-tip"/>
-        </svg></div>
+      <div class="g-card tiltable" data-gplay>
+        <div class="gc-viz gc-radar" aria-hidden="true">
+          <canvas class="gc-map" width="0" height="0"></canvas>
+          <span class="gc-sweep"></span><span class="gc-ping"></span>
+        </div>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
-      <div class="g-card" data-gflag>
-        <div class="gc-viz gc-flag" aria-hidden="true">
-          <div class="gf-flag"><span></span><span></span><span></span></div>
+      <div class="g-card tiltable" data-gflag>
+        <div class="gc-viz gc-fan" aria-hidden="true">
+          ${hfl(hpick("fan1"), "gc-fanflag f1")}${hfl(hpick("fan2"), "gc-fanflag f2")}${hfl(hpick("fan3"), "gc-fanflag f3")}
           <span class="gf-q">?</span>
         </div>
         <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
         <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, code pays et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, country code and name unlock as you try."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
-      <div class="g-card" data-gduel>
+      <div class="g-card tiltable" data-gduel>
         <div class="gc-viz gc-duel" aria-hidden="true">
-          <span class="gd-bar a"></span><span class="gd-vs">VS</span><span class="gd-bar b"></span>
+          ${hfl(hpick("duelA"), "gc-duelflag da")}
+          <span class="gd-tug"><i></i></span>
+          ${hfl(hpick("duelB"), "gc-duelflag db2")}
         </div>
         <div class="g-card-t">${L ? "Duel" : "Duel"}</div>
         <div class="g-card-d">${L ? "Deux pays, une stat : clique le plus haut. Une erreur et la série tombe — bats ton record." : "Two countries, one stat: click the higher. One miss ends the streak — beat your best."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
-      <div class="g-card" data-gpodium>
+      <div class="g-card tiltable" data-gpodium>
         <div class="gc-viz gc-podium" aria-hidden="true">
-          <span class="gp-step s2"><i>🥈</i></span><span class="gp-step s1"><i>🥇</i></span><span class="gp-step s3"><i>🥉</i></span>
+          <span class="gp-step s2">${hfl(hTop[1] || "CN", "gp-flag")}</span>
+          <span class="gp-step s1">${hfl(hTop[0] || "US", "gp-flag")}</span>
+          <span class="gp-step s3">${hfl(hTop[2] || "DE", "gp-flag")}</span>
         </div>
         <div class="g-card-t">${L ? "Podium" : "Podium"}</div>
         <div class="g-card-d">${L ? "Trouve le top 3 mondial de la stat du jour. Chaque raté révèle son rang réel." : "Find the world top 3 for today's stat. Each miss reveals its real rank."}</div>
@@ -3202,7 +3264,11 @@ async function boot(){
       if (!x.iso) continue;
       const a = areaOf(x.feature);
       if (best[x.iso] == null || a > best[x.iso]){ best[x.iso] = a; GEO[x.iso] = x.feature; }
-    } }
+    }
+    // Géométries à disposition du globe du héro et des vignettes de jeux.
+    GLOBE_FEATS = searchable.map(x => x.feature);
+    if (view === "home") initGlobe();      // l'accueil attendait les données
+  }
 
   // Nom d'affichage d'un pays de la carte, selon la langue active :
   // macro.json (déjà en FR) → nom anglais de la carte.
@@ -3525,6 +3591,128 @@ async function boot(){
     try { localStorage.setItem("atlas-theme", dark ? "dark" : "light"); } catch {}
   });
 })();
+
+// ═══ Couche d'interactions « premium » ═══════════════════════════════════
+// Globe 3D réel (canvas, données de la carte), inclinaison 3D des cartes au
+// curseur, boutons magnétiques, parallaxe au défilement. Tout est coupé si
+// l'utilisateur préfère réduire les animations, et inactif au tactile.
+const FX_ON = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FX_POINTER = window.matchMedia("(pointer: fine)").matches;
+
+// ── Globe du héro : orthographique, auto-rotation, glisser pour tourner. ──
+let globeTimer = null;
+function themeVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function initGlobe(){
+  const cv = el("heroGlobe");
+  if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
+  cv.dataset.on = "1";
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const size = () => Math.min(560, Math.max(340, window.innerWidth * 0.42));
+  let S = size();
+  const ctx = cv.getContext("2d");
+  const proj = d3.geoOrthographic().clipAngle(90);
+  const path = d3.geoPath(proj, ctx);
+  const grat = d3.geoGraticule10();
+  const sphere = { type: "Sphere" };
+  let rot = [-15, -18], vel = 0.045, dragging = false, last = null;
+  let cols = {}, colTick = 0;
+  const fit = () => { S = size();
+    cv.width = S * dpr; cv.height = S * dpr;
+    cv.style.width = S + "px"; cv.style.height = S + "px";
+    proj.fitExtent([[10, 10], [S - 10, S - 10]], sphere); };
+  fit();
+  const readCols = () => { cols = {
+    ocean: themeVar("--ocean"), land: themeVar("--land"),
+    line: themeVar("--rule"), glow: themeVar("--indigo") }; };
+  readCols();
+  function frame(elapsed){
+    if (view !== "home" || !cv.isConnected){ return; }      // en veille hors accueil
+    if (++colTick % 40 === 0) readCols();                    // suit le thème jour/nuit
+    if (!dragging && FX_ON) rot = [rot[0] + vel * 4, rot[1]];
+    proj.rotate(rot);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, S, S);
+    // sphère + halo
+    ctx.beginPath(); path(sphere);
+    ctx.fillStyle = cols.ocean; ctx.fill();
+    ctx.strokeStyle = cols.glow; ctx.globalAlpha = .55; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.globalAlpha = 1;
+    // graticule
+    ctx.beginPath(); path(grat);
+    ctx.strokeStyle = cols.line; ctx.lineWidth = .5; ctx.stroke();
+    // terres
+    ctx.beginPath();
+    for (const f of GLOBE_FEATS) path(f);
+    ctx.fillStyle = cols.land; ctx.fill();
+    ctx.strokeStyle = cols.ocean; ctx.lineWidth = .4; ctx.stroke();
+  }
+  if (globeTimer) globeTimer.stop();
+  globeTimer = d3.timer(frame);
+  // Glisser pour tourner (souris ou doigt).
+  cv.addEventListener("pointerdown", (e) => { dragging = true; last = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    rot = [rot[0] + (e.clientX - last[0]) * .35, Math.max(-70, Math.min(70, rot[1] - (e.clientY - last[1]) * .35))];
+    last = [e.clientX, e.clientY];
+  });
+  const up = () => { dragging = false; };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  window.addEventListener("resize", fit);
+}
+
+// ── Inclinaison 3D + reflet : toute carte portant .tiltable. ─────────────
+if (FX_ON && FX_POINTER){
+  let tiltEl = null;
+  document.addEventListener("pointermove", (e) => {
+    const t = e.target.closest && e.target.closest(".tiltable");
+    if (tiltEl && tiltEl !== t){ tiltEl.style.transform = ""; tiltEl.style.removeProperty("--gx"); tiltEl.style.removeProperty("--gy"); }
+    tiltEl = t;
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    const ry = (px - .5) * 10, rx = (.5 - py) * 8;
+    t.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-3px)`;
+    t.style.setProperty("--gx", (px * 100).toFixed(1) + "%");
+    t.style.setProperty("--gy", (py * 100).toFixed(1) + "%");
+  });
+  document.addEventListener("pointerleave", () => { if (tiltEl){ tiltEl.style.transform = ""; tiltEl = null; } });
+}
+
+// ── Boutons magnétiques : attirés par le curseur à l'approche. ───────────
+if (FX_ON && FX_POINTER){
+  document.addEventListener("pointermove", (e) => {
+    for (const b of document.querySelectorAll(".magnet")){
+      const r = b.getBoundingClientRect();
+      if (!r.width) continue;
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      const dist = Math.hypot(dx, dy), R = 110;
+      if (dist < R){ const k = (1 - dist / R) * .35;
+        b.style.translate = `${(dx * k).toFixed(1)}px ${(dy * k).toFixed(1)}px`; }
+      else if (b.style.translate) b.style.translate = "";
+    }
+  });
+}
+
+// ── Parallaxe : les vignettes de la landing glissent moins vite. ─────────
+function homeParallax(){
+  if (!FX_ON) return;
+  const pageEl = el("view-home").querySelector(".home-page");
+  if (!pageEl || pageEl.dataset.par) return;
+  pageEl.dataset.par = "1";
+  let raf = null;
+  pageEl.addEventListener("scroll", () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null;
+      const mid = pageEl.clientHeight / 2;
+      for (const v of pageEl.querySelectorAll(".hs-vis")){
+        const r = v.getBoundingClientRect();
+        const d = (r.top + r.height / 2) - mid;
+        v.style.transform = `translateY(${(d * -0.06).toFixed(1)}px)`;
+      }
+    });
+  }, { passive: true });
+}
 
 // ── Pied de page & pages légales (RGPD) ─────────────────────────────────
 // Confidentialité : obligatoire dès qu'on collecte des données de compte
