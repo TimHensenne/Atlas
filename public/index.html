@@ -579,10 +579,22 @@
   .fx-page .db-in{display:flex;flex-direction:column;flex:1;min-height:0;}
   .fxv-grid{display:flex;gap:22px;align-items:flex-start;max-width:880px;margin:10px auto 0;width:100%;
     flex:1;min-height:0;}
-  .fxv-left{flex:0 0 300px;}
-  .fxv-right{flex:1;min-width:0;align-self:stretch;overflow-y:auto;padding-bottom:8px;
+  /* Convertisseur : même hauteur que la liste (bas alignés), source en pied. */
+  .fxv-left{flex:0 0 300px;align-self:stretch;display:flex;}
+  .fxv-card{flex:1;}
+  .fxv-card .macro-src{text-align:center;margin-top:auto;}
+  .fxv-rightwrap{flex:1;min-width:0;align-self:stretch;position:relative;display:flex;}
+  .fxv-right{flex:1;min-width:0;overflow-y:auto;padding-bottom:8px;
     scrollbar-width:none;}
   .fxv-right::-webkit-scrollbar{display:none;}
+  /* Flèche « on peut défiler », en bas à droite de la liste. */
+  .fxv-cue{position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;
+    background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border:1px solid var(--rule);box-shadow:var(--elev1);color:var(--indigo);
+    display:flex;align-items:center;justify-content:center;font-size:14px;pointer-events:none;
+    animation:fcue 1.6s ease-in-out infinite;transition:opacity .25s ease;}
+  @keyframes fcue{0%,100%{transform:translateY(0);opacity:.65;}50%{transform:translateY(5px);opacity:1;}}
+  .fxv-cue.hide{opacity:0;animation:none;}
   .fxv-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
     box-shadow:var(--elev1);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:left;}
   .fxv-h{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);}
@@ -599,8 +611,10 @@
   @media(max-width:680px){
     .page.fx-page{overflow-y:auto;}
     .fxv-grid{flex-direction:column;flex:none;}
-    .fxv-left{position:static;flex:1 1 auto;width:100%;}
-    .fxv-right{overflow:visible;align-self:auto;}
+    .fxv-left{position:static;flex:1 1 auto;width:100%;align-self:auto;}
+    .fxv-rightwrap{align-self:auto;display:block;}
+    .fxv-right{overflow:visible;}
+    .fxv-cue{display:none;}
   }
   .fxv-table{width:100%;max-width:640px;margin:0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
@@ -1754,12 +1768,23 @@ function renderFxView(){
           <div class="macro-src">${L ? "Taux quotidiens · " : "Daily rates · "}exchange-api</div>
         </div>
       </div>
-      <div class="fxv-right">
-        <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
-          <tbody>${rows}</tbody></table>
+      <div class="fxv-rightwrap">
+        <div class="fxv-right">
+          <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+        </div>
+        <div class="fxv-cue" aria-hidden="true">▾</div>
       </div>
     </div>
   </div></div>`;
+  // Flèche de défilement : visible tant qu'il reste du contenu en dessous.
+  { const sc = el("view-fx").querySelector(".fxv-right");
+    const cue = el("view-fx").querySelector(".fxv-cue");
+    if (sc && cue){
+      const upd = () => cue.classList.toggle("hide", sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 12);
+      sc.addEventListener("scroll", upd);
+      requestAnimationFrame(upd);
+    } }
   // Charge ce qui manque puis re-render (si on est toujours sur l'onglet FX).
   const need = [fxvFrom, "EUR", "USD"].filter(c => !fxvBase[c]);
   if (need.length) Promise.all(need.map(fxvLoad)).then(() => { if (view === "fx") renderFxView(); });
