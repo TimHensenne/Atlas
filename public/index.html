@@ -453,6 +453,130 @@
   .serie-cta .serie-play{font-size:12px;padding:11px 24px;}
   .serie-cont{text-align:center;margin:14px 0 4px;display:flex;flex-direction:column;align-items:center;gap:10px;}
   .serie-free{text-align:center;color:var(--dim);font-size:12.5px;margin:2px 0 12px;}
+  /* ── Accueil (landing) ─────────────────────────────────────────────── */
+  .home-page{display:block;overflow-y:auto;overflow-x:hidden;height:100%;padding:0 22px 60px;
+    scroll-behavior:smooth;}
+  .hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;position:relative;padding:40px 0 30px;}
+  .hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--indigo);margin-bottom:14px;}
+  .hero-t{font-family:var(--display);font-weight:800;font-size:clamp(52px,9vw,96px);letter-spacing:-.03em;
+    line-height:1;margin:0 0 18px;color:var(--ink);}
+  .hero-d{max-width:560px;color:var(--dim);font-size:16px;line-height:1.6;margin:0 0 26px;}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .hs-cta{background:var(--indigo);color:#FFF;border:0;border-radius:3px;cursor:pointer;
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px 20px;
+    transition:transform .15s ease,background .15s ease;}
+  .hs-cta:hover{background:var(--indigo-hi);transform:translateY(-1px);}
+  .hs-cta.big{font-size:13px;padding:13px 26px;}
+  .hs-cta.ghost{background:none;color:var(--indigo);border:1px solid var(--indigo);}
+  .hs-cta.ghost:hover{background:var(--ocean);}
+  .hero-cue{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:var(--dim);
+    font-size:18px;animation:hcue 1.6s ease-in-out infinite;}
+  @keyframes hcue{0%,100%{transform:translate(-50%,0);opacity:.5;}50%{transform:translate(-50%,8px);opacity:1;}}
+  .hs{display:flex;align-items:center;gap:clamp(26px,6vw,80px);max-width:960px;margin:0 auto;
+    min-height:52vh;padding:34px 0;}
+  .hs.flip{flex-direction:row-reverse;}
+  .hs-txt{flex:1 1 52%;}
+  .hs-vis{flex:1 1 48%;display:flex;justify-content:center;}
+  .hs-n{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--indigo);margin-bottom:8px;}
+  .hs-t{font-family:var(--display);font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;
+    margin:0 0 12px;color:var(--ink);}
+  .hs-d{color:var(--dim);font-size:14.5px;line-height:1.65;margin:0 0 20px;max-width:420px;}
+  .home-foot{text-align:center;padding:40px 0 20px;}
+  /* Apparition au scroll */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.vis{opacity:1;transform:none;}
+  .hs.flip.reveal{transform:translateY(26px);}
+  @media(max-width:720px){
+    .hs,.hs.flip{flex-direction:column;min-height:0;padding:30px 0;}
+    .hs-vis{width:100%;}
+  }
+  /* Vignettes animées */
+  .hv{width:min(320px,100%);height:190px;border:1px solid var(--rule);border-radius:6px;
+    background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;overflow:hidden;position:relative;}
+  .hv-map svg{width:180px;height:auto;}
+  .hvm-globe{fill:none;stroke:var(--indigo);stroke-width:1.4;}
+  .hvm-lat,.hvm-lon{fill:none;stroke:var(--rule);stroke-width:.8;}
+  .hvm-dot{fill:var(--accent);}
+  .hvm-dot.d1{animation:hpulse 2.2s ease-in-out infinite;}
+  .hvm-dot.d2{animation:hpulse 2.2s ease-in-out .5s infinite;}
+  .hvm-dot.d3{animation:hpulse 2.2s ease-in-out 1s infinite;}
+  @keyframes hpulse{0%,100%{opacity:.35;r:3;}50%{opacity:1;r:4.5;}}
+  .hv-db{align-items:stretch;padding:18px 20px;gap:9px;}
+  .hvd-head{display:flex;gap:8px;}
+  .hvd-head span{flex:1;height:9px;border-radius:2px;background:var(--indigo);opacity:.75;}
+  .hvd-row{display:flex;gap:8px;opacity:0;animation:hrow .6s ease forwards;}
+  .hvd-row .c1{flex:1.4;height:12px;border-radius:2px;background:var(--rule);}
+  .hvd-row .c2,.hvd-row .c3{flex:1;height:12px;border-radius:2px;background:var(--rule-soft);}
+  .hvd-row.r1{animation-delay:.15s;} .hvd-row.r2{animation-delay:.35s;}
+  .hvd-row.r3{animation-delay:.55s;} .hvd-row.r4{animation-delay:.75s;}
+  @keyframes hrow{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:none;}}
+  .hv-fx{gap:16px;}
+  .hvf-pair{display:flex;align-items:center;gap:14px;}
+  .hvf-pair .cur{font-family:var(--mono);font-weight:600;font-size:16px;color:var(--ink);
+    border:1px solid var(--rule);border-radius:4px;padding:7px 12px;background:var(--paper);}
+  .hvf-arrow{color:var(--indigo);font-size:18px;animation:hswap 2.4s ease-in-out infinite;}
+  @keyframes hswap{0%,100%{transform:rotate(0);}50%{transform:rotate(180deg);}}
+  .hvf-line{width:180px;height:46px;}
+  .hvf-line polyline{fill:none;stroke:var(--indigo);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:260;stroke-dashoffset:260;animation:hdraw 2.6s ease forwards .3s;}
+  @keyframes hdraw{to{stroke-dashoffset:0;}}
+  .hv-games{gap:16px;}
+  .hvg-flag{width:96px;height:64px;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
+    border:1px solid var(--rule);box-shadow:0 4px 14px rgba(19,26,46,.18);}
+  .hvg-flag span{flex:1;}
+  .hvg-flag span:nth-child(1){background:#1E7A46;}
+  .hvg-flag span:nth-child(2){background:#F4F1EA;}
+  .hvg-flag span:nth-child(3){background:var(--accent);}
+  .hvg-tiles{display:flex;gap:8px;}
+  .hvg-tiles span{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--rule);border-radius:3px;font-family:var(--mono);color:var(--indigo);
+    background:var(--paper);animation:hbounce 1.8s ease-in-out infinite;}
+  .hvg-tiles .t2{animation-delay:.2s;} .hvg-tiles .t3{animation-delay:.4s;}
+  @keyframes hbounce{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}}
+  .hv-lex{align-items:stretch;padding:20px 22px;gap:12px;}
+  .hvl-item{display:grid;grid-template-columns:64px 1fr;grid-auto-rows:8px;gap:6px 12px;opacity:0;
+    animation:hrow .6s ease forwards;}
+  .hvl-item .w{grid-row:1/3;height:12px;border-radius:2px;background:var(--indigo);opacity:.8;align-self:center;}
+  .hvl-item .l1,.hvl-item .l2{border-radius:2px;background:var(--rule-soft);}
+  .hvl-item .l2{width:70%;}
+  .hvl-item.i1{animation-delay:.15s;} .hvl-item.i2{animation-delay:.4s;} .hvl-item.i3{animation-delay:.65s;}
+  .hv-src{flex-direction:row;flex-wrap:wrap;gap:10px;padding:0 24px;}
+  .hvs-badge{font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--rule);
+    border-radius:20px;padding:8px 16px;background:var(--paper);opacity:0;animation:hpop .5s ease forwards;}
+  .hvs-badge.b1{animation-delay:.1s;} .hvs-badge.b2{animation-delay:.3s;}
+  .hvs-badge.b3{animation-delay:.5s;} .hvs-badge.b4{animation-delay:.7s;}
+  @keyframes hpop{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+  .hv-but svg{width:130px;height:auto;}
+  .hvb-ring{fill:none;stroke:var(--rule);stroke-width:1.4;}
+  .hvb-ring.r2{stroke:var(--indigo);opacity:.5;}
+  .hvb-ring.r3{stroke:var(--accent);opacity:.6;}
+  .hvb-needle line{stroke:var(--indigo);stroke-width:2.4;stroke-linecap:round;}
+  .hvb-needle circle{fill:var(--indigo);}
+  .hvb-needle{transform-origin:60px 60px;animation:hneedle 5s ease-in-out infinite;}
+  @keyframes hneedle{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(24deg);}}
+  @media(prefers-reduced-motion:reduce){
+    .hero-cue,.hvm-dot,.hvf-arrow,.hvg-tiles span,.hvb-needle{animation:none;}
+    .hvd-row,.hvl-item,.hvs-badge{animation:none;opacity:1;}
+    .hvf-line polyline{animation:none;stroke-dashoffset:0;}
+    .reveal{opacity:1;transform:none;transition:none;}
+  }
+  /* ── Onglet FX / Devises ───────────────────────────────────────────── */
+  .fxv-conv{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 6px;}
+  .fxv-amt{width:130px;text-align:right;}
+  .fxv-sel{width:auto;max-width:230px;}
+  .fxv-res{font-size:16px;color:var(--dim);}
+  .fxv-res b{color:var(--ink);font-family:var(--mono);font-weight:600;}
+  .fxv-unit{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--dim);margin:0 0 8px;}
+  .fxv-table{width:100%;max-width:640px;margin:16px auto 0;border-collapse:collapse;font-size:13.5px;}
+  .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);font-weight:400;text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--rule);}
+  .fxv-table td{padding:8px 10px;border-bottom:1px solid var(--rule-soft);color:var(--ink);}
+  .fxv-table tbody tr:hover{background:var(--ocean);}
+  .fxv-table .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .fxv-code{font-family:var(--mono);font-weight:600;color:var(--indigo);}
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -678,7 +802,8 @@
 
 <nav class="tabs" id="tabs" role="tablist"></nav>
 
-<section id="view-map" class="view">
+<section id="view-home" class="view"></section>
+<section id="view-map" class="view" hidden>
 <div class="stage">
   <div class="mapcol">
     <div class="mapwrap">
@@ -705,6 +830,7 @@
 </section>
 
 <section id="view-benchmark" class="view" hidden></section>
+<section id="view-fx"       class="view" hidden></section>
 <section id="view-lexicon"  class="view" hidden></section>
 <section id="view-games"    class="view" hidden></section>
 <section id="view-data"     class="view" hidden></section>
@@ -1250,16 +1376,17 @@ el("panel").addEventListener("mouseleave", () => {
 });
 
 // ════════════════ Onglets / vues ════════════════
-const VIEW_ORDER = ["map", "benchmark", "lexicon", "games", "data", "purpose"];
+const VIEW_ORDER = ["map", "benchmark", "fx", "games", "lexicon", "data", "purpose"];
 const NAV_LABELS = {
   map:      { fr:"Carte",       en:"Map" },
   benchmark:{ fr:"Base de données", en:"Database" },
-  lexicon:  { fr:"Lexique",     en:"Glossary" },
+  fx:       { fr:"FX / Devises", en:"FX / Currency" },
   games:    { fr:"Jeux",        en:"Games" },
+  lexicon:  { fr:"Lexique",     en:"Glossary" },
   data:     { fr:"Sources",     en:"Sources" },
   purpose:  { fr:"But",         en:"Purpose" },
 };
-let view = "map";
+let view = "home";
 
 function renderTabs(){
   el("tabs").innerHTML = VIEW_ORDER.map(v =>
@@ -1267,25 +1394,195 @@ function renderTabs(){
   ).join("");
 }
 function setView(v){
-  if (!VIEW_ORDER.includes(v)) v = "map";
+  if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
   view = v;
   // Mémorise l'onglet dans l'URL : survit au rechargement, partageable,
-  // et compatible précédent/suivant. La carte reste l'URL "propre" (pas de hash).
-  const want = v === "map" ? "" : "#view=" + v;
+  // et compatible précédent/suivant. L'accueil reste l'URL "propre" (pas de hash).
+  const want = v === "home" ? "" : "#view=" + v;
   if (location.hash !== want) history.replaceState(null, "", want || location.pathname + location.search);
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
   renderTabs();
   renderView(v);
 }
 function renderView(v){
-  if (v === "lexicon")  el("view-lexicon").innerHTML  = renderLexicon();
-  else if (v === "data")      el("view-data").innerHTML      = renderData();
-  else if (v === "purpose")   el("view-purpose").innerHTML   = renderPurpose();
+  if (v === "home")           { el("view-home").innerHTML   = renderHome(); homeReveal(); }
+  else if (v === "lexicon")   el("view-lexicon").innerHTML  = renderLexicon();
+  else if (v === "data")      el("view-data").innerHTML     = renderData();
+  else if (v === "purpose")   el("view-purpose").innerHTML  = renderPurpose();
   else if (v === "benchmark") el("view-benchmark").innerHTML = renderBenchmark();
-  else if (v === "games")     el("view-games").innerHTML     = renderGames();
+  else if (v === "games")     el("view-games").innerHTML    = renderGames();
+  else if (v === "fx")        renderFxView();
 }
 
-// ── Lexique (bilingue) ──
+// ── Accueil (landing page défilante et animée) ──────────────────────────
+// Chaque section présente un onglet (ordre = VIEW_ORDER) avec une vignette
+// animée en CSS pur ; l'apparition au scroll est gérée par homeReveal().
+function renderHome(){
+  const L = lang === "fr";
+  const S = (n, id, title, desc, visual, flip) => `
+    <section class="hs${flip ? " flip" : ""} reveal">
+      <div class="hs-txt">
+        <div class="hs-n">${n}</div>
+        <h2 class="hs-t">${title}</h2>
+        <p class="hs-d">${desc}</p>
+        <button class="hs-cta" data-goto="${id}">${L ? "Ouvrir" : "Open"} ${title} →</button>
+      </div>
+      <div class="hs-vis">${visual}</div>
+    </section>`;
+  // Vignettes animées (CSS keyframes, coupées si prefers-reduced-motion).
+  const vMap = `<div class="hv hv-map"><svg viewBox="0 0 200 120" aria-hidden="true">
+      <circle cx="100" cy="60" r="50" class="hvm-globe"/>
+      <ellipse cx="100" cy="60" rx="50" ry="18" class="hvm-lat"/>
+      <ellipse cx="100" cy="60" rx="50" ry="38" class="hvm-lat"/>
+      <ellipse cx="100" cy="60" rx="18" ry="50" class="hvm-lon"/>
+      <ellipse cx="100" cy="60" rx="38" ry="50" class="hvm-lon"/>
+      <circle cx="82"  cy="44" r="3.5" class="hvm-dot d1"/>
+      <circle cx="118" cy="70" r="3.5" class="hvm-dot d2"/>
+      <circle cx="100" cy="34" r="3.5" class="hvm-dot d3"/>
+    </svg></div>`;
+  const vDb = `<div class="hv hv-db">
+      <div class="hvd-head"><span></span><span></span><span></span></div>
+      ${[1,2,3,4].map(i => `<div class="hvd-row r${i}"><span class="c1"></span><span class="c2"></span><span class="c3"></span></div>`).join("")}
+    </div>`;
+  const vFx = `<div class="hv hv-fx">
+      <div class="hvf-pair"><span class="cur a">EUR</span><span class="hvf-arrow">⇄</span><span class="cur b">USD</span></div>
+      <svg viewBox="0 0 180 46" class="hvf-line" aria-hidden="true"><polyline points="0,34 22,30 44,36 66,24 88,28 110,16 132,22 154,10 180,14"/></svg>
+    </div>`;
+  const vGames = `<div class="hv hv-games">
+      <div class="hvg-flag"><span></span><span></span><span></span></div>
+      <div class="hvg-tiles"><span class="t1">?</span><span class="t2">?</span><span class="t3">?</span></div>
+    </div>`;
+  const vLex = `<div class="hv hv-lex">
+      ${[1,2,3].map(i => `<div class="hvl-item i${i}"><span class="w"></span><span class="l1"></span><span class="l2"></span></div>`).join("")}
+    </div>`;
+  const vSrc = `<div class="hv hv-src">
+      ${["FMI","OCDE","BM","Wiki"].map((s,i) => `<span class="hvs-badge b${i+1}">${s}</span>`).join("")}
+    </div>`;
+  const vBut = `<div class="hv hv-but"><svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="46" class="hvb-ring"/>
+      <circle cx="60" cy="60" r="30" class="hvb-ring r2"/>
+      <circle cx="60" cy="60" r="14" class="hvb-ring r3"/>
+      <g class="hvb-needle"><line x1="60" y1="60" x2="60" y2="22"/><circle cx="60" cy="60" r="4"/></g>
+    </svg></div>`;
+  const secs = [
+    ["map",       L?"Carte":"Map",              L?"Le monde en un coup d'œil : clique un pays et sa fiche s'ouvre — identité, économie, marchés, rendements et notations.":"The world at a glance: click a country to open its profile — identity, economy, markets, yields and ratings.", vMap],
+    ["benchmark", L?"Base de données":"Database", L?"Tous les pays, toutes les colonnes : trie, filtre par région, notation ou quartile, épingle tes pays et compare.":"Every country, every column: sort, filter by region, rating or quartile, pin your countries and compare.", vDb],
+    ["fx",        L?"FX / Devises":"FX / Currency", L?"Plus de 200 devises : un convertisseur libre et les grandes paires face à l'euro et au dollar, en direct.":"200+ currencies: a free converter and the major pairs against the euro and the dollar, live.", vFx],
+    ["games",     L?"Jeux":"Games",             L?"Apprendre en jouant : pays mystère, drapeaux, et la Super Série quotidienne avec son classement.":"Learn by playing: mystery countries, flags, and the daily Super Series with its leaderboard.", vGames],
+    ["lexicon",   L?"Lexique":"Glossary",       L?"PIB, spread, notation souveraine… chaque terme utilisé dans Atlas, défini simplement et en deux langues.":"GDP, spread, sovereign rating… every term used in Atlas, plainly defined in two languages.", vLex],
+    ["data",      L?"Sources":"Sources",        L?"FMI, OCDE, Banque mondiale, Wikipédia : des données publiques, actualisées automatiquement chaque mois.":"IMF, OECD, World Bank, Wikipedia: public data, refreshed automatically every month.", vSrc],
+    ["purpose",   L?"But":"Purpose",            L?"Pourquoi Atlas existe, ce qu'il montre — et, honnêtement, ce qu'il ne montre pas.":"Why Atlas exists, what it shows — and, honestly, what it doesn't.", vBut],
+  ];
+  return `<div class="page home-page">
+    <div class="hero reveal">
+      <div class="hero-eyebrow">${L ? "Marchés & macroéconomie" : "Markets & macroeconomics"}</div>
+      <h1 class="hero-t">Atlas</h1>
+      <p class="hero-d">${L
+        ? "Un atlas économique mondial : données du FMI, rendements, notations et devises — réunis, comparables, et mis à jour tout seuls."
+        : "A world economic atlas: IMF data, yields, ratings and currencies — gathered, comparable, and self-updating."}</p>
+      <div class="hero-ctas">
+        <button class="hs-cta big" data-goto="map">${L ? "Explorer la carte" : "Explore the map"} →</button>
+        <button class="hs-cta ghost" data-goto="games">${L ? "Jouer" : "Play"}</button>
+      </div>
+      <div class="hero-cue" aria-hidden="true">▾</div>
+    </div>
+    ${secs.map((s, i) => S(String(i + 1).padStart(2, "0"), s[0], s[1], s[2], s[3], i % 2 === 1)).join("")}
+    <div class="home-foot reveal">
+      <button class="hs-cta big" data-goto="map">${L ? "Entrer dans Atlas" : "Enter Atlas"} →</button>
+    </div>
+  </div>`;
+}
+// Révélation au scroll : .reveal → .vis à l'entrée dans le viewport.
+function homeReveal(){
+  const host = el("view-home");
+  const els = host.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window)){ els.forEach(x => x.classList.add("vis")); return; }
+  const io = new IntersectionObserver((ents) => {
+    for (const en of ents) if (en.isIntersecting){ en.target.classList.add("vis"); io.unobserve(en.target); }
+  }, { root: host.querySelector(".home-page"), threshold: 0.18 });
+  els.forEach(x => io.observe(x));
+}
+
+// ── FX / Devises (onglet) ───────────────────────────────────────────────
+// Convertisseur libre (toutes devises de l'API) + grandes paires vs EUR/USD.
+// Taux via la même API que les fiches pays (exchange-api, sans clé).
+let fxvFrom = "EUR", fxvTo = "USD", fxvAmt = "100";
+const fxvBase = {};                    // cache : devise base → { date, map } (tous les taux)
+const FXV_MAJORS = ["USD","EUR","GBP","JPY","CHF","CNY","CAD","AUD","NZD","SEK","NOK","DKK","PLN","CZK","HUF","TRY","INR","KRW","BRL","MXN","ZAR"];
+// Nom des devises depuis countries.json (« Euro (EUR) » → « Euro »), dédupliqué.
+// Évalué à la demande : `ident` n'est rempli qu'après le chargement des données.
+let fxvNamesFor = null, fxvNamesMap = {};
+function fxvName(c){
+  if (fxvNamesFor !== lang){ fxvNamesMap = {};
+    for (const iso of Object.keys(ident)){ const d = ident[iso];
+      if (d && d.code && !fxvNamesMap[d.code]){ const raw = (lang === "fr" ? d.curFr : d.cur) || d.cur || "";
+        fxvNamesMap[d.code] = raw.replace(/\s*\([A-Z]{3}\)\s*$/, "") || d.code; } }
+    fxvNamesFor = lang; }
+  return fxvNamesMap[c] || c;
+}
+async function fxvLoad(base){
+  const lc = String(base).toLowerCase();
+  if (fxvBase[base]) return fxvBase[base];
+  fxvBase[base] = { loading: true };
+  try { const j = await fxGet("latest", lc, true);
+    const map = j && j[lc];
+    if (!map) throw new Error();
+    fxvBase[base] = { date: j.date, map };
+  } catch { fxvBase[base] = { error: true }; }
+  return fxvBase[base];
+}
+function fxvOptions(sel){
+  const codes = new Set(FXV_MAJORS);
+  Object.values(ident).forEach(d => { if (d && d.code) codes.add(d.code); });
+  return [...codes].sort((a, b) => {
+    const ia = FXV_MAJORS.indexOf(a), ib = FXV_MAJORS.indexOf(b);
+    if (ia >= 0 || ib >= 0) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    return a.localeCompare(b);
+  }).map(c => `<option value="${c}"${c === sel ? " selected" : ""}>${c}${fxvName(c) !== c ? " — " + esc(fxvName(c)) : ""}</option>`).join("");
+}
+function renderFxView(){
+  const L = lang === "fr";
+  const d = fxvBase[fxvFrom];
+  const a = parseFloat(String(fxvAmt).replace(",", "."));
+  const nf = new Intl.NumberFormat(L ? "fr-BE" : "en-GB", { maximumFractionDigits: 4 });
+  let result = "…";
+  if (d && d.map){
+    const r = fxvFrom === fxvTo ? 1 : d.map[fxvTo.toLowerCase()];
+    result = (isFinite(a) && a > 0 && r != null) ? nf.format(a * r) + " " + fxvTo : "—";
+  } else if (d && d.error) result = L ? "indisponible" : "unavailable";
+  const unit = (d && d.map && fxvFrom !== fxvTo && d.map[fxvTo.toLowerCase()] != null)
+    ? `<div class="fxv-unit">1 ${fxvFrom} = ${nf.format(d.map[fxvTo.toLowerCase()])} ${fxvTo}${d.date ? " · " + esc(d.date) : ""}</div>` : "";
+  // Tableau des grandes paires : besoin des bases EUR et USD.
+  const eur = fxvBase.EUR, usd = fxvBase.USD;
+  const rows = FXV_MAJORS.map(c => {
+    const e = eur && eur.map ? eur.map[c.toLowerCase()] : null;
+    const u = usd && usd.map ? usd.map[c.toLowerCase()] : null;
+    return `<tr><td class="fxv-code">${c}</td><td>${esc(fxvName(c))}</td>
+      <td class="num">${c === "EUR" ? "1" : (e != null ? nf.format(e) : "…")}</td>
+      <td class="num">${c === "USD" ? "1" : (u != null ? nf.format(u) : "…")}</td></tr>`;
+  }).join("");
+  el("view-fx").innerHTML = `<div class="page db-page g-page"><div class="db-in g-center">
+    <div class="g-eyebrow">${L ? "Devises" : "Currencies"}</div>
+    <h1 class="g-title">FX / ${L ? "Devises" : "Currency"}</h1>
+    <p class="lead">${L
+      ? "Convertis librement entre plus de 200 devises et suis les grandes paires face à l'euro et au dollar. Taux quotidiens, récupérés en direct dans le navigateur (exchange-api)."
+      : "Convert freely between 200+ currencies and track the major pairs against the euro and the dollar. Daily rates, fetched live in the browser (exchange-api)."}</p>
+    <div class="fxv-conv">
+      <input class="m-in fxv-amt" id="fxv-amt" type="number" inputmode="decimal" step="any" value="${esc(fxvAmt)}" aria-label="${L ? "Montant" : "Amount"}">
+      <select class="m-sel fxv-sel" id="fxv-from" aria-label="${L ? "Devise de départ" : "From currency"}">${fxvOptions(fxvFrom)}</select>
+      <button class="fx-swap" id="fxv-swap" title="${L ? "Inverser" : "Swap"}" aria-label="swap">⇄</button>
+      <select class="m-sel fxv-sel" id="fxv-to" aria-label="${L ? "Devise d'arrivée" : "To currency"}">${fxvOptions(fxvTo)}</select>
+      <div class="fxv-res">= <b>${result}</b></div>
+    </div>
+    ${unit}
+    <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    <div class="macro-src" style="text-align:center;margin-top:14px">${L ? "Taux quotidiens · " : "Daily rates · "}exchange-api</div>
+  </div></div>`;
+  // Charge ce qui manque puis re-render (si on est toujours sur l'onglet FX).
+  const need = [fxvFrom, "EUR", "USD"].filter(c => !fxvBase[c]);
+  if (need.length) Promise.all(need.map(fxvLoad)).then(() => { if (view === "fx") renderFxView(); });
+}
 const LEX = [
   { t:["PIB","GDP"], d:["Valeur totale des biens et services produits par un pays en un an.","Total value of the goods and services a country produces in a year."] },
   { t:["PIB par habitant","GDP per capita"], d:["Le PIB divisé par la population : un repère du niveau de vie moyen.","GDP divided by population: a proxy for average living standards."] },
@@ -1957,11 +2254,38 @@ async function boot(){
   renderTabs();
   // La restauration de l'onglet depuis l'URL (#view=…) se fait plus bas,
   // APRÈS le chargement des données — sinon le tableur se construit sur du vide.
-  const viewFromHash = () => (location.hash.match(/^#view=([a-z]+)$/) || [])[1] || "map";
+  const viewFromHash = () => (location.hash.match(/^#view=([a-z]+)$/) || [])[1] || "home";
   window.addEventListener("hashchange", () => { if (viewFromHash() !== view) setView(viewFromHash()); });
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b) setView(b.dataset.view);
+  });
+  // Le logo ramène à l'accueil ; les CTA de la landing ouvrent leur onglet.
+  document.querySelector(".wordmark").style.cursor = "pointer";
+  document.querySelector(".wordmark").addEventListener("click", () => setView("home"));
+  el("view-home").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-goto]");
+    if (b) setView(b.dataset.goto);
+  });
+  // Onglet FX : montant mis à jour en place (pas de re-render → focus conservé),
+  // sélecteurs et swap re-rendent la vue.
+  el("view-fx").addEventListener("input", (e) => {
+    if (e.target.id === "fxv-amt"){
+      fxvAmt = e.target.value;
+      const d = fxvBase[fxvFrom], out = el("view-fx").querySelector(".fxv-res b");
+      if (!out) return;
+      const a = parseFloat(String(fxvAmt).replace(",", "."));
+      const nf = new Intl.NumberFormat(lang === "fr" ? "fr-BE" : "en-GB", { maximumFractionDigits: 4 });
+      const r = d && d.map ? (fxvFrom === fxvTo ? 1 : d.map[fxvTo.toLowerCase()]) : null;
+      out.textContent = (isFinite(a) && a > 0 && r != null) ? nf.format(a * r) + " " + fxvTo : "—";
+    }
+  });
+  el("view-fx").addEventListener("change", (e) => {
+    if (e.target.id === "fxv-from"){ fxvFrom = e.target.value; renderFxView(); }
+    else if (e.target.id === "fxv-to"){ fxvTo = e.target.value; renderFxView(); }
+  });
+  el("view-fx").addEventListener("click", (e) => {
+    if (e.target.closest("#fxv-swap")){ const t = fxvFrom; fxvFrom = fxvTo; fxvTo = t; renderFxView(); }
   });
   // Jeu : suggestions à la saisie, choix au clic ou Entrée, nouvelle partie.
   el("view-games").addEventListener("input", (e) => {
@@ -2100,7 +2424,7 @@ async function boot(){
 
   const nCountries = Object.keys(macro.countries || {}).length;
   // Les données sont chargées : on peut restaurer l'onglet mémorisé dans l'URL.
-  if (viewFromHash() !== "map") setView(viewFromHash());
+  setView(viewFromHash());
   function renderStamp(){
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
     const gen = macro.generatedAt;
@@ -2764,6 +3088,9 @@ const Auth = (() => {
   return { init, isLoggedIn, configured: cfgOK, onSeriesComplete, fillLeaderboard, promptSeries };
 })();
 
+// L'accueil est statique : on le peint tout de suite (avant les données),
+// pour éviter une page blanche pendant le chargement.
+if (!location.hash){ el("view-home").innerHTML = renderHome(); homeReveal(); }
 boot();
 Auth.init();
 </script>
