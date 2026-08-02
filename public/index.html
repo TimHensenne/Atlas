@@ -573,9 +573,14 @@
     .reveal{opacity:1;transform:none;transition:none;}
   }
   /* ── Onglet FX / Devises : convertisseur fixe à gauche, liste à droite ── */
-  .fxv-grid{display:flex;gap:22px;align-items:flex-start;max-width:880px;margin:10px auto 0;width:100%;}
-  .fxv-left{flex:0 0 300px;position:sticky;top:6px;}
-  .fxv-right{flex:1;min-width:0;}
+  /* La page FX ne défile pas : en-tête et convertisseur restent en place,
+     SEULE la liste de droite a son propre défilement. */
+  .page.fx-page{display:flex;flex-direction:column;overflow:hidden;}
+  .fx-page .db-in{display:flex;flex-direction:column;flex:1;min-height:0;}
+  .fxv-grid{display:flex;gap:22px;align-items:flex-start;max-width:880px;margin:10px auto 0;width:100%;
+    flex:1;min-height:0;}
+  .fxv-left{flex:0 0 300px;}
+  .fxv-right{flex:1;min-width:0;align-self:stretch;overflow-y:auto;padding-bottom:8px;}
   .fxv-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
     box-shadow:var(--elev1);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:left;}
   .fxv-h{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);}
@@ -587,9 +592,13 @@
   .fxv-unit{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--dim);margin:0;}
   .fxv-card .macro-src{text-align:center;margin:2px 0 0;}
   .fxv-table{margin:0;max-width:none;}
+  /* Hauts alignés : l'en-tête du tableau est collant dans sa colonne. */
+  .fxv-table thead th{position:sticky;top:0;background:var(--panel);z-index:1;}
   @media(max-width:680px){
-    .fxv-grid{flex-direction:column;}
+    .page.fx-page{overflow-y:auto;}
+    .fxv-grid{flex-direction:column;flex:none;}
     .fxv-left{position:static;flex:1 1 auto;width:100%;}
+    .fxv-right{overflow:visible;align-self:auto;}
   }
   .fxv-table{width:100%;max-width:640px;margin:16px auto 0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
@@ -1724,7 +1733,7 @@ function renderFxView(){
       <td class="num">${c === "EUR" ? "1" : (e != null ? nf.format(e) : "…")}</td>
       <td class="num">${c === "USD" ? "1" : (u != null ? nf.format(u) : "…")}</td></tr>`;
   }).join("");
-  el("view-fx").innerHTML = `<div class="page db-page g-page"><div class="db-in g-center">
+  el("view-fx").innerHTML = `<div class="page db-page g-page fx-page"><div class="db-in g-center">
     <div class="g-eyebrow">${L ? "Devises" : "Currencies"}</div>
     <h1 class="g-title">FX / ${L ? "Devises" : "Currency"}</h1>
     <p class="lead">${L
