@@ -3084,7 +3084,7 @@ function paintFoot(){
 // réseau est en try/catch : la moindre erreur retombe proprement en local.
 const Auth = (() => {
   let supa = null, user = null, profile = null, ready = false;
-  let pendingAfter = null, busy = false;
+  let pendingAfter = null, busy = false, pendingNote = "";
 
   const cfgOK = () => { const c = window.ATLAS_SUPABASE;
     return !!(c && c.url && c.anon && !/VOTRE-PROJET|VOTRE_CLE/.test(String(c.url) + String(c.anon))); };
@@ -3303,26 +3303,36 @@ const Auth = (() => {
     else {
       const tabs = '<div class="m-tabs"><button data-auth="tab-login" class="' + (tab === "login" ? "on" : "") + '">' + (L ? "Connexion" : "Log in")
         + '</button><button data-auth="tab-signup" class="' + (tab === "signup" ? "on" : "") + '">' + (L ? "Inscription" : "Sign up") + '</button></div>';
+      const note = pendingNote
+        ? '<div class="m-msg ok" style="margin:0 0 12px">' + esc(pendingNote) + '</div>' : "";
       const intro = tab === "signup"
         ? '<div class="m-sub">' + (L ? "Un pseudo, un email, un mot de passe — c'est tout ce qu'il faut pour figurer au classement." : "A pseudonym, an email, a password — all you need to join the leaderboard.") + '</div>'
         : '<div class="m-sub">' + (L ? "Ravi de te revoir." : "Welcome back.") + '</div>';
-      body = tabs + intro + (tab === "signup" ? fieldSignup(L) : fieldLogin(L)) + '<div class="m-msg" id="m-msg" hidden></div>';
+      body = tabs + note + intro + (tab === "signup" ? fieldSignup(L) : fieldLogin(L)) + '<div class="m-msg" id="m-msg" hidden></div>';
     }
     card.innerHTML = '<button class="m-close" data-auth="close" aria-label="Fermer">×</button>' + body;
   }
-  function openModal(tab, after){ pendingAfter = after || null; renderModal(tab || "login"); el("authModal").hidden = false; }
-  function runPending(){ const after = pendingAfter; pendingAfter = null; if (typeof after === "function") after(); }
-  function closeModal(){ const m = el("authModal"); if (m) m.hidden = true; busy = false; runPending(); }
+  function openModal(tab, after, note){ pendingAfter = after || null; pendingNote = note || "";
+    renderModal(tab || "login"); el("authModal").hidden = false; }
+  function runPending(){ const after = pendingAfter; pendingAfter = null; pendingNote = "";
+    if (typeof after === "function") after(); }
+  // Fermer sans se connecter = ANNULER l'action en attente (ne pas la lancer).
+  function closeModal(){ const m = el("authModal"); if (m) m.hidden = true; busy = false;
+    pendingAfter = null; pendingNote = ""; }
+  // Connexion / inscription réussie = fermer PUIS lancer l'action en attente.
   function finishAuth(){ const m = el("authModal"); if (m) m.hidden = true; busy = false; runPending(); }
   function setMsg(kind, text){ const m = el("m-msg"); if (!m){ return; } m.hidden = false; m.className = "m-msg " + kind; m.textContent = text; setBusy(false); }
   function setBusy(v){ busy = v; const cards = el("authModal"); if (!cards) return;
     cards.querySelectorAll(".m-go").forEach(b => { b.disabled = v; }); }
 
-  // Invite à la connexion à l'entrée de la Super Série (une fois/session), non bloquant.
+  // La Super Série exige un compte (classement du jour, une tentative) :
+  // sans connexion, on ouvre la modale et on NE lance PAS la manche.
+  // En mode local (Supabase non configuré), pas de comptes → pas de blocage.
   function promptSeries(launch){
-    if (!cfgOK() || isLoggedIn() || sessionStorage.getItem("atlas-serie-nag")){ launch(); return; }
-    try { sessionStorage.setItem("atlas-serie-nag", "1"); } catch {}
-    openModal("signup", launch);
+    if (!cfgOK() || isLoggedIn()){ launch(); return; }
+    openModal("signup", launch, lang === "fr"
+      ? "La Super Série demande un compte : une tentative par jour, et ton pseudo au classement."
+      : "The Super Series needs an account: one attempt a day, and your pseudonym on the leaderboard.");
   }
 
   let bound = false;
