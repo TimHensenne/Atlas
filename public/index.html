@@ -624,6 +624,39 @@
   .fxv-table tbody tr:hover{background:var(--ocean);}
   .fxv-table .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;}
   .fxv-code{font-family:var(--mono);font-weight:600;color:var(--indigo);}
+  /* Jeu « Duel » : deux grandes cartes cliquables face à face. */
+  .dl-metric{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--indigo);text-align:center;margin:2px 0 16px;}
+  .dl-arena{display:flex;align-items:stretch;justify-content:center;gap:16px;margin:0 0 18px;}
+  .dl-side{flex:0 1 240px;display:flex;flex-direction:column;align-items:center;gap:10px;
+    background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
+    padding:20px 16px;cursor:pointer;box-shadow:var(--elev1);
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
+  .dl-side:hover:not(:disabled){transform:translateY(-3px);box-shadow:var(--elev2);border-color:var(--indigo);}
+  .dl-side:active:not(:disabled){transform:scale(.98);}
+  .dl-side:disabled{cursor:default;opacity:.92;}
+  .dl-side.wrong{border-color:var(--accent);animation:dshake .3s ease;}
+  @keyframes dshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .dl-flag{width:84px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;
+    border:1px solid var(--rule);box-shadow:0 4px 12px rgba(19,26,46,.16);}
+  .dl-name{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);text-align:center;}
+  .dl-val{font-family:var(--mono);font-size:13px;color:var(--teal);}
+  .dl-vs{align-self:center;font-family:var(--display);font-weight:800;font-size:18px;
+    color:var(--dim);letter-spacing:.04em;}
+  @media(max-width:560px){ .dl-arena{flex-direction:column;align-items:center;} .dl-vs{margin:-4px 0;} }
+  /* Jeu « Podium » : trois marches à remplir. */
+  .pd-cat{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--indigo);text-align:center;margin:2px 0 14px;}
+  .pd-slots{display:flex;flex-direction:column;gap:8px;max-width:420px;margin:0 auto 18px;width:100%;}
+  .pd-slot{display:flex;align-items:center;gap:12px;background:var(--panel);
+    border:1px dashed var(--rule);border-radius:var(--r-s);padding:11px 14px;}
+  .pd-slot.got{border-style:solid;border-color:#1E7A46;animation:ppop .3s ease;}
+  @keyframes ppop{from{transform:scale(.96);opacity:.5;}to{transform:scale(1);opacity:1;}}
+  .pd-medal{font-size:18px;flex:none;}
+  .pd-name{font-weight:600;color:var(--ink);flex:1;}
+  .pd-name.dim{color:var(--dim);font-weight:400;}
+  .pd-val{font-family:var(--mono);font-size:12.5px;color:var(--teal);}
+  .pd-rank{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--indigo);}
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -2121,9 +2154,12 @@ const serieGet  = (game) => serieRead()[game] || null;
 const serieSave = (game, tries) => { try { const games = serieRead(); games[game] = { tries };
   localStorage.setItem("atlas-serie", JSON.stringify({ date: todayKey(), games })); } catch {} };
 // La Super Série est linéaire : on enchaîne les jeux dans cet ordre, sans choisir.
-const SERIE = ["country", "flag"];   // ← ajouter les jeux 3 et 4 ici quand ils existeront
-const serieLabel = (g, L) => g === "flag" ? (L ? "Devine le drapeau" : "Guess the flag")
-                                          : (L ? "Trouve le pays" : "Guess the country");
+const SERIE = ["country", "flag", "duel", "podium"];
+const serieLabel = (g, L) =>
+    g === "flag"   ? (L ? "Devine le drapeau" : "Guess the flag")
+  : g === "duel"   ? (L ? "Duel" : "Duel")
+  : g === "podium" ? (L ? "Podium" : "Podium")
+  :                  (L ? "Trouve le pays" : "Guess the country");
 const serieNext = () => SERIE.find(g => !serieGet(g)) || null;   // 1re manche non terminée
 const serieReset = () => { try { localStorage.removeItem("atlas-serie"); } catch {} };
 // Bloc affiché quand une manche de la série vient d'être gagnée : enchaîne sur
@@ -2212,6 +2248,8 @@ function gCellNum(v, tv, fmt){
 function renderGames(){
   if (gScreen === "hub") return renderGameHub();
   if (gScreen === "flag") return renderFlagGame();
+  if (gScreen === "duel") return renderDuelGame();
+  if (gScreen === "podium") return renderPodiumGame();
   return renderCountryGame();
 }
 function renderGameHub(){
@@ -2237,11 +2275,6 @@ function renderGameHub(){
         : (L ? "Jouer la série du jour" : "Play today's series")} →</button>`
     : `<div class="serie-done">🎉 ${L ? "Série du jour terminée" : "Today's series complete"}</div>
        <button class="db-all" data-gserie-reset>⟳ ${L ? "Rejouer la série" : "Replay the series"}</button>`;
-  const off = (name) => `<div class="g-card off">
-      <div class="g-card-t">${name}</div>
-      <div class="g-card-d">?</div>
-      <span class="tagmini">${L ? "En construction" : "Coming soon"}</span>
-    </div>`;
   return `<div class="page db-page g-page"><div class="db-in g-center">
     <div class="g-eyebrow">${L ? "Jeux" : "Games"}</div>
     <h1 class="g-title">${L ? "Salle de jeux" : "Game room"}</h1>
@@ -2250,8 +2283,8 @@ function renderGameHub(){
         <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
         <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
         <p class="serie-d">${L
-          ? "Une série, pas un menu : on commence par le premier jeu et on enchaîne les manches dans l'ordre. Une par jour, le même défi pour tout le monde. 2 jeux sur 4 pour l'instant."
-          : "A series, not a menu: you start with the first game and play the rounds in order. One a day, the same challenge for everyone. 2 of 4 games for now."}</p>
+          ? "Une série, pas un menu : quatre manches dans l'ordre, une fois par jour — le même défi pour tout le monde. Le total d'essais fait ton score au classement."
+          : "A series, not a menu: four rounds in order, once a day — the same challenge for everyone. Your total guesses set your leaderboard score."}</p>
         <div class="serie-prog">${doneN} / ${SERIE.length} ${L ? "manches" : "rounds"}</div>
         <div class="serie-steps">${steps}</div>
         <div class="serie-cta">${cta}</div>
@@ -2270,8 +2303,16 @@ function renderGameHub(){
         <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, code pays et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, country code and name unlock as you try."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
-      ${off(L ? "Jeu n°3" : "Game #3")}
-      ${off(L ? "Jeu n°4" : "Game #4")}
+      <div class="g-card" data-gduel>
+        <div class="g-card-t">${L ? "Duel" : "Duel"}</div>
+        <div class="g-card-d">${L ? "Deux pays, une stat : clique le plus haut. Une erreur et la série tombe — bats ton record." : "Two countries, one stat: click the higher. One miss ends the streak — beat your best."}</div>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+      </div>
+      <div class="g-card" data-gpodium>
+        <div class="g-card-t">${L ? "Podium" : "Podium"}</div>
+        <div class="g-card-d">${L ? "Trouve le top 3 mondial de la stat du jour. Chaque raté révèle son rang réel." : "Find the world top 3 for today's stat. Each miss reveals its real rank."}</div>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+      </div>
     </div>
   </div></div>`;
 }
@@ -2495,6 +2536,181 @@ function renderFlagGame(){
   </div></div>`;
 }
 
+// ── Jeu « Duel » : deux pays, une statistique — clique le plus haut ──────
+// Libre : série infinie, une erreur met fin à la course (on re-tente pour
+// battre son record). Série quotidienne : 8 duels identiques pour tous
+// (graine du jour) ; chaque clic compte un essai, on rejoue le duel raté.
+const D_METRICS = [
+  { k:"pop",  fr:"Population",     en:"Population",      f:(v,L)=>Math.round(v).toLocaleString(L?"fr-BE":"en-GB") },
+  { k:"gdp",  fr:"PIB",            en:"GDP",             f:(v,L)=>"$ "+Math.round(v).toLocaleString(L?"fr-BE":"en-GB")+" Md" },
+  { k:"gdppc",fr:"PIB par habitant",en:"GDP per capita", f:(v,L)=>"$ "+Math.round(v).toLocaleString(L?"fr-BE":"en-GB") },
+  { k:"area", fr:"Superficie",     en:"Area",            f:(v,L)=>Math.round(v).toLocaleString(L?"fr-BE":"en-GB")+" km²" },
+  { k:"dens", fr:"Densité",        en:"Density",         f:(v,L)=>v.toFixed(1)+" hab/km²" },
+];
+function dVal(iso, k){
+  const d = ident[iso]; if (!d) return null;
+  if (k === "pop")  return d.pop ?? null;
+  if (k === "area") return d.area ?? null;
+  if (k === "dens") return (d.pop != null && d.area) ? d.pop / d.area : null;
+  const m = macro.countries?.[iso]?.indicators;
+  if (k === "gdp")   return m?.NGDPD?.value ?? null;
+  if (k === "gdppc") return m?.NGDPDPC?.value ?? null;
+  return null;
+}
+// PRNG déterministe pour la manche du jour (même séquence pour tous).
+function dRng(salt){ let s = seedHash(salt + todayKey()) || 1;
+  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+// Tire un duel valide : deux pays avec la stat, écart ≥ 5 % (pas d'ambigu).
+function dDraw(rand){
+  const pool = gPool();
+  for (let t = 0; t < 200; t++){
+    const m = D_METRICS[Math.floor(rand() * D_METRICS.length)];
+    const a = pool[Math.floor(rand() * pool.length)];
+    const b = pool[Math.floor(rand() * pool.length)];
+    if (a === b) continue;
+    const va = dVal(a, m.k), vb = dVal(b, m.k);
+    if (va == null || vb == null) continue;
+    if (Math.max(va, vb) / Math.min(va, vb) < 1.05) continue;
+    return { a, b, m: m.k, win: va > vb ? a : b };
+  }
+  return null;
+}
+const D_LEN = 8;                      // longueur de la manche quotidienne
+let dDaily = false, dQ = [], dIdx = 0, dTries = 0, dStreak = 0, dOver = false, dWon = false;
+let dLastWrong = null;                // pays cliqué à tort (feedback visuel)
+function dNew(daily){
+  dDaily = !!daily; dIdx = 0; dTries = 0; dStreak = 0; dOver = false; dWon = false; dLastWrong = null;
+  if (daily){ const r = dRng("duel"); dQ = []; while (dQ.length < D_LEN){ const q = dDraw(r); if (q) dQ.push(q); } }
+  else { dQ = [dDraw(Math.random)].filter(Boolean); }
+}
+function dPick(iso){
+  if (dOver || dWon) return;
+  const q = dQ[dIdx]; if (!q) return;
+  dTries++;
+  if (iso === q.win){
+    dLastWrong = null;
+    if (dDaily){
+      dIdx++;
+      if (dIdx >= D_LEN){ dWon = true; serieSave("duel", dTries); Auth.onSeriesComplete(); }
+    } else {
+      dStreak++; const nq = dDraw(Math.random); if (nq) dQ.push(nq); dIdx++;
+    }
+  } else {
+    dLastWrong = iso;
+    if (!dDaily) dOver = true;        // libre : une erreur = fin de la course
+  }
+  el("view-games").innerHTML = renderGames();
+}
+function renderDuelGame(){
+  const L = lang === "fr";
+  if (!dQ.length) dNew(dDaily);
+  const q = dQ[Math.min(dIdx, dQ.length - 1)];
+  if (!q) return `<div class="soon"><h1>…</h1></div>`;
+  const met = D_METRICS.find(x => x.k === q.m);
+  const side = (iso) => `<button class="dl-side${dLastWrong === iso ? " wrong" : ""}" data-dpick="${iso}"${dOver || dWon ? " disabled" : ""}>
+      <img class="dl-flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="">
+      <span class="dl-name">${esc(gName(iso))}</span>
+      ${dOver ? `<span class="dl-val">${met.f(dVal(iso, q.m), L)}</span>` : ""}
+    </button>`;
+  const status = dDaily
+    ? `<span class="g-count">${L ? "Duel" : "Duel"} ${Math.min(dIdx + 1, D_LEN)} / ${D_LEN} · ${dTries} ${L ? "essais" : "tries"}</span>`
+    : `<span class="g-count">${L ? "Série" : "Streak"} : ${dStreak}</span>`;
+  const done = dWon
+    ? `<div class="g-banner">🎉 ${L ? "Manche du jour terminée en" : "Daily round done in"} ${dTries} ${L ? "essais" : "tries"}</div>${serieContHTML(L)}`
+    : dOver
+    ? `<div class="g-banner">💥 ${L ? "Raté ! Série de" : "Missed! Streak of"} ${dStreak}.</div>
+       <div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Retenter" : "Try again"}</button></div>`
+    : "";
+  return `<div class="page db-page g-page"><div class="db-in g-center">
+    <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    <div class="g-eyebrow">${dDaily
+      ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
+      : (L ? "Jeu" : "Game")}</div>
+    <h1 class="g-title">${L ? "Duel" : "Duel"}</h1>
+    <p class="lead">${L
+      ? "Deux pays, une statistique : clique celui qui est au-dessus. En partie libre, une erreur met fin à la série — enchaîne pour battre ton record."
+      : "Two countries, one stat: click the higher one. In free play, one miss ends the streak — chain runs to beat your best."}</p>
+    <div class="dl-metric">${esc(L ? met.fr : met.en)} ${L ? "le plus élevé" : "— which is higher?"}</div>
+    <div class="dl-arena">${side(q.a)}<span class="dl-vs">VS</span>${side(q.b)}</div>
+    <div class="g-bar" style="justify-content:center">${status}</div>
+    ${done}
+  </div></div>`;
+}
+
+// ── Jeu « Podium » : trouve le top 3 mondial de la statistique du jour ──
+let pDaily = false, pMetric = null, pTop = [], pFound = {}, pGuesses = [], pTries = 0, pWon = false;
+function pRank(metricK){
+  return gPool().map(iso => ({ iso, v: dVal(iso, metricK) }))
+    .filter(x => x.v != null).sort((x, y) => y.v - x.v);
+}
+function pNew(daily){
+  pDaily = !!daily; pFound = {}; pGuesses = []; pTries = 0; pWon = false;
+  const idx = daily
+    ? seedHash("podium" + todayKey()) % D_METRICS.length
+    : Math.floor(Math.random() * D_METRICS.length);
+  pMetric = D_METRICS[idx];
+  pTop = pRank(pMetric.k).slice(0, 3).map(x => x.iso);
+}
+function pGuess(iso){
+  if (pWon || pGuesses.includes(iso)) return;
+  pGuesses.push(iso); pTries++;
+  const r = pTop.indexOf(iso);
+  if (r >= 0){ pFound[iso] = r;
+    if (Object.keys(pFound).length === 3){ pWon = true;
+      if (pDaily){ serieSave("podium", pTries); Auth.onSeriesComplete(); } } }
+  el("view-games").innerHTML = renderGames();
+  const inp = el("view-games").querySelector(".g-in");
+  if (inp && !pWon) inp.focus();
+}
+function renderPodiumGame(){
+  const L = lang === "fr";
+  if (!pMetric) pNew(pDaily);
+  if (!pTop.length) return `<div class="soon"><h1>…</h1></div>`;
+  const ranked = pRank(pMetric.k);
+  const rankOf = (iso) => ranked.findIndex(x => x.iso === iso);
+  const medals = ["🥇", "🥈", "🥉"];
+  const slots = [0, 1, 2].map(r => {
+    const iso = Object.keys(pFound).find(k => pFound[k] === r);
+    return `<div class="pd-slot${iso ? " got" : ""}">
+        <span class="pd-medal">${medals[r]}</span>
+        ${iso
+          ? `<span class="pd-name">${esc(gName(iso))}</span><span class="pd-val">${pMetric.f(dVal(iso, pMetric.k), L)}</span>`
+          : `<span class="pd-name dim">?</span>`}
+      </div>`;
+  }).join("");
+  const rows = [...pGuesses].reverse().filter(iso => !(iso in pFound)).slice(0, 8).map(iso => {
+    const r = rankOf(iso);
+    return `<div class="fg-g"><span class="fg-gn">${esc(gName(iso))}</span>
+      <span class="pd-rank">${r >= 0 ? "#" + (r + 1) : "—"}</span></div>`;
+  }).join("");
+  const win = pWon
+    ? `<div class="g-banner">🎉 ${L ? "Podium complet en" : "Podium complete in"} ${pTries} ${L ? (pTries > 1 ? "essais" : "essai") : (pTries > 1 ? "guesses" : "guess")} !</div>
+       ${pDaily ? serieContHTML(L) : `<div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Nouveau podium" : "New podium"}</button></div>`}`
+    : "";
+  return `<div class="page db-page g-page"><div class="db-in g-center">
+    <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
+    <div class="g-eyebrow">${pDaily
+      ? (L ? "Super Série · " : "Super Series · ") + esc(new Date().toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "long" }))
+      : (L ? "Jeu" : "Game")}</div>
+    <h1 class="g-title">${L ? "Podium" : "Podium"}</h1>
+    <p class="lead">${L
+      ? `Trouve les trois premiers pays du monde pour : ${esc(pMetric.fr).toLowerCase()}. Chaque proposition ratée révèle son rang réel — resserre le tir.`
+      : `Find the world's top three countries for: ${esc(pMetric.en).toLowerCase()}. Each miss reveals its real rank — narrow it down.`}</p>
+    <div class="pd-cat">${esc(L ? pMetric.fr : pMetric.en)}</div>
+    <div class="pd-slots">${slots}</div>
+    <div class="g-bar">
+      <div class="g-searchwrap">
+        <input class="g-in" type="text" autocomplete="off" spellcheck="false"
+          placeholder="${L ? "Propose un pays…" : "Guess a country…"}"${pWon ? " disabled" : ""}>
+        <div class="g-sug"></div>
+      </div>
+      <span class="g-count">${pTries} ${L ? "essai" : "guess"}${pTries > 1 ? (L ? "s" : "es") : ""}</span>
+    </div>
+    ${win}
+    <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
+  </div></div>`;
+}
+
 async function boot(){
   renderTabs();
   // La restauration de l'onglet depuis l'URL (#view=…) se fait plus bas,
@@ -2540,13 +2756,13 @@ async function boot(){
   el("view-games").addEventListener("input", (e) => {
     const inp = e.target.closest(".g-in"); if (!inp) return;
     const sug = el("view-games").querySelector(".g-sug");
-    const hits = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gGuesses);
+    const hits = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gScreen === "podium" ? pGuesses : gGuesses);
     sug.innerHTML = hits.map(iso => `<button data-gpick="${iso}">${esc(gName(iso))}</button>`).join("");
   });
   el("view-games").addEventListener("keydown", (e) => {
     const inp = e.target.closest(".g-in"); if (!inp || e.key !== "Enter") return;
-    const first = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gGuesses)[0];
-    if (first) (gScreen === "flag" ? fGuess : gGuess)(first);
+    const first = gSuggest(inp.value, gScreen === "flag" ? fGuesses : gScreen === "podium" ? pGuesses : gGuesses)[0];
+    if (first) (gScreen === "flag" ? fGuess : gScreen === "podium" ? pGuess : gGuess)(first);
   });
   el("view-games").addEventListener("click", (e) => {
     if (e.target.closest("[data-ghub]")){ gScreen = "hub";
@@ -2561,32 +2777,52 @@ async function boot(){
       gScreen = "flag";
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
-    if (e.target.closest("[data-gserie-reset]")){   // recommencer toute la série
-      serieReset();
-      if (serieNext() === "flag"){ fNew(true); gScreen = "flag"; } else { gNew(true); gScreen = "country"; }
+    if (e.target.closest("[data-gduel]")){
+      if (dDaily || !dQ.length || dOver) dNew(false);
+      gScreen = "duel";
+      el("view-games").innerHTML = renderGames(); return; }
+    if (e.target.closest("[data-gpodium]")){
+      if (pDaily || !pMetric || pWon) pNew(false);
+      gScreen = "podium";
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
+    // Prépare et affiche la manche quotidienne du jeu `g` (série).
+    const serieLaunch = (g) => {
+      if (g === "flag"){ if (!fDaily || fWon || !fTarget) fNew(true); gScreen = "flag"; }
+      else if (g === "duel"){ if (!dDaily || dWon || !dQ.length) dNew(true); gScreen = "duel"; }
+      else if (g === "podium"){ if (!pDaily || pWon || !pMetric) pNew(true); gScreen = "podium"; }
+      else { if (!gDaily || gWon || !gTarget) gNew(true); gScreen = "country"; }
+      el("view-games").innerHTML = renderGames();
+      el("view-games").querySelector(".g-in")?.focus();
+    };
+    if (e.target.closest("[data-gserie-reset]")){   // recommencer toute la série
+      serieReset();
+      serieLaunch(serieNext());
+      return; }
     const serie = e.target.closest("[data-gserie]");
     if (serie){                              // lance / poursuit la série : 1re manche non terminée, dans l'ordre
       const launch = () => {
         const g = serieNext();
         if (!g){ gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
-        if (g === "flag"){ if (!fDaily || fWon || !fTarget) fNew(true); gScreen = "flag"; }
-        else { if (!gDaily || gWon || !gTarget) gNew(true); gScreen = "country"; }
-        el("view-games").innerHTML = renderGames();
-        el("view-games").querySelector(".g-in")?.focus();
+        serieLaunch(g);
       };
-      Auth.promptSeries(launch);             // propose la connexion (1×/session), puis joue
+      Auth.promptSeries(launch);             // connexion exigée, puis joue
       return; }
     const nb = e.target.closest("[data-gnew]");
-    if (nb){ gScreen === "flag" ? fNew(false) : gNew(false);
+    if (nb){
+      if (gScreen === "flag") fNew(false);
+      else if (gScreen === "duel") dNew(false);
+      else if (gScreen === "podium") pNew(false);
+      else gNew(false);
       el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
+    const dp = e.target.closest("[data-dpick]");
+    if (dp){ dPick(dp.dataset.dpick); return; }
     const hb = e.target.closest("[data-ghint]");
     if (hb){ gHint = true; el("view-games").innerHTML = renderGames();
       el("view-games").querySelector(".g-in")?.focus(); return; }
     const pk = e.target.closest("[data-gpick]");
-    if (pk) (gScreen === "flag" ? fGuess : gGuess)(pk.dataset.gpick);
+    if (pk) (gScreen === "flag" ? fGuess : gScreen === "podium" ? pGuess : gGuess)(pk.dataset.gpick);
   });
   el("view-purpose").addEventListener("submit", (e) => {
     if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
@@ -3289,7 +3525,8 @@ const Auth = (() => {
   // (la série exige un compte ; le jeu libre, lui, reste accessible).
   function kickFromSerie(){
     if (view !== "games") return;
-    const inDaily = (gScreen === "country" && gDaily) || (gScreen === "flag" && fDaily);
+    const inDaily = (gScreen === "country" && gDaily) || (gScreen === "flag" && fDaily)
+      || (gScreen === "duel" && dDaily) || (gScreen === "podium" && pDaily);
     if (!inDaily) return;
     gScreen = "hub";
     el("view-games").innerHTML = renderGames();
