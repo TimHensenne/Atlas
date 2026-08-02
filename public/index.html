@@ -839,6 +839,25 @@
      se mêler au fond — on pose un fond panel plein sous chaque table. */
   .db-scroll{background:var(--panel);border-radius:var(--r-m);}
   table.db th{background:var(--panel);}
+  /* Colonnes équilibrées : hors « Pays », chaque colonne se serre sur son
+     contenu. Avec peu de colonnes cochées, elles restent groupées côte à
+     côte (plus de Région étirée sur un quart d'écran, plus de ligne à
+     suivre des yeux d'un bord à l'autre). Avec tout coché : inchangé. */
+  table.db th:not(:first-child),table.db td:not(:first-child){width:1%;}
+  table.db td:first-child,table.db th:first-child{min-width:190px;}
+  /* Zébrage façon tableur : blanc / bleu très pâle assorti à la DA
+     (l'équivalent nuit mélange l'indigo au panneau sombre). */
+  table.db tbody tr:nth-child(even) td{background:color-mix(in srgb, var(--indigo) 5%, var(--panel));}
+  table.db tbody tr:nth-child(even) td:first-child{background:color-mix(in srgb, var(--indigo) 5%, var(--panel));}
+  :root[data-theme="dark"] table.db tbody tr:nth-child(even) td,
+  :root[data-theme="dark"] table.db tbody tr:nth-child(even) td:first-child{
+    background:color-mix(in srgb, var(--indigo) 9%, var(--panel));}
+  /* Le survol reste au-dessus du zébrage (déclaré après, il gagne). */
+  table.db tbody tr:hover td,
+  table.db tbody tr:hover td:first-child{background:color-mix(in srgb, var(--indigo) 11%, var(--panel));}
+  :root[data-theme="dark"] table.db tbody tr:hover td,
+  :root[data-theme="dark"] table.db tbody tr:hover td:first-child{
+    background:color-mix(in srgb, var(--indigo) 16%, var(--panel));}
   .fxv-table{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
     border-collapse:separate;border-spacing:0;overflow:hidden;}
   .fxv-table th{padding-top:10px;}
