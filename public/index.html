@@ -580,7 +580,9 @@
   .fxv-grid{display:flex;gap:22px;align-items:flex-start;max-width:880px;margin:10px auto 0;width:100%;
     flex:1;min-height:0;}
   .fxv-left{flex:0 0 300px;}
-  .fxv-right{flex:1;min-width:0;align-self:stretch;overflow-y:auto;padding-bottom:8px;}
+  .fxv-right{flex:1;min-width:0;align-self:stretch;overflow-y:auto;padding-bottom:8px;
+    scrollbar-width:none;}
+  .fxv-right::-webkit-scrollbar{display:none;}
   .fxv-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
     box-shadow:var(--elev1);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:left;}
   .fxv-h{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);}
@@ -600,7 +602,7 @@
     .fxv-left{position:static;flex:1 1 auto;width:100%;}
     .fxv-right{overflow:visible;align-self:auto;}
   }
-  .fxv-table{width:100%;max-width:640px;margin:16px auto 0;border-collapse:collapse;font-size:13.5px;}
+  .fxv-table{width:100%;max-width:640px;margin:0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);font-weight:400;text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--rule);}
   .fxv-table td{padding:8px 10px;border-bottom:1px solid var(--rule-soft);color:var(--ink);}
