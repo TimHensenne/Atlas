@@ -2523,6 +2523,9 @@ function fGuess(iso){
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !fWon) inp.focus();
+  // Victoire : rendre le bouton « Jeu suivant » entièrement visible.
+  if (fWon) requestAnimationFrame(() =>
+    el("view-games").querySelector(".serie-nextbtn")?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 // Plus grande partie d'un pays : évite qu'un archipel ou un État transcontinental
 // (antiméridien) ne déforme la silhouette.
@@ -2611,15 +2614,16 @@ function renderFlagGame(){
       </div>
       <div class="fg-right"><div class="fg-grid">${grid}</div></div>
     </div>
-    <div class="g-bar">
+    ${fWon ? "" : `<div class="g-bar">
       <div class="g-searchwrap">
         <input class="g-in" type="text" autocomplete="off" spellcheck="false"
-          placeholder="${L ? "Propose un pays…" : "Guess a country…"}"${fWon ? " disabled" : ""}>
+          placeholder="${L ? "Propose un pays…" : "Guess a country…"}">
         <div class="g-sug"></div>
       </div>
       <span class="g-count">${fGuesses.length} ${L ? "essai" : "guess"}${fGuesses.length > 1 ? (L ? "s" : "es") : ""}</span>
       ${fDaily ? "" : `<button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button>`}
-    </div>
+    </div>`}
+    ${fWon && !fDaily ? `<div class="serie-cont"><button class="db-all" data-gnew>⟳ ${L ? "Nouvelle partie" : "New game"}</button></div>` : ""}
     <div class="fg-guesses">${rows || `<div class="g-empty">${L ? "Fais un premier essai." : "Make a first guess."}</div>`}</div>
     ${fDaily && fWon ? serieContHTML(L) : ""}
   </div></div>`;
