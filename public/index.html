@@ -572,13 +572,25 @@
     .hvf-line polyline{animation:none;stroke-dashoffset:0;}
     .reveal{opacity:1;transform:none;transition:none;}
   }
-  /* ── Onglet FX / Devises ───────────────────────────────────────────── */
-  .fxv-conv{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 6px;}
-  .fxv-amt{width:130px;text-align:right;}
-  .fxv-sel{width:auto;max-width:230px;}
-  .fxv-res{font-size:16px;color:var(--dim);}
-  .fxv-res b{color:var(--ink);font-family:var(--mono);font-weight:600;}
-  .fxv-unit{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--dim);margin:0 0 8px;}
+  /* ── Onglet FX / Devises : convertisseur fixe à gauche, liste à droite ── */
+  .fxv-grid{display:flex;gap:22px;align-items:flex-start;max-width:880px;margin:10px auto 0;width:100%;}
+  .fxv-left{flex:0 0 300px;position:sticky;top:6px;}
+  .fxv-right{flex:1;min-width:0;}
+  .fxv-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
+    box-shadow:var(--elev1);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:left;}
+  .fxv-h{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);}
+  .fxv-amt{width:100%;text-align:right;font-size:16px;}
+  .fxv-sel{width:100%;max-width:none;}
+  .fxv-swapbtn{align-self:center;width:34px;height:30px;}
+  .fxv-res{font-size:15px;color:var(--dim);text-align:center;}
+  .fxv-res b{color:var(--ink);font-family:var(--mono);font-weight:600;font-size:18px;}
+  .fxv-unit{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--dim);margin:0;}
+  .fxv-card .macro-src{text-align:center;margin:2px 0 0;}
+  .fxv-table{margin:0;max-width:none;}
+  @media(max-width:680px){
+    .fxv-grid{flex-direction:column;}
+    .fxv-left{position:static;flex:1 1 auto;width:100%;}
+  }
   .fxv-table{width:100%;max-width:640px;margin:16px auto 0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);font-weight:400;text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--rule);}
@@ -1718,17 +1730,24 @@ function renderFxView(){
     <p class="lead">${L
       ? "Convertis librement entre plus de 200 devises et suis les grandes paires face à l'euro et au dollar. Taux quotidiens, récupérés en direct dans le navigateur (exchange-api)."
       : "Convert freely between 200+ currencies and track the major pairs against the euro and the dollar. Daily rates, fetched live in the browser (exchange-api)."}</p>
-    <div class="fxv-conv">
-      <input class="m-in fxv-amt" id="fxv-amt" type="number" inputmode="decimal" step="any" value="${esc(fxvAmt)}" aria-label="${L ? "Montant" : "Amount"}">
-      <select class="m-sel fxv-sel" id="fxv-from" aria-label="${L ? "Devise de départ" : "From currency"}">${fxvOptions(fxvFrom)}</select>
-      <button class="fx-swap" id="fxv-swap" title="${L ? "Inverser" : "Swap"}" aria-label="swap">⇄</button>
-      <select class="m-sel fxv-sel" id="fxv-to" aria-label="${L ? "Devise d'arrivée" : "To currency"}">${fxvOptions(fxvTo)}</select>
-      <div class="fxv-res">= <b>${result}</b></div>
+    <div class="fxv-grid">
+      <div class="fxv-left">
+        <div class="fxv-card">
+          <div class="fxv-h">${L ? "Convertisseur" : "Converter"}</div>
+          <input class="m-in fxv-amt" id="fxv-amt" type="number" inputmode="decimal" step="any" value="${esc(fxvAmt)}" aria-label="${L ? "Montant" : "Amount"}">
+          <select class="m-sel fxv-sel" id="fxv-from" aria-label="${L ? "Devise de départ" : "From currency"}">${fxvOptions(fxvFrom)}</select>
+          <button class="fx-swap fxv-swapbtn" id="fxv-swap" title="${L ? "Inverser" : "Swap"}" aria-label="swap">⇅</button>
+          <select class="m-sel fxv-sel" id="fxv-to" aria-label="${L ? "Devise d'arrivée" : "To currency"}">${fxvOptions(fxvTo)}</select>
+          <div class="fxv-res">= <b>${result}</b></div>
+          ${unit}
+          <div class="macro-src">${L ? "Taux quotidiens · " : "Daily rates · "}exchange-api</div>
+        </div>
+      </div>
+      <div class="fxv-right">
+        <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+      </div>
     </div>
-    ${unit}
-    <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    <div class="macro-src" style="text-align:center;margin-top:14px">${L ? "Taux quotidiens · " : "Daily rates · "}exchange-api</div>
   </div></div>`;
   // Charge ce qui manque puis re-render (si on est toujours sur l'onglet FX).
   const need = [fxvFrom, "EUR", "USD"].filter(c => !fxvBase[c]);
