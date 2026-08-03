@@ -703,7 +703,7 @@
   .masc-img{display:block;width:100%;height:auto;}
   /* Boule d'antenne : s'allume en rouge au survol (calée sur l'image). */
   .masc-antenna{position:absolute;pointer-events:none;opacity:0;transition:opacity .18s ease;
-    left:48.1%;top:6.9%;width:4.8%;aspect-ratio:1;border-radius:50%;
+    left:48.2%;top:8.1%;width:4.6%;aspect-ratio:1;border-radius:50%;
     background:radial-gradient(circle at 40% 35%, #ff9a9a, #e01e1e 72%);
     box-shadow:0 0 12px 3px rgba(255,40,40,.6);}
   .g-mascot.alert .masc-antenna{opacity:1;}
@@ -1166,9 +1166,12 @@
   .topbar{background:var(--topbar-bg);backdrop-filter:blur(16px) saturate(1.25);
     -webkit-backdrop-filter:blur(16px) saturate(1.25);box-shadow:0 1px 0 var(--rule-soft);}
   .wordmark{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .tabs{background:transparent;border-bottom:1px solid var(--rule-soft);padding:6px 12px;gap:4px;}
-  .tabs button{border-bottom:0;border-radius:999px;padding:9px 15px;
-    transition:color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;}
+  .tabs{background:transparent;border-bottom:1px solid var(--rule);padding:10px 12px;gap:0;
+    display:flex;justify-content:center;overflow:visible;}
+  .tab-cap{display:inline-flex;gap:2px;padding:4px;border-radius:999px;
+    background:var(--panel);border:1px solid var(--rule);box-shadow:var(--elev1);}
+  .tabs button{border-bottom:0;border-radius:999px;padding:9px 16px;background:transparent;
+    transition:color .18s ease,background .18s ease,box-shadow .18s ease;}
   .tabs button:hover{background:var(--rule-soft);}
   .tabs button.on{color:#FFF;background:var(--grad);box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
   :root[data-theme="light"] .tabs button.on{color:#FFF;}
@@ -1948,15 +1951,17 @@ const NAV_LABELS = {
 let view = "home";
 
 function renderTabs(){
-  // Construit les boutons une seule fois, puis ne fait que basculer .on :
-  // le DOM persiste, donc la pilule active peut s'animer en CSS.
+  // Onglets groupés dans une capsule centrée ; le DOM persiste pour que la
+  // pilule active puisse s'animer en CSS.
   const host = el("tabs");
-  if (host.childElementCount !== VIEW_ORDER.length || host.dataset.lang !== lang){
+  let cap = host.querySelector(".tab-cap");
+  if (!cap || cap.childElementCount !== VIEW_ORDER.length || host.dataset.lang !== lang){
     host.dataset.lang = lang;
-    host.innerHTML = VIEW_ORDER.map(v =>
-      `<button data-view="${v}" role="tab">${esc(NAV_LABELS[v][lang])}</button>`).join("");
+    host.innerHTML = `<div class="tab-cap" role="tablist">${VIEW_ORDER.map(v =>
+      `<button data-view="${v}" role="tab">${esc(NAV_LABELS[v][lang])}</button>`).join("")}</div>`;
+    cap = host.querySelector(".tab-cap");
   }
-  for (const b of host.children){
+  for (const b of cap.children){
     const on = b.dataset.view === view;
     b.classList.toggle("on", on);
     b.setAttribute("aria-selected", String(on));
