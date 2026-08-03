@@ -2720,10 +2720,11 @@ function hubWorldBg(){
   cv.style.width = W + "px"; cv.style.height = H + "px";
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // La carte occupe toute la largeur, centrée verticalement dans la fenêtre.
+  // La carte remplit largement l'écran, bien centrée (H et V).
   const proj = d3.geoNaturalEarth1();
-  proj.fitSize([W, W / 2], { type: "Sphere" });
-  proj.translate([proj.translate()[0], proj.translate()[1] + (H - W / 2) / 2]);
+  proj.fitSize([W, H], { type: "Sphere" });
+  const sc = proj.scale();
+  proj.scale(sc * 1.18).translate([W / 2, H / 2]);
   // Masque des terres sur un canvas hors-écran.
   const off = document.createElement("canvas"); off.width = W; off.height = H;
   const octx = off.getContext("2d");
