@@ -434,17 +434,27 @@
   .serie-done{color:#1E7A46;font-weight:600;font-size:14px;margin-bottom:10px;}
   .g-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   @media(max-width:640px){.g-grid{grid-template-columns:1fr;}}
-  .g-card{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:20px 18px;
-    display:flex;flex-direction:column;gap:8px;cursor:pointer;
-    transition:border-color .15s ease,transform .15s ease;}
+  .g-card{border:1px solid var(--rule);border-radius:var(--r-m);background:var(--panel);padding:18px 18px 20px;
+    display:flex;flex-direction:column;gap:12px;cursor:pointer;
+    transition:border-color .15s ease,box-shadow .2s ease,background .2s ease;}
   .g-card:hover{border-color:var(--indigo);}
   .g-card.off{cursor:default;opacity:.55;}
-  .g-card.off:hover{border-color:var(--rule);transform:none;}
-  .g-card-t{font-family:var(--display);font-weight:700;font-size:17px;color:var(--ink);}
-  .g-card-d{color:var(--dim);font-size:13px;line-height:1.55;flex:1;}
-  .tagmini{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--dim);border:1px solid var(--rule);border-radius:2px;padding:3px 8px;align-self:flex-start;}
-  .tagmini.on{color:var(--indigo);border-color:var(--indigo);}
+  .g-card.off:hover{border-color:var(--rule);}
+  /* Ordre : titre (haut, centré, bleu) → illustration → texte → bouton. */
+  .g-card-t{order:0;width:100%;text-align:center;font-family:var(--display);font-weight:800;
+    font-size:22px;letter-spacing:-.02em;color:var(--indigo);}
+  .g-card .gc-viz{order:1;}
+  .g-card-d{order:2;color:var(--dim);font-size:13px;line-height:1.55;flex:1;text-align:left;width:100%;}
+  .g-card .tagmini{order:3;}
+  /* Bouton « Jouer » : pastille dégradée pleine, alignée à gauche. */
+  .tagmini{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;
+    font-family:var(--body);font-weight:600;font-size:13.5px;
+    letter-spacing:0;text-transform:none;color:#fff;background:var(--grad);border:0;border-radius:999px;
+    padding:10px 22px;box-shadow:0 5px 16px color-mix(in srgb, var(--indigo) 34%, transparent);
+    transition:filter .16s ease,box-shadow .16s ease;}
+  .tagmini .ar{transition:transform .18s ease;}
+  .g-card:hover .tagmini{filter:brightness(1.06);box-shadow:0 7px 20px color-mix(in srgb, var(--indigo) 42%, transparent);}
+  .g-card:hover .tagmini .ar{transform:translateX(3px);}
   /* Super Série : étapes linéaires (non cliquables — on ne choisit pas) */
   .serie-prog{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
     color:var(--dim);margin:0 0 12px;}
@@ -1923,22 +1933,35 @@ function renderTabs(){
     b.setAttribute("aria-selected", String(on));
   }
 }
-function setView(v){
-  // Compatibilité : les anciens liens #view=lexicon / #view=data pointent
-  // vers la page fusionnée « Références ».
+// Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
+function applyView(v){
   if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
   view = v;
-  // Mémorise l'onglet dans l'URL : survit au rechargement, partageable,
-  // et compatible précédent/suivant. L'accueil reste l'URL "propre" (pas de hash).
-  const want = v === "home" ? "" : "#view=" + v;
-  if (location.hash !== want) history.replaceState(null, "", want || location.pathname + location.search);
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
   renderTabs();
   renderView(v);
   // Entrée animée de la vue (retrigger via reflow ; inerte si mouvement réduit).
   const sec = el("view-" + v);
   if (sec){ sec.classList.remove("v-enter"); void sec.offsetWidth; sec.classList.add("v-enter"); }
+}
+// Change de vue ET ajoute une entrée d'historique → le bouton « retour » du
+// navigateur ramène à la vue précédente au lieu de sortir du site.
+function setView(v){
+  if (v === "lexicon" || v === "data") v = "refs";
+  if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
+  if (v === "games") gScreen = "hub";               // arriver par l'onglet = sélection
+  const want = v === "home" ? location.pathname + location.search : "#view=" + v;
+  history.pushState({ view: v, gScreen: "hub" }, "", want);
+  applyView(v);
+}
+// Entre dans un écran de jeu en empilant une entrée d'historique : le retour
+// (bouton du navigateur ou « Sélection de jeux ») revient à la sélection.
+function pushGameScreen(screen){
+  gScreen = screen;
+  history.pushState({ view: "games", gScreen: screen }, "", "#view=games");
+  el("view-games").innerHTML = renderGames();
+  if (screen !== "hub") el("view-games").querySelector(".g-in")?.focus();
 }
 function renderView(v){
   if (v === "home")           { el("view-home").innerHTML   = renderHome(); homeReveal(); }
@@ -2795,7 +2818,7 @@ function renderGameHub(){
         </div>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
-        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} <span class="ar">→</span></span>
       </div>
       <div class="g-card tiltable" data-gflag>
         <div class="gc-viz gc-fan" aria-hidden="true">
@@ -2804,7 +2827,7 @@ function renderGameHub(){
         </div>
         <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
         <div class="g-card-d">${L ? "Un drapeau, un pays à deviner. Trois indices au fil des essais." : "One flag, one country to guess. Three hints as you try."}</div>
-        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} <span class="ar">→</span></span>
       </div>
       <div class="g-card tiltable" data-gduel>
         <div class="gc-viz gc-duel" aria-hidden="true">
@@ -2814,7 +2837,7 @@ function renderGameHub(){
         </div>
         <div class="g-card-t">${L ? "Duel" : "Duel"}</div>
         <div class="g-card-d">${L ? "Deux pays, une stat : clique le plus haut. Une erreur et la série tombe — bats ton record." : "Two countries, one stat: click the higher. One miss ends the streak — beat your best."}</div>
-        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} <span class="ar">→</span></span>
       </div>
       <div class="g-card tiltable" data-gpodium>
         <div class="gc-viz gc-podium" aria-hidden="true">
@@ -2824,7 +2847,7 @@ function renderGameHub(){
         </div>
         <div class="g-card-t">${L ? "Podium" : "Podium"}</div>
         <div class="g-card-d">${L ? "Trouve le top 3 mondial de la stat du jour. Chaque raté révèle son rang réel." : "Find the world top 3 for today's stat. Each miss reveals its real rank."}</div>
-        <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
+        <span class="tagmini on">${L ? "Jouer" : "Play"} <span class="ar">→</span></span>
       </div>
     </div>
   </div></div>`;
@@ -3298,7 +3321,14 @@ async function boot(){
   // La restauration de l'onglet depuis l'URL (#view=…) se fait plus bas,
   // APRÈS le chargement des données — sinon le tableur se construit sur du vide.
   const viewFromHash = () => (location.hash.match(/^#view=([a-z]+)$/) || [])[1] || "home";
-  window.addEventListener("hashchange", () => { if (viewFromHash() !== view) setView(viewFromHash()); });
+  // Retour / Suivant du navigateur : on restaure la vue et l'écran de jeu
+  // depuis l'entrée d'historique, sans réempiler.
+  window.addEventListener("popstate", (e) => {
+    const st = e.state || {};
+    const v = st.view || viewFromHash();
+    if (v === "games") gScreen = st.gScreen || "hub";
+    applyView(v);
+  });
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b) setView(b.dataset.view);
@@ -3354,35 +3384,25 @@ async function boot(){
     if (first) (gScreen === "flag" ? fGuess : gScreen === "podium" ? pGuess : gGuess)(first);
   });
   el("view-games").addEventListener("click", (e) => {
-    if (e.target.closest("[data-ghub]")){ gScreen = "hub";
-      el("view-games").innerHTML = renderGames(); return; }
+    if (e.target.closest("[data-ghub]")){ pushGameScreen("hub"); return; }   // retour à la sélection
     if (e.target.closest("[data-gplay]")){
       if (gDaily || !gTarget) gNew(false);   // reprend une partie libre en cours, sinon en lance une
-      gScreen = "country";
-      el("view-games").innerHTML = renderGames();
-      el("view-games").querySelector(".g-in")?.focus(); return; }
+      pushGameScreen("country"); return; }
     if (e.target.closest("[data-gflag]")){
       if (fDaily || !fTarget) fNew(false);
-      gScreen = "flag";
-      el("view-games").innerHTML = renderGames();
-      el("view-games").querySelector(".g-in")?.focus(); return; }
+      pushGameScreen("flag"); return; }
     if (e.target.closest("[data-gduel]")){
       if (dDaily || !dQ.length || dOver) dNew(false);
-      gScreen = "duel";
-      el("view-games").innerHTML = renderGames(); return; }
+      pushGameScreen("duel"); return; }
     if (e.target.closest("[data-gpodium]")){
       if (pDaily || !pMetric || pWon) pNew(false);
-      gScreen = "podium";
-      el("view-games").innerHTML = renderGames();
-      el("view-games").querySelector(".g-in")?.focus(); return; }
+      pushGameScreen("podium"); return; }
     // Prépare et affiche la manche quotidienne du jeu `g` (série).
     const serieLaunch = (g) => {
-      if (g === "flag"){ if (!fDaily || fWon || !fTarget) fNew(true); gScreen = "flag"; }
-      else if (g === "duel"){ if (!dDaily || dWon || !dQ.length) dNew(true); gScreen = "duel"; }
-      else if (g === "podium"){ if (!pDaily || pWon || !pMetric) pNew(true); gScreen = "podium"; }
-      else { if (!gDaily || gWon || !gTarget) gNew(true); gScreen = "country"; }
-      el("view-games").innerHTML = renderGames();
-      el("view-games").querySelector(".g-in")?.focus();
+      if (g === "flag"){ if (!fDaily || fWon || !fTarget) fNew(true); pushGameScreen("flag"); }
+      else if (g === "duel"){ if (!dDaily || dWon || !dQ.length) dNew(true); pushGameScreen("duel"); }
+      else if (g === "podium"){ if (!pDaily || pWon || !pMetric) pNew(true); pushGameScreen("podium"); }
+      else { if (!gDaily || gWon || !gTarget) gNew(true); pushGameScreen("country"); }
     };
     if (e.target.closest("[data-gserie-reset]")){   // recommencer toute la série
       serieReset();
@@ -3392,7 +3412,7 @@ async function boot(){
     if (serie){                              // lance / poursuit la série : 1re manche non terminée, dans l'ordre
       const launch = () => {
         const g = serieNext();
-        if (!g){ gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
+        if (!g){ pushGameScreen("hub"); return; }
         serieLaunch(g);
       };
       Auth.promptSeries(launch);             // connexion exigée, puis joue
@@ -3500,8 +3520,11 @@ async function boot(){
   } catch {}
 
   const nCountries = Object.keys(macro.countries || {}).length;
-  // Les données sont chargées : on peut restaurer l'onglet mémorisé dans l'URL.
-  setView(viewFromHash());
+  // Les données sont chargées : on restaure l'onglet mémorisé dans l'URL en
+  // dotant l'entrée d'historique initiale du bon état (sans créer de doublon).
+  const v0 = viewFromHash();
+  history.replaceState({ view: v0, gScreen: "hub" }, "", location.hash || location.pathname + location.search);
+  applyView(v0);
   function renderStamp(){
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
     el("stamp").textContent =
