@@ -433,7 +433,7 @@
   .g-card{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:20px 18px;
     display:flex;flex-direction:column;gap:8px;cursor:pointer;
     transition:border-color .15s ease,transform .15s ease;}
-  .g-card:hover{border-color:var(--indigo);transform:translateY(-2px);}
+  .g-card:hover{border-color:var(--indigo);}
   .g-card.off{cursor:default;opacity:.55;}
   .g-card.off:hover{border-color:var(--rule);transform:none;}
   .g-card-t{font-family:var(--display);font-weight:700;font-size:17px;color:var(--ink);}
@@ -500,7 +500,7 @@
   .hs-cta{background:var(--indigo);color:#FFF;border:0;border-radius:3px;cursor:pointer;
     font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px 20px;
     transition:transform .15s ease,background .15s ease;}
-  .hs-cta:hover{background:var(--indigo-hi);transform:translateY(-1px);}
+  .hs-cta:hover{background:var(--indigo-hi);}
   .hs-cta.big{font-size:13px;padding:13px 26px;}
   .hs-cta.ghost{background:none;color:var(--indigo);border:1px solid var(--indigo);}
   .hs-cta.ghost:hover{background:var(--ocean);}
@@ -724,13 +724,13 @@
     pointer-events:none;}
   .hero-inner .hero-ctas,.hero-inner button{pointer-events:auto;}
   .hero-t{text-shadow:0 2px 30px color-mix(in srgb, var(--paper) 70%, transparent);}
-  .tiltable{will-change:transform;position:relative;}
+  /* .tiltable ne bouge plus : seul le halo suit la souris (via --gx/--gy). */
+  .tiltable{position:relative;transition:border-color .25s ease,background .25s ease,box-shadow .25s ease;}
   .tiltable::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
     background:radial-gradient(240px circle at var(--gx,50%) var(--gy,50%),
       color-mix(in srgb, #FFFFFF 14%, transparent), transparent 70%);
     opacity:0;transition:opacity .25s ease;}
   .tiltable:hover::after{opacity:1;}
-  .magnet{transition:translate .18s ease;}
   @media(prefers-reduced-motion:reduce){
     #view-games .serie-row,#view-games .g-grid .g-card,.gp-step{animation:none;}
     .serie-step.current{animation:none;box-shadow:0 0 0 1px var(--indigo) inset;}
@@ -772,7 +772,8 @@
     padding:22px 22px 18px;cursor:pointer;box-shadow:var(--elev1);position:relative;overflow:hidden;
     font-family:var(--body);color:var(--ink);
     transition:box-shadow .25s ease,border-color .25s ease;}
-  .bento-card:hover{box-shadow:var(--elev2);border-color:color-mix(in srgb, var(--indigo) 55%, var(--rule));}
+  .bento-card:hover{box-shadow:var(--elev2);border-color:color-mix(in srgb, var(--indigo) 55%, var(--rule));
+    background:color-mix(in srgb, var(--indigo) 4%, var(--panel));}
   .bc-head{display:flex;align-items:center;gap:8px;}
   .bc-n{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--rule);
     border-radius:999px;padding:3px 8px;}
@@ -1046,7 +1047,7 @@
   .tabs{background:transparent;border-bottom:1px solid var(--rule-soft);padding:6px 12px;gap:4px;}
   .tabs button{border-bottom:0;border-radius:999px;padding:9px 15px;
     transition:color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;}
-  .tabs button:hover{background:var(--rule-soft);transform:translateY(-1px);}
+  .tabs button:hover{background:var(--rule-soft);}
   .tabs button.on{color:#FFF;background:var(--grad);box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
   :root[data-theme="light"] .tabs button.on{color:#FFF;}
   /* Entrée de vue : fondu + légère montée à chaque changement d'onglet. */
@@ -1056,10 +1057,10 @@
   .fx,.lang,.theme,.authbar{border-radius:999px;overflow:hidden;background:var(--glass);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
   .hs-cta,.m-go,.db-all,.g-back,.serie-play{border-radius:999px;
-    transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease;}
-  .hs-cta:hover,.m-go:hover,.serie-play:hover{transform:translateY(-2px);
-    box-shadow:0 8px 22px color-mix(in srgb, var(--indigo) 38%, transparent);}
-  .hs-cta:active,.m-go:active,.db-all:active,.tabs button:active{transform:translateY(0) scale(.97);}
+    transition:box-shadow .18s ease,background .18s ease,color .18s ease,filter .18s ease;}
+  .hs-cta:hover,.m-go:hover,.serie-play:hover{filter:brightness(1.06);
+    box-shadow:0 6px 20px color-mix(in srgb, var(--indigo) 34%, transparent);}
+  .hs-cta:active,.m-go:active,.db-all:active,.tabs button:active{filter:brightness(.98);}
   .hs-cta,.m-go,.serie-play{background:var(--grad);}
   .m-in,.m-sel,.g-in,.fx-in,.fxv-amt,.fxv-sel{border-radius:var(--r-s);
     transition:border-color .16s ease,box-shadow .16s ease;}
@@ -1076,7 +1077,8 @@
   @keyframes mPop{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
   .modal:not([hidden]) .modal-card{animation:mPop .3s cubic-bezier(.22,.8,.3,1) both;}
   .g-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
-  .g-card:not(.off):hover{transform:translateY(-4px);box-shadow:var(--elev2);border-color:var(--indigo);}
+  .g-card:not(.off):hover{box-shadow:var(--elev2);border-color:var(--indigo);
+    background:color-mix(in srgb, var(--indigo) 4%, var(--panel));}
   .serie-step,.serie-round,.fg-g{border-radius:var(--r-s);}
   .fg-flag{border-radius:var(--r-m);box-shadow:var(--elev2);}
   .fg-answer{border-radius:var(--r-s);box-shadow:0 8px 24px rgba(30,122,70,.35);}
@@ -3675,7 +3677,7 @@ function initGlobe(){
   const path = d3.geoPath(proj, ctx);
   const sphere = { type: "Sphere" };
   let rot = [-15, -18], vel = 0.05, dragging = false, last = null;
-  let cols = {}, colTick = 0, lastDraw = 0, onScreen = true;
+  let cols = {}, lastDraw = 0, onScreen = true;
   // Pause complète quand le globe sort du viewport (scroll de la landing).
   if ("IntersectionObserver" in window)
     new IntersectionObserver((en) => { onScreen = en[0].isIntersecting; }).observe(cv);
@@ -3687,11 +3689,12 @@ function initGlobe(){
   const readCols = () => { cols = {
     ocean: themeVar("--ocean"), land: themeVar("--land"), glow: themeVar("--indigo") }; };
   readCols();
+  // Relecture immédiate des couleurs quand le thème bascule (fini le délai).
+  new MutationObserver(readCols).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   function frame(elapsed){
     if (view !== "home" || !cv.isConnected || !onScreen) return;   // en veille
     if (elapsed - lastDraw < 42 && !dragging) return;              // ~24 fps : fluide et léger
     lastDraw = elapsed;
-    if (++colTick % 40 === 0) readCols();                    // suit le thème jour/nuit
     if (!dragging && FX_ON) rot = [rot[0] + vel * 5, rot[1]];
     proj.rotate(rot);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3720,45 +3723,24 @@ function initGlobe(){
   window.addEventListener("resize", fit);
 }
 
-// ── Inclinaison 3D + reflet : toute carte portant .tiltable. ─────────────
+// ── Reflet qui suit la souris (sans bouger la carte) : .tiltable. ────────
+// On ne fait plus tourner ni translater : seul le halo (--gx/--gy) suit le
+// curseur. Sobre, et ça préserve l'effet de lumière apprécié en mode sombre.
 if (FX_ON && FX_POINTER){
-  let tiltEl = null;
+  let cur = null;
   document.addEventListener("pointermove", (e) => {
     const t = e.target.closest && e.target.closest(".tiltable");
-    if (tiltEl && tiltEl !== t){ tiltEl.style.transform = ""; tiltEl.style.removeProperty("--gx"); tiltEl.style.removeProperty("--gy"); }
-    tiltEl = t;
+    if (cur && cur !== t){ cur.style.removeProperty("--gx"); cur.style.removeProperty("--gy"); }
+    cur = t;
     if (!t) return;
     const r = t.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-    const ry = (px - .5) * 10, rx = (.5 - py) * 8;
-    t.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-3px)`;
-    t.style.setProperty("--gx", (px * 100).toFixed(1) + "%");
-    t.style.setProperty("--gy", (py * 100).toFixed(1) + "%");
+    t.style.setProperty("--gx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
+    t.style.setProperty("--gy", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
   });
-  document.addEventListener("pointerleave", () => { if (tiltEl){ tiltEl.style.transform = ""; tiltEl = null; } });
 }
 
-// ── Boutons magnétiques : uniquement dans le hero (aucun coût ailleurs). ──
-function heroMagnet(){
-  if (!FX_ON || !FX_POINTER) return;
-  const hero = el("view-home").querySelector(".hero");
-  if (!hero || hero.dataset.mag) return;
-  hero.dataset.mag = "1";
-  const btns = [...hero.querySelectorAll(".magnet")];
-  let raf = null, ev = null;
-  hero.addEventListener("pointermove", (e) => { ev = e;
-    if (raf) return;
-    raf = requestAnimationFrame(() => { raf = null;
-      for (const b of btns){
-        const r = b.getBoundingClientRect();
-        const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
-        const dist = Math.hypot(dx, dy), R = 110;
-        b.style.translate = dist < R ? `${(dx * (1 - dist / R) * .35).toFixed(1)}px ${(dy * (1 - dist / R) * .35).toFixed(1)}px` : "";
-      }
-    });
-  });
-  hero.addEventListener("pointerleave", () => btns.forEach(b => b.style.translate = ""));
-}
+// ── Boutons du hero : effet sobre au survol (CSS), plus de magnétisme. ──
+function heroMagnet(){ /* désactivé : le déplacement des boutons n'était pas désiré */ }
 
 
 // ── Pied de page & pages légales (RGPD) ─────────────────────────────────
