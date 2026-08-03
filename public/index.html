@@ -2673,7 +2673,7 @@ function renderGameHub(){
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
   // Décor : quelques vrais drapeaux (+ symboles de jeu) qui flottent en fond.
-  const hb = (loaded ? gPool().sort() : []);
+  const hb = gPool().sort();
   const hbFlag = (salt) => hb.length ? hb[seedHash("bg" + salt + todayKey()) % hb.length] : "fr";
   const floaters = [
     { t: "f", v: hbFlag("a"), x: 6,  y: 14, s: 46, d: 0,  dur: 22 },
