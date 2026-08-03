@@ -678,6 +678,11 @@
   .g-hub{position:relative;}
   .g-hub .db-in{position:relative;z-index:1;}
   .g-floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .g-worldbg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    opacity:.14;pointer-events:none;
+    -webkit-mask-image:radial-gradient(120% 80% at 50% 40%, #000 55%, transparent 100%);
+            mask-image:radial-gradient(120% 80% at 50% 40%, #000 55%, transparent 100%);}
+  :root[data-theme="dark"] .g-worldbg{opacity:.2;}
   .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
     box-shadow:0 6px 18px rgba(19,26,46,.12);animation:gfloat linear infinite;will-change:transform;}
   :root[data-theme="dark"] .g-fl{opacity:.11;box-shadow:0 6px 18px rgba(0,0,0,.3);}
@@ -2701,6 +2706,44 @@ function renderGames(){
   if (gScreen === "podium") return renderPodiumGame();
   return renderCountryGame();
 }
+// Fond « GeoGuessr » : carte du monde en pointillés. On peint les terres sur
+// un canvas hors-écran, puis on ne garde qu'un point là où il y a de la terre.
+function hubWorldBg(){
+  const cv = el("view-games") && el("view-games").querySelector(".g-worldbg");
+  if (!cv || cv.dataset.on) return;
+  if (!GLOBE_LAND){ loadGlobeLand(); setTimeout(hubWorldBg, 200); return; }
+  const host = cv.closest(".g-hub") || cv.parentElement;
+  const W = Math.max(320, Math.round(host.clientWidth || 900));
+  const H = Math.max(320, Math.round(host.clientHeight || 700));
+  cv.dataset.on = "1";
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Projection : la carte occupe toute la largeur, centrée verticalement.
+  const proj = d3.geoNaturalEarth1();
+  proj.fitSize([W, W / 2], { type: "Sphere" });
+  proj.translate([proj.translate()[0], proj.translate()[1] + (H - W / 2) / 2]);
+  // Masque des terres sur un canvas hors-écran.
+  const off = document.createElement("canvas"); off.width = W; off.height = H;
+  const octx = off.getContext("2d");
+  const opath = d3.geoPath(proj, octx);
+  octx.beginPath(); for (const f of GLOBE_LAND) opath(f);
+  octx.fillStyle = "#000"; octx.fill();
+  const mask = octx.getImageData(0, 0, W, H).data;
+  // Points sur une grille : gardés seulement au-dessus des terres (aspect pointillé).
+  const step = 9, r = 1.25;
+  ctx.fillStyle = themeVar("--indigo");
+  for (let y = 0; y < H; y += step){
+    for (let x = 0; x < W; x += step){
+      if (mask[(y * W + x) * 4 + 3] > 40){
+        ctx.beginPath(); ctx.arc(x + (Math.floor(y / step) % 2 ? step / 2 : 0), y, r, 0, 6.283); ctx.fill();
+      }
+    }
+  }
+}
+
 // Mini-carte monde de la carte « Trouve le pays » (canvas, données réelles).
 function hubFx(){
   const cv = el("view-games").querySelector(".gc-map");
@@ -2729,20 +2772,21 @@ function renderGameHub(){
   const nextG = serieNext();
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
-  // Décor : de vrais drapeaux du jour qui dérivent lentement en fond.
+  // Décor GeoGuessr : carte du monde en pointillés (canvas) + quelques
+  // drapeaux du jour qui dérivent par-dessus.
   const hb = gPool().sort();
   const hbFlag = (salt) => hb.length ? hb[seedHash("bg" + salt + todayKey()) % hb.length] : "fr";
   const floaters = [
-    { v: hbFlag("a"), x: 5,  y: 12, s: 58, d: 0,   dur: 26 },
-    { v: hbFlag("b"), x: 82, y: 8,  s: 48, d: 4,   dur: 30 },
-    { v: hbFlag("c"), x: 90, y: 44, s: 40, d: 2,   dur: 28 },
-    { v: hbFlag("d"), x: 10, y: 60, s: 54, d: 6,   dur: 32 },
-    { v: hbFlag("e"), x: 74, y: 72, s: 44, d: 3,   dur: 27 },
-    { v: hbFlag("f"), x: 3,  y: 86, s: 46, d: 5,   dur: 31 },
-    { v: hbFlag("g"), x: 48, y: 4,  s: 38, d: 7,   dur: 29 },
-    { v: hbFlag("h"), x: 93, y: 88, s: 52, d: 1.5, dur: 24 },
+    { v: hbFlag("a"), x: 7,  y: 16, s: 46, d: 0,   dur: 30 },
+    { v: hbFlag("b"), x: 86, y: 12, s: 40, d: 4,   dur: 34 },
+    { v: hbFlag("d"), x: 12, y: 66, s: 44, d: 6,   dur: 33 },
+    { v: hbFlag("e"), x: 80, y: 74, s: 38, d: 3,   dur: 29 },
+    { v: hbFlag("h"), x: 93, y: 40, s: 34, d: 1.5, dur: 27 },
   ];
-  const bg = `<div class="g-floaters" aria-hidden="true">${floaters.map(f =>
+  setTimeout(hubWorldBg, 0);   // dessine la carte pointillée une fois le DOM posé
+  const bg = `<div class="g-floaters" aria-hidden="true">
+    <canvas class="g-worldbg" width="0" height="0"></canvas>
+    ${floaters.map(f =>
     `<img class="g-fl" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(f.v).toLowerCase()}.svg" alt="" loading="lazy"
        style="left:${f.x}%;top:${f.y}%;width:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">`
   ).join("")}</div>`;
