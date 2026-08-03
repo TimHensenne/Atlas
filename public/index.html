@@ -677,9 +677,9 @@
   /* Décor de la salle de jeux : drapeaux & symboles qui flottent en fond. */
   .g-hub{position:relative;}
   .g-hub .db-in{position:relative;z-index:1;}
-  .g-floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
-  .g-worldbg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    opacity:.4;pointer-events:none;
+  .g-floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .g-worldbg{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;
+    opacity:.4;
     -webkit-mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);
             mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);}
   :root[data-theme="dark"] .g-worldbg{opacity:.5;}
@@ -2712,16 +2712,15 @@ function hubWorldBg(){
   const cv = el("view-games") && el("view-games").querySelector(".g-worldbg");
   if (!cv || cv.dataset.on) return;
   if (!GLOBE_LAND){ loadGlobeLand(); setTimeout(hubWorldBg, 200); return; }
-  const host = cv.closest(".g-hub") || cv.parentElement;
-  const W = Math.max(320, Math.round(host.clientWidth || 900));
-  const H = Math.max(320, Math.round(host.clientHeight || 700));
+  const W = Math.round(window.innerWidth);
+  const H = Math.round(window.innerHeight);
   cv.dataset.on = "1";
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cv.width = W * dpr; cv.height = H * dpr;
   cv.style.width = W + "px"; cv.style.height = H + "px";
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // Projection : la carte occupe toute la largeur, centrée verticalement.
+  // La carte occupe toute la largeur, centrée verticalement dans la fenêtre.
   const proj = d3.geoNaturalEarth1();
   proj.fitSize([W, W / 2], { type: "Sphere" });
   proj.translate([proj.translate()[0], proj.translate()[1] + (H - W / 2) / 2]);
