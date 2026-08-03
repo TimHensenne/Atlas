@@ -537,7 +537,10 @@
   .fxv-card .m-in,.fxv-card .m-sel{padding-top:11px;padding-bottom:11px;}
   .fxv-swapbtn{width:38px;height:34px;}
   .fxv-res b{font-size:21px;}
-  .fxv-card .macro-src{text-align:center;margin-top:auto;}
+  .fxv-card .macro-src{text-align:center;margin-top:auto;padding-bottom:2px;}
+  .fxv-clk{cursor:pointer;}
+  .fxv-clk:hover td,.fxv-clk:focus-visible td{background:color-mix(in srgb, var(--indigo) 8%, var(--panel));}
+  .fxv-clk:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px;}
   .fxv-rightwrap{flex:1;min-width:0;align-self:stretch;position:relative;display:flex;}
   .fxv-right{flex:1;min-width:0;overflow-y:auto;padding-bottom:8px;
     scrollbar-width:none;}
@@ -551,7 +554,7 @@
   @keyframes fcue{0%,100%{transform:translateY(0);opacity:.65;}50%{transform:translateY(5px);opacity:1;}}
   .fxv-cue.hide{opacity:0;animation:none;}
   .fxv-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
-    box-shadow:var(--elev1);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:left;}
+    box-shadow:var(--elev1);padding:18px 18px 22px;display:flex;flex-direction:column;gap:11px;text-align:left;}
   .fxv-h{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);}
   .fxv-amt{width:100%;text-align:right;font-size:16px;}
   .fxv-sel{width:100%;max-width:none;}
@@ -2126,7 +2129,9 @@ function renderFxView(){
   const rows = FXV_MAJORS.map(c => {
     const e = eur && eur.map ? eur.map[c.toLowerCase()] : null;
     const u = usd && usd.map ? usd.map[c.toLowerCase()] : null;
-    return `<tr><td class="fxv-code">${c}</td><td>${esc(fxvName(c))}</td>
+    return `<tr class="fxv-clk" data-fxrow="${c}" tabindex="0" role="button"
+      title="${L ? "Convertir " + c + " en USD" : "Convert " + c + " to USD"}">
+      <td class="fxv-code">${c}</td><td>${esc(fxvName(c))}</td>
       <td class="num">${c === "EUR" ? "1" : (e != null ? nf.format(e) : "…")}</td>
       <td class="num">${c === "USD" ? "1" : (u != null ? nf.format(u) : "…")}</td></tr>`;
   }).join("");
@@ -3218,7 +3223,14 @@ async function boot(){
     else if (e.target.id === "fxv-to"){ fxvTo = e.target.value; renderFxView(); }
   });
   el("view-fx").addEventListener("click", (e) => {
-    if (e.target.closest("#fxv-swap")){ const t = fxvFrom; fxvFrom = fxvTo; fxvTo = t; renderFxView(); }
+    if (e.target.closest("#fxv-swap")){ const t = fxvFrom; fxvFrom = fxvTo; fxvTo = t; renderFxView(); return; }
+    const row = e.target.closest("[data-fxrow]");
+    if (row){ fxvFrom = row.dataset.fxrow; fxvTo = fxvFrom === "USD" ? "EUR" : "USD"; renderFxView(); }
+  });
+  // Accessibilité : Entrée/Espace sur une ligne = même action que le clic.
+  el("view-fx").addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ")){ const row = e.target.closest("[data-fxrow]");
+      if (row){ e.preventDefault(); fxvFrom = row.dataset.fxrow; fxvTo = fxvFrom === "USD" ? "EUR" : "USD"; renderFxView(); } }
   });
   // Jeu : suggestions à la saisie, choix au clic ou Entrée, nouvelle partie.
   el("view-games").addEventListener("input", (e) => {
