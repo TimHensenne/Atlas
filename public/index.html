@@ -688,27 +688,23 @@
   :root[data-theme="dark"] .gc-viz{box-shadow:inset 0 1px 0 rgba(255,255,255,.05), var(--elev1);}
   .g-card:hover .gc-viz{box-shadow:inset 0 1px 0 rgba(255,255,255,.4), var(--elev2);}
   .gc-viz{transition:box-shadow .25s ease;}
-  /* 1 — Trouve le pays : mini-carte réelle, balayage radar, cible qui pulse. */
+  /* 1 — Trouve le pays : carte du monde + radar dessiné (SVG) par-dessus. */
   .gc-radar{padding:0;}
   .gc-radar .gc-map-wrap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;overflow:hidden;
-    background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 22%, var(--ocean)), var(--ocean));}
-  .gc-map{display:block;position:relative;z-index:1;opacity:.9;}
-  .gc-sweep{position:absolute;left:62%;top:50%;width:150px;height:150px;z-index:2;
-    transform-origin:0 50%;
-    background:conic-gradient(from 0deg at 0 50%,
-      color-mix(in srgb, var(--teal) 70%, transparent) 0deg,
-      color-mix(in srgb, var(--teal) 22%, transparent) 12deg,
-      transparent 34deg 360deg);
-    animation:gsweep 3.4s linear infinite;mix-blend-mode:screen;pointer-events:none;}
-  @keyframes gsweep{from{transform:rotate(0);}to{transform:rotate(360deg);}}
-  .gc-ping{position:absolute;left:62%;top:40%;z-index:3;width:8px;height:8px;border-radius:50%;
-    background:radial-gradient(circle, #fff 0 30%, var(--accent) 40%);
-    box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),
-      0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
-    animation:gping 2.1s ease-out infinite;}
-  @keyframes gping{0%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);}
-    70%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 13px transparent;}
-    100%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 transparent;}}
+    background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 24%, var(--ocean)), var(--ocean));}
+  .gc-map{display:block;position:relative;z-index:1;}
+  .gc-radar-svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    height:150%;aspect-ratio:1;z-index:2;pointer-events:none;overflow:visible;}
+  .rdr-face{fill:url(#rdrGlow);}
+  .rdr-ring{fill:none;stroke:color-mix(in srgb, var(--teal) 45%, transparent);stroke-width:.5;}
+  .rdr-cross,.rdr-ticks line{stroke:color-mix(in srgb, var(--teal) 32%, transparent);stroke-width:.4;}
+  .rdr-sweep{transform-origin:50px 50px;animation:rdrSpin 3.6s linear infinite;}
+  .rdr-beamline{stroke:color-mix(in srgb, var(--teal) 75%, transparent);stroke-width:.7;}
+  @keyframes rdrSpin{to{transform:rotate(360deg);}}
+  .rdr-blip{fill:var(--accent);animation:rdrBlip 3.6s ease-in-out infinite;}
+  @keyframes rdrBlip{0%,18%{opacity:0;}22%{opacity:1;}55%{opacity:.5;}80%,100%{opacity:0;}}
+  .rdr-core{fill:color-mix(in srgb, var(--teal) 85%, transparent);}
+  @media(prefers-reduced-motion:reduce){ .rdr-sweep,.rdr-blip{animation:none;} .rdr-blip{opacity:1;} }
   /* 2 — Drapeau : éventail de vrais drapeaux, relief marqué, ouverture au survol. */
   .gc-fan{width:100%;height:100%;position:relative;}
   .gc-fanflag{width:52px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
@@ -764,7 +760,7 @@
   .gp-step.s2 .gp-flag{animation-delay:.3s;} .gp-step.s3 .gp-flag{animation-delay:.6s;}
   @keyframes gpFloat{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-4px);}}
   @media(prefers-reduced-motion:reduce){
-    .gc-sweep,.gc-ping,.gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug,.gp-flag{animation:none;}
+    .gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug,.gp-flag{animation:none;}
   }
   /* ── Hero : globe canvas + reflet des cartes inclinables ─────────────── */
   #heroGlobe{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);z-index:-1;
@@ -786,7 +782,7 @@
     #view-games .serie-row,#view-games .g-grid .g-card,.gp-step{animation:none;}
     .serie-step.current{animation:none;box-shadow:0 0 0 1px var(--indigo) inset;}
     .g-card:hover .gc-viz{transform:none;}
-    .gc-sweep,.gc-ping,.gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug i,.gp-flag{animation:none;}
+    .gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug i,.gp-flag{animation:none;}
     .tiltable::after{display:none;}
     #heroGlobe{display:none;}
   }
@@ -2697,7 +2693,8 @@ function hubFx(){
   const path = d3.geoPath(proj, ctx);
   ctx.beginPath();
   for (const f of GLOBE_FEATS) path(f);
-  ctx.fillStyle = themeVar("--land"); ctx.fill();
+  ctx.fillStyle = themeVar("--land-hi") || themeVar("--land"); ctx.fill();
+  ctx.strokeStyle = themeVar("--ocean"); ctx.lineWidth = 0.4; ctx.stroke();
 }
 
 function renderGameHub(){
@@ -2769,8 +2766,29 @@ function renderGameHub(){
     <div class="g-grid">
       <div class="g-card tiltable" data-gplay>
         <div class="gc-viz gc-radar" aria-hidden="true">
-          <div class="gc-map-wrap"><canvas class="gc-map" width="0" height="0"></canvas>
-          <span class="gc-sweep"></span><span class="gc-ping"></span></div>
+          <div class="gc-map-wrap"><canvas class="gc-map" width="0" height="0"></canvas></div>
+          <svg class="gc-radar-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="rdrGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="var(--teal)" stop-opacity=".28"/>
+                <stop offset="70%" stop-color="var(--teal)" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="rdrBeam" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="var(--teal)" stop-opacity="0"/>
+                <stop offset="100%" stop-color="var(--teal)" stop-opacity=".55"/>
+              </linearGradient>
+            </defs>
+            <circle class="rdr-face" cx="50" cy="50" r="46"/>
+            <circle class="rdr-ring" cx="50" cy="50" r="46"/>
+            <circle class="rdr-ring" cx="50" cy="50" r="31"/>
+            <circle class="rdr-ring" cx="50" cy="50" r="16"/>
+            <line class="rdr-cross" x1="4" y1="50" x2="96" y2="50"/>
+            <line class="rdr-cross" x1="50" y1="4" x2="50" y2="96"/>
+            <g class="rdr-ticks">${Array.from({length:12},(_,i)=>{const a=i*30*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return `<line x1="${50+44*c}" y1="${50+44*s}" x2="${50+46*c}" y2="${50+46*s}"/>`}).join("")}</g>
+            <g class="rdr-sweep"><path d="M50 50 L96 50 A46 46 0 0 0 66 8 Z" fill="url(#rdrBeam)"/><line x1="50" y1="50" x2="96" y2="50" class="rdr-beamline"/></g>
+            <circle class="rdr-blip" cx="66" cy="40" r="2.4"/>
+            <circle class="rdr-core" cx="50" cy="50" r="1.8"/>
+          </svg>
         </div>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
