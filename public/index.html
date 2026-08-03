@@ -668,77 +668,101 @@
   .g-hub{position:relative;}
   .g-hub .db-in{position:relative;z-index:1;}
   .g-floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
-  .g-fl{position:absolute;opacity:.1;filter:saturate(.85);
-    animation:gfloat linear infinite;will-change:transform;}
-  .g-fl.g-fle{opacity:.14;line-height:1;}
-  :root[data-theme="dark"] .g-fl{opacity:.13;}
-  :root[data-theme="dark"] .g-fl.g-fle{opacity:.18;}
+  .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
+    box-shadow:0 6px 18px rgba(19,26,46,.12);animation:gfloat linear infinite;will-change:transform;}
+  :root[data-theme="dark"] .g-fl{opacity:.11;box-shadow:0 6px 18px rgba(0,0,0,.3);}
   .g-fl:nth-child(odd){animation-direction:alternate;}
   @keyframes gfloat{
     0%{transform:translate(0,0) rotate(-6deg);}
     50%{transform:translate(14px,-22px) rotate(6deg);}
     100%{transform:translate(-10px,-40px) rotate(-3deg);}}
   @media(prefers-reduced-motion:reduce){ .g-fl{animation:none;} }
-  /* Vignette commune des cartes. */
-  .gc-viz{height:64px;display:flex;align-items:center;justify-content:center;gap:10px;
-    margin:2px 0 12px;position:relative;align-self:center;}
-  .g-card:hover .gc-viz{transform:scale(1.07);}
-  .gc-viz{transition:transform .25s ease;}
-  /* 1 — Trouve le pays : mini-carte réelle + balayage radar. */
-  .gc-radar{position:relative;width:150px;height:76px;border-radius:8px;overflow:hidden;
-    background:var(--ocean);border:1px solid var(--rule);}
-  .gc-map{display:block;}
-  .gc-sweep{position:absolute;inset:-40%;background:conic-gradient(from 0deg,
-    transparent 0 78%, color-mix(in srgb, var(--indigo) 55%, transparent) 92%, transparent 100%);
-    animation:gsweep 3.2s linear infinite;}
+  /* ── Vignettes de cartes : de vraies petites scènes, fond dégradé + relief ── */
+  .gc-viz{width:100%;height:96px;display:flex;align-items:center;justify-content:center;gap:10px;
+    margin:2px 0 14px;position:relative;align-self:stretch;overflow:hidden;
+    border-radius:var(--r-m);border:1px solid var(--rule-soft);
+    background:
+      radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--indigo) 12%, transparent), transparent 70%),
+      linear-gradient(135deg, color-mix(in srgb, var(--indigo) 7%, var(--panel)), color-mix(in srgb, var(--teal) 6%, var(--panel)));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4), var(--elev1);}
+  :root[data-theme="dark"] .gc-viz{box-shadow:inset 0 1px 0 rgba(255,255,255,.05), var(--elev1);}
+  .g-card:hover .gc-viz{box-shadow:inset 0 1px 0 rgba(255,255,255,.4), var(--elev2);}
+  .gc-viz{transition:box-shadow .25s ease;}
+  /* 1 — Trouve le pays : mini-carte réelle, balayage radar, cible qui pulse. */
+  .gc-radar{}
+  .gc-radar .gc-map-wrap{position:relative;width:150px;height:72px;border-radius:8px;overflow:hidden;
+    background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 22%, var(--ocean)), var(--ocean));
+    box-shadow:inset 0 0 0 1px var(--rule-soft), inset 0 8px 20px rgba(19,26,46,.18);}
+  .gc-map{display:block;position:relative;z-index:1;opacity:.9;}
+  .gc-sweep{position:absolute;inset:-40%;z-index:2;background:conic-gradient(from 0deg,
+    transparent 0 74%, color-mix(in srgb, var(--teal) 60%, transparent) 90%, transparent 100%);
+    animation:gsweep 3.4s linear infinite;mix-blend-mode:screen;}
   @keyframes gsweep{to{transform:rotate(360deg);}}
-  .gc-ping{position:absolute;left:62%;top:38%;width:6px;height:6px;border-radius:50%;
-    background:var(--accent);box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  .gc-ping{position:absolute;left:62%;top:40%;z-index:3;width:8px;height:8px;border-radius:50%;
+    background:radial-gradient(circle, #fff 0 30%, var(--accent) 40%);
+    box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
     animation:gping 2.1s ease-out infinite;}
-  @keyframes gping{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);}
-    70%{box-shadow:0 0 0 11px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
-  /* 2 — Drapeau : éventail de vrais drapeaux qui s'ouvre au survol. */
-  .gc-fan{position:relative;width:120px;}
-  .gc-fanflag{width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;position:absolute;
-    left:50%;top:50%;border:1px solid var(--rule);box-shadow:0 6px 16px rgba(19,26,46,.28);
-    transition:transform .35s cubic-bezier(.22,.8,.3,1);}
-  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-10deg) translateX(-14px);}
+  @keyframes gping{0%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);}
+    70%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 13px transparent;}
+    100%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 transparent;}}
+  /* 2 — Drapeau : éventail de vrais drapeaux, relief marqué, ouverture au survol. */
+  .gc-fan{width:120px;height:100%;position:relative;}
+  .gc-fanflag{width:60px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
+    left:50%;top:50%;border:2px solid var(--panel);
+    box-shadow:0 10px 22px rgba(19,26,46,.32), 0 2px 4px rgba(19,26,46,.2);
+    transition:transform .4s cubic-bezier(.22,.8,.3,1);}
+  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-12deg) translateX(-16px);}
   .gc-fanflag.f2{transform:translate(-50%,-50%) rotate(0deg);z-index:1;}
-  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(10deg) translateX(14px);}
-  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-18deg) translateX(-26px) translateY(-4px);}
-  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-8px);}
-  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(18deg) translateX(26px) translateY(-4px);}
-  .gf-q{position:absolute;right:6px;top:-8px;width:22px;height:22px;border-radius:50%;z-index:2;
-    background:var(--accent);color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
-    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.25);
-    animation:gfQ 1.9s ease-in-out infinite;}
-  @keyframes gfQ{0%,100%{transform:translateY(0);}45%{transform:translateY(-7px) rotate(8deg);}}
-  /* 3 — Duel : deux vrais drapeaux, corde en tir à la corde. */
-  .gc-duel{gap:10px;}
-  .gc-duelflag{width:46px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
-    border:1px solid var(--rule);box-shadow:0 5px 14px rgba(19,26,46,.24);}
-  .gc-duelflag.da{animation:gtiltA 2.6s ease-in-out infinite;}
-  .gc-duelflag.db2{animation:gtiltB 2.6s ease-in-out infinite;}
-  @keyframes gtiltA{0%,100%{transform:rotate(-4deg) translateY(0);}50%{transform:rotate(2deg) translateY(-3px);}}
-  @keyframes gtiltB{0%,100%{transform:rotate(4deg) translateY(-3px);}50%{transform:rotate(-2deg) translateY(0);}}
-  .gd-tug{width:44px;height:5px;border-radius:3px;background:var(--rule);position:relative;overflow:hidden;}
-  .gd-tug i{position:absolute;inset:0;border-radius:3px;background:var(--grad);
-    animation:gtug 2.6s ease-in-out infinite;}
-  @keyframes gtug{0%,100%{transform:translateX(-26%);}50%{transform:translateX(26%);}}
-  /* 4 — Podium : marches qui montent, vrais drapeaux du top PIB. */
-  .gc-podium{gap:5px;align-items:flex-end;}
-  .gp-step{width:34px;border-radius:5px 5px 0 0;background:var(--panel);border:1px solid var(--rule);
-    border-bottom:0;position:relative;animation:gpRise .6s cubic-bezier(.22,.8,.3,1) both;}
-  .gp-step.s1{height:44px;background:color-mix(in srgb, var(--indigo) 14%, var(--panel));
-    border-color:var(--indigo);animation-delay:.25s;}
-  .gp-step.s2{height:32px;animation-delay:.1s;}
-  .gp-step.s3{height:22px;animation-delay:.4s;}
+  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(12deg) translateX(16px);}
+  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-20deg) translateX(-30px) translateY(-5px);}
+  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-10px) scale(1.04);}
+  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(20deg) translateX(30px) translateY(-5px);}
+  .gf-q{position:absolute;right:14px;top:12px;width:24px;height:24px;border-radius:50%;z-index:2;
+    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #000));
+    color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 50%, transparent);
+    animation:gfQ 2.2s ease-in-out infinite;}
+  @keyframes gfQ{0%,100%{transform:translateY(0) rotate(0);}45%{transform:translateY(-6px) rotate(10deg);}}
+  /* 3 — Duel : deux vrais drapeaux face à face sur fond scindé, éclair central. */
+  .gc-duel{gap:0;}
+  .gc-duel::before{content:"";position:absolute;inset:0;z-index:0;
+    background:linear-gradient(100deg, color-mix(in srgb, var(--indigo) 16%, transparent) 0 46%,
+      transparent 46% 54%, color-mix(in srgb, var(--teal) 16%, transparent) 54% 100%);}
+  .gc-duelflag{width:50px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:relative;z-index:1;
+    border:2px solid var(--panel);box-shadow:0 8px 20px rgba(19,26,46,.3);margin:0 14px;}
+  .gc-duelflag.da{animation:gtiltA 2.8s ease-in-out infinite;}
+  .gc-duelflag.db2{animation:gtiltB 2.8s ease-in-out infinite;}
+  @keyframes gtiltA{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(-1deg) translateY(-4px);}}
+  @keyframes gtiltB{0%,100%{transform:rotate(5deg) translateY(-4px);}50%{transform:rotate(1deg) translateY(0);}}
+  .gd-tug{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+    width:26px;height:26px;border-radius:50%;
+    background:linear-gradient(135deg, var(--indigo), var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px color-mix(in srgb, var(--indigo) 55%, transparent);
+    font-family:var(--display);font-weight:800;font-size:9px;color:#fff;
+    animation:gvsPulse 2.2s ease-in-out infinite;}
+  .gd-tug::after{content:"VS";}
+  .gd-tug i{display:none;}
+  @keyframes gvsPulse{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.12);}}
+  /* 4 — Podium : marches en dégradé, halo, vrais drapeaux du top PIB. */
+  .gc-podium{gap:6px;align-items:flex-end;padding-bottom:8px;}
+  .gp-step{width:38px;border-radius:6px 6px 0 0;position:relative;
+    animation:gpRise .6s cubic-bezier(.22,.8,.3,1) both;
+    box-shadow:0 6px 16px rgba(19,26,46,.2);}
+  .gp-step.s1{height:48px;background:linear-gradient(180deg, var(--indigo), var(--teal));animation-delay:.25s;}
+  .gp-step.s2{height:34px;background:linear-gradient(180deg, color-mix(in srgb, var(--indigo) 55%, var(--panel)), color-mix(in srgb, var(--indigo) 35%, var(--panel)));animation-delay:.1s;}
+  .gp-step.s3{height:24px;background:linear-gradient(180deg, color-mix(in srgb, var(--teal) 50%, var(--panel)), color-mix(in srgb, var(--teal) 30%, var(--panel)));animation-delay:.4s;}
   @keyframes gpRise{from{transform:scaleY(0);transform-origin:bottom;}to{transform:scaleY(1);transform-origin:bottom;}}
-  .gp-flag{position:absolute;top:-15px;left:50%;width:26px;aspect-ratio:4/3;object-fit:cover;
-    border-radius:3px;border:1px solid var(--rule);box-shadow:0 4px 10px rgba(19,26,46,.25);
-    animation:gpFloat 2.4s ease-in-out infinite;}
+  .gp-flag{position:absolute;top:-16px;left:50%;width:28px;aspect-ratio:4/3;object-fit:cover;
+    border-radius:4px;border:2px solid var(--panel);box-shadow:0 5px 12px rgba(19,26,46,.3);
+    animation:gpFloat 2.6s ease-in-out infinite;}
   .gp-step.s2 .gp-flag{animation-delay:.3s;} .gp-step.s3 .gp-flag{animation-delay:.6s;}
   @keyframes gpFloat{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-4px);}}
+  @media(prefers-reduced-motion:reduce){
+    .gc-sweep,.gc-ping,.gf-q,.gc-duelflag.da,.gc-duelflag.db2,.gd-tug,.gp-flag{animation:none;}
+  }
   /* ── Hero : globe canvas + reflet des cartes inclinables ─────────────── */
   #heroGlobe{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);z-index:-1;
     opacity:.5;cursor:grab;touch-action:none;}
@@ -863,18 +887,23 @@
   .bento-card:hover .bg-tile{border-color:color-mix(in srgb, var(--indigo) 30%, var(--rule));}
   .bg-tile > span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--dim);
     text-transform:uppercase;}
-  .bt-ico{width:30px;height:24px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--indigo);}
-  .bt-ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;}
-  .bt-flag img{width:28px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;
-    border:1px solid var(--rule);box-shadow:0 2px 6px rgba(19,26,46,.18);}
-  .bt-duel{gap:2px;position:relative;}
-  .bt-duel img{width:15px;aspect-ratio:4/3;object-fit:cover;border-radius:2px;border:1px solid var(--rule);}
-  .bt-duel em{font-family:var(--display);font-weight:800;font-size:8px;color:var(--dim);font-style:normal;}
-  .bt-podium{align-items:flex-end;gap:2.5px;}
-  .bt-podium i{width:6px;border-radius:2px 2px 0 0;display:block;}
-  .bt-podium .p1{height:20px;background:var(--grad);}
-  .bt-podium .p2{height:13px;background:color-mix(in srgb, var(--indigo) 45%, var(--panel));}
-  .bt-podium .p3{height:9px;background:color-mix(in srgb, var(--teal) 55%, var(--panel));}
+  .bt-ico{width:34px;height:34px;flex:none;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    color:#fff;background:linear-gradient(135deg, var(--indigo), var(--teal));
+    box-shadow:0 4px 12px color-mix(in srgb, var(--indigo) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.35);}
+  .bt-ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;}
+  .bt-flag{background:linear-gradient(135deg, color-mix(in srgb, var(--indigo) 40%, var(--panel)), color-mix(in srgb, var(--teal) 40%, var(--panel)));}
+  .bt-flag img{width:24px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;
+    border:1.5px solid #fff;box-shadow:0 2px 6px rgba(19,26,46,.28);}
+  .bt-duel{gap:1px;position:relative;}
+  .bt-duel img{width:13px;aspect-ratio:4/3;object-fit:cover;border-radius:2px;border:1px solid #fff;
+    box-shadow:0 2px 5px rgba(19,26,46,.25);}
+  .bt-duel em{font-family:var(--display);font-weight:800;font-size:7px;color:#fff;font-style:normal;
+    margin:0 1px;text-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .bt-podium{align-items:flex-end;gap:2.5px;background:none;box-shadow:none;}
+  .bt-podium i{width:8px;border-radius:3px 3px 0 0;display:block;box-shadow:0 2px 6px rgba(19,26,46,.2);}
+  .bt-podium .p1{height:24px;background:linear-gradient(180deg, var(--indigo), var(--teal));}
+  .bt-podium .p2{height:16px;background:linear-gradient(180deg, color-mix(in srgb, var(--indigo) 60%, var(--panel)), color-mix(in srgb, var(--indigo) 35%, var(--panel)));}
+  .bt-podium .p3{height:11px;background:linear-gradient(180deg, color-mix(in srgb, var(--teal) 60%, var(--panel)), color-mix(in srgb, var(--teal) 35%, var(--panel)));}
   /* Révélation en cascade des cartes bento */
   .bento .bento-card.reveal{transition-delay:0s;}
   .bento .bento-card:nth-child(2).reveal{transition-delay:.07s;}
@@ -2654,7 +2683,7 @@ function hubFx(){
   if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
   cv.dataset.on = "1";
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const W = 150, H = 76;
+  const W = 150, H = 72;
   cv.width = W * dpr; cv.height = H * dpr;
   cv.style.width = W + "px"; cv.style.height = H + "px";
   const ctx = cv.getContext("2d");
@@ -2672,23 +2701,22 @@ function renderGameHub(){
   const nextG = serieNext();
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
-  // Décor : quelques vrais drapeaux (+ symboles de jeu) qui flottent en fond.
+  // Décor : de vrais drapeaux du jour qui dérivent lentement en fond.
   const hb = gPool().sort();
   const hbFlag = (salt) => hb.length ? hb[seedHash("bg" + salt + todayKey()) % hb.length] : "fr";
   const floaters = [
-    { t: "f", v: hbFlag("a"), x: 6,  y: 14, s: 46, d: 0,  dur: 22 },
-    { t: "f", v: hbFlag("b"), x: 84, y: 10, s: 38, d: 3,  dur: 26 },
-    { t: "g", v: "🎯",        x: 90, y: 46, s: 30, d: 1,  dur: 24 },
-    { t: "f", v: hbFlag("c"), x: 12, y: 62, s: 42, d: 5,  dur: 28 },
-    { t: "g", v: "🏆",        x: 78, y: 74, s: 28, d: 2,  dur: 23 },
-    { t: "f", v: hbFlag("d"), x: 4,  y: 88, s: 36, d: 4,  dur: 27 },
-    { t: "g", v: "🚩",        x: 50, y: 6,  s: 26, d: 6,  dur: 25 },
-    { t: "f", v: hbFlag("e"), x: 94, y: 90, s: 40, d: 1.5,dur: 21 },
+    { v: hbFlag("a"), x: 5,  y: 12, s: 58, d: 0,   dur: 26 },
+    { v: hbFlag("b"), x: 82, y: 8,  s: 48, d: 4,   dur: 30 },
+    { v: hbFlag("c"), x: 90, y: 44, s: 40, d: 2,   dur: 28 },
+    { v: hbFlag("d"), x: 10, y: 60, s: 54, d: 6,   dur: 32 },
+    { v: hbFlag("e"), x: 74, y: 72, s: 44, d: 3,   dur: 27 },
+    { v: hbFlag("f"), x: 3,  y: 86, s: 46, d: 5,   dur: 31 },
+    { v: hbFlag("g"), x: 48, y: 4,  s: 38, d: 7,   dur: 29 },
+    { v: hbFlag("h"), x: 93, y: 88, s: 52, d: 1.5, dur: 24 },
   ];
-  const bg = `<div class="g-floaters" aria-hidden="true">${floaters.map(f => f.t === "f"
-    ? `<img class="g-fl" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(f.v).toLowerCase()}.svg" alt="" loading="lazy"
-         style="left:${f.x}%;top:${f.y}%;width:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">`
-    : `<span class="g-fl g-fle" style="left:${f.x}%;top:${f.y}%;font-size:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">${f.v}</span>`
+  const bg = `<div class="g-floaters" aria-hidden="true">${floaters.map(f =>
+    `<img class="g-fl" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(f.v).toLowerCase()}.svg" alt="" loading="lazy"
+       style="left:${f.x}%;top:${f.y}%;width:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">`
   ).join("")}</div>`;
   // Étapes de la série (dans l'ordre, non cliquables : on ne choisit pas).
   const steps = SERIE.map((g, i) => {
@@ -2736,8 +2764,8 @@ function renderGameHub(){
     <div class="g-grid">
       <div class="g-card tiltable" data-gplay>
         <div class="gc-viz gc-radar" aria-hidden="true">
-          <canvas class="gc-map" width="0" height="0"></canvas>
-          <span class="gc-sweep"></span><span class="gc-ping"></span>
+          <div class="gc-map-wrap"><canvas class="gc-map" width="0" height="0"></canvas>
+          <span class="gc-sweep"></span><span class="gc-ping"></span></div>
         </div>
         <div class="g-card-t">${L ? "Trouve le pays" : "Guess the country"}</div>
         <div class="g-card-d">${L ? "Devine le pays mystère grâce à six indices. Parties illimitées." : "Guess the mystery country from six clues. Unlimited games."}</div>
@@ -3450,10 +3478,8 @@ async function boot(){
   setView(viewFromHash());
   function renderStamp(){
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
-    const gen = macro.generatedAt;
-    el("stamp").textContent = gen
-      ? `${new Date(gen).toLocaleString(loc,{day:"2-digit",month:"short"})} · ${nCountries} ${t("countriesWord")}`
-      : `${nCountries} ${t("countriesWord")}`;
+    el("stamp").textContent =
+      `${new Date().toLocaleDateString(loc, { day: "2-digit", month: "short" })} · ${nCountries} ${t("countriesWord")}`;
   }
   renderStamp();
 
