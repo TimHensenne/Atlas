@@ -507,93 +507,17 @@
   .hero-cue{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:var(--dim);
     font-size:18px;animation:hcue 1.6s ease-in-out infinite;}
   @keyframes hcue{0%,100%{transform:translate(-50%,0);opacity:.5;}50%{transform:translate(-50%,8px);opacity:1;}}
-  .hs{display:flex;align-items:center;gap:clamp(26px,6vw,80px);max-width:960px;margin:0 auto;
-    min-height:52vh;padding:34px 0;}
-  .hs.flip{flex-direction:row-reverse;}
-  .hs-txt{flex:1 1 52%;}
-  .hs-vis{flex:1 1 48%;display:flex;justify-content:center;}
-  .hs-n{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--indigo);margin-bottom:8px;}
-  .hs-t{font-family:var(--display);font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;
-    margin:0 0 12px;color:var(--ink);}
-  .hs-d{color:var(--dim);font-size:14.5px;line-height:1.65;margin:0 0 20px;max-width:420px;}
   .home-foot{text-align:center;padding:40px 0 20px;}
   /* Apparition au scroll */
-  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease;}
-  .reveal.vis{opacity:1;transform:none;}
-  .hs.flip.reveal{transform:translateY(26px);}
+  .reveal{opacity:0;transform:translateY(30px);filter:blur(6px);
+    transition:opacity .8s cubic-bezier(.22,.8,.3,1),transform .8s cubic-bezier(.22,.8,.3,1),filter .8s ease;}
+  .reveal.vis{opacity:1;transform:none;filter:none;}
   @media(max-width:720px){
-    .hs,.hs.flip{flex-direction:column;min-height:0;padding:30px 0;}
-    .hs-vis{width:100%;}
-  }
+    }
   /* Vignettes animées */
-  .hv{width:min(320px,100%);height:190px;border:1px solid var(--rule);border-radius:6px;
-    background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:12px;overflow:hidden;position:relative;}
-  .hv-map svg{width:180px;height:auto;}
-  .hvm-globe{fill:none;stroke:var(--indigo);stroke-width:1.4;}
-  .hvm-lat,.hvm-lon{fill:none;stroke:var(--rule);stroke-width:.8;}
-  .hvm-dot{fill:var(--accent);}
-  .hvm-dot.d1{animation:hpulse 2.2s ease-in-out infinite;}
-  .hvm-dot.d2{animation:hpulse 2.2s ease-in-out .5s infinite;}
-  .hvm-dot.d3{animation:hpulse 2.2s ease-in-out 1s infinite;}
-  @keyframes hpulse{0%,100%{opacity:.35;r:3;}50%{opacity:1;r:4.5;}}
-  .hv-db{align-items:stretch;padding:18px 20px;gap:9px;}
-  .hvd-head{display:flex;gap:8px;}
-  .hvd-head span{flex:1;height:9px;border-radius:2px;background:var(--indigo);opacity:.75;}
-  .hvd-row{display:flex;gap:8px;opacity:0;animation:hrow .6s ease forwards;}
-  .hvd-row .c1{flex:1.4;height:12px;border-radius:2px;background:var(--rule);}
-  .hvd-row .c2,.hvd-row .c3{flex:1;height:12px;border-radius:2px;background:var(--rule-soft);}
-  .hvd-row.r1{animation-delay:.15s;} .hvd-row.r2{animation-delay:.35s;}
-  .hvd-row.r3{animation-delay:.55s;} .hvd-row.r4{animation-delay:.75s;}
-  @keyframes hrow{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:none;}}
-  .hv-fx{gap:16px;}
-  .hvf-pair{display:flex;align-items:center;gap:14px;}
-  .hvf-pair .cur{font-family:var(--mono);font-weight:600;font-size:16px;color:var(--ink);
-    border:1px solid var(--rule);border-radius:4px;padding:7px 12px;background:var(--paper);}
-  .hvf-arrow{color:var(--indigo);font-size:18px;animation:hswap 2.4s ease-in-out infinite;}
-  @keyframes hswap{0%,100%{transform:rotate(0);}50%{transform:rotate(180deg);}}
-  .hvf-line{width:180px;height:46px;}
-  .hvf-line polyline{fill:none;stroke:var(--indigo);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
-    stroke-dasharray:260;stroke-dashoffset:260;animation:hdraw 2.6s ease forwards .3s;}
-  @keyframes hdraw{to{stroke-dashoffset:0;}}
-  .hv-games{gap:16px;}
-  .hvg-flag{width:96px;height:64px;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
-    border:1px solid var(--rule);box-shadow:0 4px 14px rgba(19,26,46,.18);}
-  .hvg-flag span{flex:1;}
-  .hvg-flag span:nth-child(1){background:#1E7A46;}
-  .hvg-flag span:nth-child(2){background:#F4F1EA;}
-  .hvg-flag span:nth-child(3){background:var(--accent);}
-  .hvg-tiles{display:flex;gap:8px;}
-  .hvg-tiles span{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--rule);border-radius:3px;font-family:var(--mono);color:var(--indigo);
-    background:var(--paper);animation:hbounce 1.8s ease-in-out infinite;}
-  .hvg-tiles .t2{animation-delay:.2s;} .hvg-tiles .t3{animation-delay:.4s;}
-  @keyframes hbounce{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}}
-  .hv-lex{align-items:stretch;padding:20px 22px;gap:12px;}
-  .hvl-item{display:grid;grid-template-columns:64px 1fr;grid-auto-rows:8px;gap:6px 12px;opacity:0;
-    animation:hrow .6s ease forwards;}
-  .hvl-item .w{grid-row:1/3;height:12px;border-radius:2px;background:var(--indigo);opacity:.8;align-self:center;}
-  .hvl-item .l1,.hvl-item .l2{border-radius:2px;background:var(--rule-soft);}
-  .hvl-item .l2{width:70%;}
-  .hvl-item.i1{animation-delay:.15s;} .hvl-item.i2{animation-delay:.4s;} .hvl-item.i3{animation-delay:.65s;}
-  .hvs-badge{font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--rule);
-    border-radius:20px;padding:8px 16px;background:var(--paper);opacity:0;animation:hpop .5s ease forwards;}
-  .hvs-badge.b1{animation-delay:.1s;} .hvs-badge.b2{animation-delay:.3s;}
-  .hvs-badge.b3{animation-delay:.5s;} .hvs-badge.b4{animation-delay:.7s;}
-  @keyframes hpop{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
-  .hv-but svg{width:130px;height:auto;}
-  .hvb-ring{fill:none;stroke:var(--rule);stroke-width:1.4;}
-  .hvb-ring.r2{stroke:var(--indigo);opacity:.5;}
-  .hvb-ring.r3{stroke:var(--accent);opacity:.6;}
-  .hvb-needle line{stroke:var(--indigo);stroke-width:2.4;stroke-linecap:round;}
-  .hvb-needle circle{fill:var(--indigo);}
-  .hvb-needle{transform-origin:60px 60px;animation:hneedle 5s ease-in-out infinite;}
-  @keyframes hneedle{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(24deg);}}
   @media(prefers-reduced-motion:reduce){
-    .hero-cue,.hvm-dot,.hvf-arrow,.hvg-tiles span,.hvb-needle{animation:none;}
-    .hvd-row,.hvl-item,.hvs-badge{animation:none;opacity:1;}
-    .hvf-line polyline{animation:none;stroke-dashoffset:0;}
-    .reveal{opacity:1;transform:none;transition:none;}
+    .hero-cue{animation:none;}
+      .reveal{opacity:1;transform:none;filter:none;transition:none;}
   }
   /* ── Onglet FX / Devises : convertisseur fixe à gauche, liste à droite ── */
   /* La page FX ne défile pas : en-tête et convertisseur restent en place,
@@ -829,7 +753,88 @@
   .serie-glow > *{position:relative;z-index:1;}
   @media(prefers-reduced-motion:reduce){ .serie-glow::before{animation:none;} .serie-glow{border-color:var(--indigo);} }
   /* Landing : kickers de sections + sections un peu plus denses */
-  .hs{min-height:44vh;}
+  /* ── Bento : la vitrine des sections, en aperçus réels ─────────────── */
+  .hero-stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:30px;
+    animation:heroUp .7s ease both .48s;pointer-events:none;}
+  .hchip{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:120px;
+    padding:12px 18px;border:1px solid var(--rule);border-radius:var(--r-m);
+    background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .hchip b{font-family:var(--display);font-weight:800;font-size:20px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hchip span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+  .bento{display:grid;grid-template-columns:repeat(3, 1fr);grid-auto-rows:minmax(150px, auto);
+    gap:16px;max-width:1020px;margin:10px auto 30px;width:100%;
+    grid-template-areas:"map map db" "fx games db" "refs but but";}
+  .b-map{grid-area:map;} .b-db{grid-area:db;} .b-fx{grid-area:fx;}
+  .b-games{grid-area:games;} .b-refs{grid-area:refs;} .b-but{grid-area:but;}
+  .bento-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;
+    background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-l);
+    padding:22px 22px 18px;cursor:pointer;box-shadow:var(--elev1);position:relative;overflow:hidden;
+    font-family:var(--body);color:var(--ink);
+    transition:box-shadow .25s ease,border-color .25s ease;}
+  .bento-card:hover{box-shadow:var(--elev2);border-color:color-mix(in srgb, var(--indigo) 55%, var(--rule));}
+  .bc-head{display:flex;align-items:center;gap:8px;}
+  .bc-n{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--rule);
+    border-radius:999px;padding:3px 8px;}
+  .bc-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .bc-t{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.02em;margin:0;}
+  .bc-d{font-size:13px;line-height:1.55;color:var(--dim);margin:0;}
+  .bc-go{margin-top:auto;padding-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--indigo);opacity:0;transform:translateY(4px);
+    transition:opacity .22s ease,transform .22s ease;display:flex;align-items:center;gap:6px;}
+  .bc-go i{font-style:normal;transition:transform .22s ease;}
+  .bento-card:hover .bc-go{opacity:1;transform:none;}
+  .bento-card:hover .bc-go i{transform:translateX(4px);}
+  /* Aperçus */
+  .bm-wrap{position:relative;width:100%;border-radius:var(--r-s);overflow:hidden;
+    background:var(--ocean);border:1px solid var(--rule);margin-top:4px;}
+  .bm-canvas{display:block;width:100%;}
+  .bm-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);}
+  .bm-dot.d2{background:var(--indigo);box-shadow:0 0 0 4px color-mix(in srgb, var(--indigo) 18%, transparent);}
+  .bm-dot.d3{background:var(--teal);box-shadow:0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);}
+  .bdb{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .bdb-row{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--rule-soft);
+    border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
+  .bdb-row .r{font-family:var(--mono);font-size:10px;color:var(--indigo);width:14px;}
+  .bdb-row .n{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bdb-row .v{font-family:var(--mono);font-size:11.5px;color:var(--teal);}
+  .bdb-row.skel .n{height:10px;background:var(--rule-soft);border-radius:3px;}
+  .bdb-row.skel .v{width:52px;height:10px;background:var(--rule-soft);border-radius:3px;}
+  .bfx{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .bfx-pair{display:flex;justify-content:space-between;align-items:center;background:var(--paper);
+    border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
+  .bfx-pair .p{font-family:var(--mono);font-size:11px;color:var(--dim);}
+  .bfx-pair b{font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .bg-fanwrap{position:relative;height:64px;width:100%;margin-top:6px;}
+  .bg-fan{position:absolute;left:50%;top:50%;width:58px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
+    border:1px solid var(--rule);box-shadow:0 6px 16px rgba(19,26,46,.28);
+    transition:transform .35s cubic-bezier(.22,.8,.3,1);}
+  .bg-fan.f1{transform:translate(-50%,-50%) rotate(-10deg) translateX(-16px);}
+  .bg-fan.f2{transform:translate(-50%,-50%);z-index:1;}
+  .bg-fan.f3{transform:translate(-50%,-50%) rotate(10deg) translateX(16px);}
+  .bento-card:hover .bg-fan.f1{transform:translate(-50%,-50%) rotate(-18deg) translateX(-30px) translateY(-4px);}
+  .bento-card:hover .bg-fan.f2{transform:translate(-50%,-50%) translateY(-8px);}
+  .bento-card:hover .bg-fan.f3{transform:translate(-50%,-50%) rotate(18deg) translateX(30px) translateY(-4px);}
+  .bg-fanwrap .gf-q{right:calc(50% - 52px);top:-2px;animation:none;}
+  .bref{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .bref span{font-family:var(--mono);font-size:11px;color:var(--ink);border:1px solid var(--rule);
+    border-radius:999px;padding:6px 13px;background:var(--paper);}
+  /* Révélation en cascade des cartes bento */
+  .bento .bento-card.reveal{transition-delay:0s;}
+  .bento .bento-card:nth-child(2).reveal{transition-delay:.07s;}
+  .bento .bento-card:nth-child(3).reveal{transition-delay:.14s;}
+  .bento .bento-card:nth-child(4).reveal{transition-delay:.21s;}
+  .bento .bento-card:nth-child(5).reveal{transition-delay:.28s;}
+  .bento .bento-card:nth-child(6).reveal{transition-delay:.35s;}
+  @media(max-width:860px){
+    .bento{grid-template-columns:1fr 1fr;grid-template-areas:"map map" "db db" "fx games" "refs but";}
+  }
+  @media(max-width:560px){
+    .bento{grid-template-columns:1fr;grid-template-areas:"map" "db" "fx" "games" "refs" "but";}
+    .hero-stats{gap:8px;} .hchip{min-width:100px;padding:10px 14px;}
+  }
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
@@ -1062,7 +1067,7 @@
     border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb, var(--indigo) 22%, transparent);outline:none;}
   :focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:4px;}
   /* Cartes & panneaux : verre, rayons larges, ombres douces, hover vivant. */
-  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,.hv,.lex-item,.src-item,
+  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,.lex-item,.src-item,
   .macro,.results,.reports a{border-radius:var(--r-m);}
   .serie-card,.lb-card,.modal-card{background:var(--glass);backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);box-shadow:var(--elev1);}
@@ -1072,9 +1077,7 @@
   .modal:not([hidden]) .modal-card{animation:mPop .3s cubic-bezier(.22,.8,.3,1) both;}
   .g-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
   .g-card:not(.off):hover{transform:translateY(-4px);box-shadow:var(--elev2);border-color:var(--indigo);}
-  .hv{box-shadow:var(--elev1);transition:transform .25s ease,box-shadow .25s ease;}
-  .hs:hover .hv{transform:translateY(-4px) rotate(-.4deg);box-shadow:var(--elev2);}
-  .serie-step,.serie-round,.fg-g,.hvf-pair .cur{border-radius:var(--r-s);}
+  .serie-step,.serie-round,.fg-g{border-radius:var(--r-s);}
   .fg-flag{border-radius:var(--r-m);box-shadow:var(--elev2);}
   .fg-answer{border-radius:var(--r-s);box-shadow:0 8px 24px rgba(30,122,70,.35);}
   /* Tableaux : lignes aérées, survol lavé, en-têtes discrets.
@@ -1118,7 +1121,6 @@
   .hero-t{animation:heroUp .7s cubic-bezier(.22,.8,.3,1) both .12s;}
   .hero-d{animation:heroUp .7s ease both .24s;}
   .hero-ctas{animation:heroUp .7s ease both .36s;}
-  .hs-n{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   /* Jeux & FX : touches assorties. */
   .g-title{letter-spacing:-.02em;}
   .serie-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
@@ -1137,8 +1139,6 @@
     color:var(--ink);margin:34px 0 6px;scroll-margin-top:12px;}
   .refs-h:first-of-type{margin-top:6px;}
   .refs-sub{color:var(--dim);font-size:13.5px;line-height:1.6;margin:0 0 18px;}
-  .hvs-row{display:flex;gap:8px;justify-content:center;margin-top:4px;}
-  .hvs-row .hvs-badge{padding:5px 11px;font-size:10.5px;}
   /* Bandeau bas de page : fin, verre, présent sous toutes les fenêtres. */
   .foot{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
     padding:8px 22px;border-top:1px solid var(--rule-soft);
@@ -1831,75 +1831,38 @@ function renderView(v){
 // animée en CSS pur ; l'apparition au scroll est gérée par homeReveal().
 function renderHome(){
   const L = lang === "fr";
-  const S = (n, id, kicker, title, desc, cta, visual, flip) => `
-    <section class="hs${flip ? " flip" : ""} reveal">
-      <div class="hs-txt">
-        <div class="hs-n">${n} — ${kicker}</div>
-        <h2 class="hs-t">${title}</h2>
-        <p class="hs-d">${desc}</p>
-        <button class="hs-cta" data-goto="${id}">${cta} →</button>
-      </div>
-      <div class="hs-vis">${visual}</div>
-    </section>`;
-  // Vignettes animées (CSS keyframes, coupées si prefers-reduced-motion).
-  const vMap = `<div class="hv tiltable hv-map"><svg viewBox="0 0 200 120" aria-hidden="true">
-      <circle cx="100" cy="60" r="50" class="hvm-globe"/>
-      <ellipse cx="100" cy="60" rx="50" ry="18" class="hvm-lat"/>
-      <ellipse cx="100" cy="60" rx="50" ry="38" class="hvm-lat"/>
-      <ellipse cx="100" cy="60" rx="18" ry="50" class="hvm-lon"/>
-      <ellipse cx="100" cy="60" rx="38" ry="50" class="hvm-lon"/>
-      <circle cx="82"  cy="44" r="3.5" class="hvm-dot d1"/>
-      <circle cx="118" cy="70" r="3.5" class="hvm-dot d2"/>
-      <circle cx="100" cy="34" r="3.5" class="hvm-dot d3"/>
-    </svg></div>`;
-  const vDb = `<div class="hv tiltable hv-db">
-      <div class="hvd-head"><span></span><span></span><span></span></div>
-      ${[1,2,3,4].map(i => `<div class="hvd-row r${i}"><span class="c1"></span><span class="c2"></span><span class="c3"></span></div>`).join("")}
-    </div>`;
-  const vFx = `<div class="hv tiltable hv-fx">
-      <div class="hvf-pair"><span class="cur a">EUR</span><span class="hvf-arrow">⇄</span><span class="cur b">USD</span></div>
-      <svg viewBox="0 0 180 46" class="hvf-line" aria-hidden="true"><polyline points="0,34 22,30 44,36 66,24 88,28 110,16 132,22 154,10 180,14"/></svg>
-    </div>`;
-  const vGames = `<div class="hv tiltable hv-games">
-      <div class="hvg-flag"><span></span><span></span><span></span></div>
-      <div class="hvg-tiles"><span class="t1">?</span><span class="t2">?</span><span class="t3">?</span></div>
-    </div>`;
-  const vRefs = `<div class="hv tiltable hv-lex">
-      ${[1,2].map(i => `<div class="hvl-item i${i}"><span class="w"></span><span class="l1"></span><span class="l2"></span></div>`).join("")}
-      <div class="hvs-row">${["FMI","OCDE","BM","Wiki"].map((s,i) => `<span class="hvs-badge b${i+1}">${s}</span>`).join("")}</div>
-    </div>`;
-  const vBut = `<div class="hv tiltable hv-but"><svg viewBox="0 0 120 120" aria-hidden="true">
-      <circle cx="60" cy="60" r="46" class="hvb-ring"/>
-      <circle cx="60" cy="60" r="30" class="hvb-ring r2"/>
-      <circle cx="60" cy="60" r="14" class="hvb-ring r3"/>
-      <g class="hvb-needle"><line x1="60" y1="60" x2="60" y2="22"/><circle cx="60" cy="60" r="4"/></g>
-    </svg></div>`;
-  const secs = [
-    ["map", L?"Explorer":"Explore", L?"La carte":"The map",
-      L?"Plus de 180 économies sur un planisphère interactif. Un clic sur un pays ouvre sa fiche complète : PIB et croissance, inflation, dette, rendement à 10 ans, spread face aux États-Unis, notations S&P, Fitch et Moody's."
-       :"180+ economies on an interactive world map. One click opens a country's full profile: GDP and growth, inflation, debt, 10-year yield, spread vs the US, and S&P, Fitch and Moody's ratings.",
-      L?"Explorer la carte":"Explore the map", vMap],
-    ["benchmark", L?"Comparer":"Compare", L?"La base de données":"The database",
-      L?"Le monde entier dans un seul tableur : trie n'importe quelle colonne, filtre par région, notation ou quartile, épingle tes pays pour les garder sous les yeux — et bascule tout en euros ou en dollars."
-       :"The whole world in one spreadsheet: sort any column, filter by region, rating or quartile, pin countries to keep them in sight — and flip everything between euros and dollars.",
-      L?"Ouvrir le tableur":"Open the sheet", vDb],
-    ["fx", L?"Convertir":"Convert", L?"FX / Devises":"FX / Currency",
-      L?"Plus de 200 devises, des taux du jour. Convertis n'importe quel montant dans les deux sens et garde un œil sur les grandes paires face à l'euro et au dollar — le tout en direct dans ton navigateur."
-       :"200+ currencies, today's rates. Convert any amount both ways and keep an eye on the major pairs against the euro and the dollar — all live, in your browser.",
-      L?"Convertir des devises":"Convert currencies", vFx],
-    ["games", L?"Jouer":"Play", L?"Les jeux":"The games",
-      L?"Quatre jeux nerveux pour apprendre sans t'en rendre compte — pays mystère, drapeaux, duels de stats, podiums mondiaux. Et chaque jour, la Super Série : le même défi pour tous, un classement, une seule tentative."
-       :"Four fast games that teach without trying — mystery countries, flags, stat duels, world podiums. And every day, the Super Series: one shared challenge, one leaderboard, one attempt.",
-      L?"Entrer dans l'arène":"Enter the arena", vGames],
-    ["refs", L?"Comprendre":"Understand", L?"Les références":"The reference",
-      L?"PIB nominal, spread souverain, notation investment grade… chaque terme du site est défini en une phrase claire, et chaque chiffre est tracé jusqu'à sa source — FMI, OCDE, Banque mondiale, Wikipédia."
-       :"Nominal GDP, sovereign spread, investment grade… every term on the site is defined in one clear sentence, and every figure is traced to its source — IMF, OECD, World Bank, Wikipedia.",
-      L?"Consulter les références":"Browse the reference", vRefs],
-    ["purpose", L?"Pourquoi":"Why", L?"La démarche":"The purpose",
-      L?"Atlas est un projet d'étudiant en Financial Economics : montrer ce que des données publiques bien assemblées peuvent raconter — et dire honnêtement ce qu'elles ne peuvent pas."
-       :"Atlas is a Financial Economics student project: showing what well-assembled public data can tell — and being honest about what it can't.",
-      L?"Lire la démarche":"Read the purpose", vBut],
-  ];
+  const loaded = macro.countries && Object.keys(macro.countries).length;
+  // ── Statistiques réelles du hero (remplies après le chargement des données).
+  const nC = loaded ? Object.keys(macro.countries).length : null;
+  const nCur = loaded ? new Set(Object.values(ident).map(d => d && d.code).filter(Boolean)).size : null;
+  const maj = macro.generatedAt
+    ? new Date(macro.generatedAt).toLocaleDateString(L ? "fr-BE" : "en-GB", { month: "short", year: "numeric" }) : null;
+  const chip = (v, lbl) => `<div class="hchip"><b>${v ?? "—"}</b><span>${lbl}</span></div>`;
+  // ── Aperçus RÉELS des cartes bento (pas des illustrations).
+  const nf = new Intl.NumberFormat(L ? "fr-BE" : "en-GB", { maximumFractionDigits: 0 });
+  const top5 = loaded
+    ? Object.keys(macro.countries)
+        .map(iso => ({ iso, n: macro.countries[iso].name, v: macro.countries[iso].indicators?.NGDPD?.value }))
+        .filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 5)
+    : [];
+  const dbRows = top5.length
+    ? top5.map((x, i) => `<div class="bdb-row"><span class="r">${i + 1}</span><span class="n">${esc(x.n)}</span><span class="v">${nf.format(x.v)} Md$</span></div>`).join("")
+    : [1,2,3,4,5].map(i => `<div class="bdb-row skel"><span class="r">${i}</span><span class="n"></span><span class="v"></span></div>`).join("");
+  const fxPairs = ["USD","GBP","JPY"].map(c =>
+    `<div class="bfx-pair" data-bfx="${c}"><span class="p">EUR / ${c}</span><b>…</b></div>`).join("");
+  const hp = loaded ? gPool().sort() : [];
+  const hpick = (salt) => hp.length ? hp[seedHash(salt + todayKey()) % hp.length] : ["fr","jp","br"][salt.length % 3];
+  const fanFlags = ["b1","b2x","b3xx"].map((salt, i) =>
+    `<img class="bg-fan f${i + 1}" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(hpick(salt)).toLowerCase()}.svg" alt="" loading="lazy">`).join("");
+  // Une carte bento : tout est cliquable, le CTA se révèle au survol.
+  const card = (cls, id, n, kicker, title, desc, media) => `
+    <button class="bento-card tiltable ${cls} reveal" data-goto="${id}">
+      <div class="bc-head"><span class="bc-n">${n}</span><span class="bc-k">${kicker}</span></div>
+      <h2 class="bc-t">${title}</h2>
+      <p class="bc-d">${desc}</p>
+      ${media || ""}
+      <span class="bc-go">${L ? "Ouvrir" : "Open"} <i>→</i></span>
+    </button>`;
   return `<div class="page home-page">
     <div class="hero reveal">
       <canvas id="heroGlobe" aria-hidden="true"></canvas>
@@ -1907,22 +1870,51 @@ function renderHome(){
         <div class="hero-eyebrow">${L ? "Marchés & macroéconomie" : "Markets & macroeconomics"}</div>
         <h1 class="hero-t">Atlas</h1>
         <p class="hero-d">${L
-          ? "Le monde économique, en un seul endroit : données du FMI, rendements souverains, notations et devises — assemblés, comparables, actualisés chaque mois automatiquement. Et un globe qui se laisse tourner."
-          : "The economic world in one place: IMF data, sovereign yields, ratings and currencies — assembled, comparable, auto-refreshed monthly. Plus a globe you can spin."}</p>
+          ? "Le monde économique, en un seul endroit : données du FMI, rendements souverains, notations et devises — assemblés, comparables, actualisés chaque mois automatiquement."
+          : "The economic world in one place: IMF data, sovereign yields, ratings and currencies — assembled, comparable, auto-refreshed monthly."}</p>
         <div class="hero-ctas">
           <button class="hs-cta big magnet" data-goto="map">${L ? "Explorer la carte" : "Explore the map"} →</button>
           <button class="hs-cta ghost magnet" data-goto="games">${L ? "Jouer" : "Play"}</button>
         </div>
+        <div class="hero-stats">
+          ${chip(nC, L ? "économies couvertes" : "economies covered")}
+          ${chip(nCur, L ? "devises converties" : "currencies converted")}
+          ${chip(maj, L ? "dernière mise à jour" : "last refresh")}
+        </div>
       </div>
       <div class="hero-cue" aria-hidden="true">▾</div>
     </div>
-    ${secs.map((s, i) => S(String(i + 1).padStart(2, "0"), s[0], s[1], s[2], s[3], s[4], s[5], i % 2 === 1)).join("")}
+    <div class="bento">
+      ${card("b-map", "map", "01", L ? "Explorer" : "Explore", L ? "La carte" : "The map",
+        L ? "180+ économies cliquables : PIB, inflation, dette, rendement 10 ans, spread et notations — la fiche complète en un clic."
+          : "180+ clickable economies: GDP, inflation, debt, 10-year yield, spread and ratings — the full profile in one click.",
+        `<div class="bm-wrap"><canvas class="bm-canvas" width="0" height="0"></canvas>
+          <span class="bm-dot" style="left:26%;top:34%"></span>
+          <span class="bm-dot d2" style="left:53%;top:30%"></span>
+          <span class="bm-dot d3" style="left:71%;top:52%"></span></div>`)}
+      ${card("b-db", "benchmark", "02", L ? "Comparer" : "Compare", L ? "La base de données" : "The database",
+        L ? "Trie, filtre, épingle — le monde entier dans un tableur. Ci-dessous : le vrai top 5 mondial par PIB, en direct des données."
+          : "Sort, filter, pin — the whole world in a spreadsheet. Below: the real world top 5 by GDP, straight from the data.",
+        `<div class="bdb">${dbRows}</div>`)}
+      ${card("b-fx", "fx", "03", L ? "Convertir" : "Convert", "FX / " + (L ? "Devises" : "Currency"),
+        L ? "200+ devises, taux du jour, conversion dans les deux sens." : "200+ currencies, daily rates, two-way conversion.",
+        `<div class="bfx">${fxPairs}</div>`)}
+      ${card("b-games", "games", "04", L ? "Jouer" : "Play", L ? "Les jeux" : "The games",
+        L ? "Pays mystère, drapeaux, duels, podiums — et la Super Série quotidienne : un défi, un classement, une tentative."
+          : "Mystery countries, flags, duels, podiums — and the daily Super Series: one challenge, one leaderboard, one attempt.",
+        `<div class="bg-fanwrap">${fanFlags}<span class="gf-q">?</span></div>`)}
+      ${card("b-refs", "refs", "05", L ? "Comprendre" : "Understand", L ? "Références" : "Reference",
+        L ? "Chaque terme défini en une phrase, chaque chiffre tracé jusqu'à sa source." : "Every term defined in one sentence, every figure traced to its source.",
+        `<div class="bref">${["FMI","OCDE","BM","Wiki"].map(x => `<span>${x}</span>`).join("")}</div>`)}
+      ${card("b-but", "purpose", "06", L ? "Pourquoi" : "Why", L ? "La démarche" : "The purpose",
+        L ? "Un projet d'étudiant en Financial Economics : montrer ce que des données publiques bien assemblées peuvent raconter — et dire honnêtement ce qu'elles ne peuvent pas."
+          : "A Financial Economics student project: showing what well-assembled public data can tell — and being honest about what it can't.", "")}
+    </div>
     <div class="home-foot reveal">
       <button class="hs-cta big" data-goto="map">${L ? "Entrer dans Atlas" : "Enter Atlas"} →</button>
     </div>
   </div>`;
 }
-// Révélation au scroll : .reveal → .vis à l'entrée dans le viewport.
 function homeReveal(){
   const host = el("view-home");
   const els = host.querySelectorAll(".reveal");
@@ -1933,8 +1925,40 @@ function homeReveal(){
     }, { root: host.querySelector(".home-page"), threshold: 0.18 });
     els.forEach(x => io.observe(x));
   }
-  initGlobe();        // no-op tant que les données carte ne sont pas là
+  initGlobe();        // no-op tant que le trait de côte n'est pas chargé
   heroMagnet();
+  homeBento();
+}
+// Aperçus réels de la grille bento : mini-carte dessinée une fois,
+// taux EUR/USD-GBP-JPY récupérés en direct.
+function homeBento(){
+  const host = el("view-home");
+  const cv = host.querySelector(".bm-canvas");
+  if (cv && !cv.dataset.on){
+    const draw = () => {
+      if (!GLOBE_LAND) return false;
+      cv.dataset.on = "1";
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const W = cv.parentElement.clientWidth || 380, H = 150;
+      cv.width = W * dpr; cv.height = H * dpr;
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      const ctx = cv.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const proj = d3.geoNaturalEarth1().fitExtent([[4, 4], [W - 4, H - 4]], { type: "Sphere" });
+      const p = d3.geoPath(proj, ctx);
+      ctx.beginPath(); for (const f of GLOBE_LAND) p(f);
+      ctx.fillStyle = themeVar("--land"); ctx.fill();
+      return true;
+    };
+    if (!draw()){ loadGlobeLand(); const iv = setInterval(() => { if (draw()) clearInterval(iv); }, 250);
+      setTimeout(() => clearInterval(iv), 6000); }
+  }
+  const pairs = host.querySelectorAll("[data-bfx]");
+  if (pairs.length) fxvLoad("EUR").then(d => {
+    if (!d || !d.map) return;
+    for (const p of pairs){ const r = d.map[p.dataset.bfx.toLowerCase()];
+      if (r != null) p.querySelector("b").textContent = r.toFixed(p.dataset.bfx === "JPY" ? 1 : 4); }
+  });
 }
 
 // ── FX / Devises (onglet) ───────────────────────────────────────────────
@@ -3622,21 +3646,35 @@ const FX_ON = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const FX_POINTER = window.matchMedia("(pointer: fine)").matches;
 
 // ── Globe du héro : orthographique, auto-rotation, glisser pour tourner. ──
-let globeTimer = null;
+// Perf : le globe utilise le trait de côte 110m (UNE géométrie très légère),
+// pas les 240 pays haute résolution de la carte — dessin ~10× moins coûteux.
+let globeTimer = null, GLOBE_LAND = null, globeLandLoading = false;
+async function loadGlobeLand(){
+  if (GLOBE_LAND || globeLandLoading) return;
+  globeLandLoading = true;
+  try {
+    const r = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json");
+    if (!r.ok) throw new Error();
+    const topo = await r.json();
+    GLOBE_LAND = buildFeatures(topo, "land");
+  } catch { GLOBE_LAND = null; }
+  globeLandLoading = false;
+  initGlobe();
+}
 function themeVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function initGlobe(){
   const cv = el("heroGlobe");
-  if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
+  if (!cv || cv.dataset.on) return;
+  if (!GLOBE_LAND){ loadGlobeLand(); return; }   // ira se relancer une fois chargé
   cv.dataset.on = "1";
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-  const size = () => Math.min(500, Math.max(320, window.innerWidth * 0.38));
+  const dpr = 1;                              // décoratif : 1× suffit, moitié moins de pixels
+  const size = () => Math.min(460, Math.max(300, window.innerWidth * 0.34));
   let S = size();
   const ctx = cv.getContext("2d");
   const proj = d3.geoOrthographic().clipAngle(90);
   const path = d3.geoPath(proj, ctx);
-  const grat = d3.geoGraticule10();
   const sphere = { type: "Sphere" };
-  let rot = [-15, -18], vel = 0.045, dragging = false, last = null;
+  let rot = [-15, -18], vel = 0.05, dragging = false, last = null;
   let cols = {}, colTick = 0, lastDraw = 0, onScreen = true;
   // Pause complète quand le globe sort du viewport (scroll de la landing).
   if ("IntersectionObserver" in window)
@@ -3647,31 +3685,26 @@ function initGlobe(){
     proj.fitExtent([[10, 10], [S - 10, S - 10]], sphere); };
   fit();
   const readCols = () => { cols = {
-    ocean: themeVar("--ocean"), land: themeVar("--land"),
-    line: themeVar("--rule"), glow: themeVar("--indigo") }; };
+    ocean: themeVar("--ocean"), land: themeVar("--land"), glow: themeVar("--indigo") }; };
   readCols();
   function frame(elapsed){
     if (view !== "home" || !cv.isConnected || !onScreen) return;   // en veille
-    if (elapsed - lastDraw < 33 && !dragging) return;              // ~30 fps suffisent
+    if (elapsed - lastDraw < 42 && !dragging) return;              // ~24 fps : fluide et léger
     lastDraw = elapsed;
     if (++colTick % 40 === 0) readCols();                    // suit le thème jour/nuit
-    if (!dragging && FX_ON) rot = [rot[0] + vel * 4, rot[1]];
+    if (!dragging && FX_ON) rot = [rot[0] + vel * 5, rot[1]];
     proj.rotate(rot);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, S, S);
-    // sphère + halo
+    // sphère + halo (pas de graticule : c'était le poste de coût par frame)
     ctx.beginPath(); path(sphere);
     ctx.fillStyle = cols.ocean; ctx.fill();
-    ctx.strokeStyle = cols.glow; ctx.globalAlpha = .55; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.strokeStyle = cols.glow; ctx.globalAlpha = .5; ctx.lineWidth = 1.2; ctx.stroke();
     ctx.globalAlpha = 1;
-    // graticule
-    ctx.beginPath(); path(grat);
-    ctx.strokeStyle = cols.line; ctx.lineWidth = .5; ctx.stroke();
-    // terres
+    // terres (trait de côte 110m : une poignée de polygones)
     ctx.beginPath();
-    for (const f of GLOBE_FEATS) path(f);
+    for (const f of GLOBE_LAND) path(f);
     ctx.fillStyle = cols.land; ctx.fill();
-    ctx.strokeStyle = cols.ocean; ctx.lineWidth = .4; ctx.stroke();
   }
   if (globeTimer) globeTimer.stop();
   globeTimer = d3.timer(frame);
