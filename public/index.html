@@ -679,10 +679,10 @@
   .g-hub .db-in{position:relative;z-index:1;}
   .g-floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
   .g-worldbg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    opacity:.14;pointer-events:none;
-    -webkit-mask-image:radial-gradient(120% 80% at 50% 40%, #000 55%, transparent 100%);
-            mask-image:radial-gradient(120% 80% at 50% 40%, #000 55%, transparent 100%);}
-  :root[data-theme="dark"] .g-worldbg{opacity:.2;}
+    opacity:.4;pointer-events:none;
+    -webkit-mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);
+            mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);}
+  :root[data-theme="dark"] .g-worldbg{opacity:.5;}
   .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
     box-shadow:0 6px 18px rgba(19,26,46,.12);animation:gfloat linear infinite;will-change:transform;}
   :root[data-theme="dark"] .g-fl{opacity:.11;box-shadow:0 6px 18px rgba(0,0,0,.3);}
@@ -2733,7 +2733,7 @@ function hubWorldBg(){
   octx.fillStyle = "#000"; octx.fill();
   const mask = octx.getImageData(0, 0, W, H).data;
   // Points sur une grille : gardés seulement au-dessus des terres (aspect pointillé).
-  const step = 9, r = 1.25;
+  const step = 7, r = 1.6;
   ctx.fillStyle = themeVar("--indigo");
   for (let y = 0; y < H; y += step){
     for (let x = 0; x < W; x += step){
@@ -2772,24 +2772,11 @@ function renderGameHub(){
   const nextG = serieNext();
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
-  // Décor GeoGuessr : carte du monde en pointillés (canvas) + quelques
-  // drapeaux du jour qui dérivent par-dessus.
-  const hb = gPool().sort();
-  const hbFlag = (salt) => hb.length ? hb[seedHash("bg" + salt + todayKey()) % hb.length] : "fr";
-  const floaters = [
-    { v: hbFlag("a"), x: 7,  y: 16, s: 46, d: 0,   dur: 30 },
-    { v: hbFlag("b"), x: 86, y: 12, s: 40, d: 4,   dur: 34 },
-    { v: hbFlag("d"), x: 12, y: 66, s: 44, d: 6,   dur: 33 },
-    { v: hbFlag("e"), x: 80, y: 74, s: 38, d: 3,   dur: 29 },
-    { v: hbFlag("h"), x: 93, y: 40, s: 34, d: 1.5, dur: 27 },
-  ];
+  // Décor GeoGuessr : carte du monde en pointillés bleus (canvas).
   setTimeout(hubWorldBg, 0);   // dessine la carte pointillée une fois le DOM posé
   const bg = `<div class="g-floaters" aria-hidden="true">
     <canvas class="g-worldbg" width="0" height="0"></canvas>
-    ${floaters.map(f =>
-    `<img class="g-fl" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(f.v).toLowerCase()}.svg" alt="" loading="lazy"
-       style="left:${f.x}%;top:${f.y}%;width:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">`
-  ).join("")}</div>`;
+  </div>`;
   // Étapes de la série (dans l'ordre, non cliquables : on ne choisit pas).
   const steps = SERIE.map((g, i) => {
     const st = serieGet(g);
