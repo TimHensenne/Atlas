@@ -689,10 +689,9 @@
   .g-card:hover .gc-viz{box-shadow:inset 0 1px 0 rgba(255,255,255,.4), var(--elev2);}
   .gc-viz{transition:box-shadow .25s ease;}
   /* 1 — Trouve le pays : mini-carte réelle, balayage radar, cible qui pulse. */
-  .gc-radar{}
-  .gc-radar .gc-map-wrap{position:relative;width:150px;height:72px;border-radius:8px;overflow:hidden;
-    background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 22%, var(--ocean)), var(--ocean));
-    box-shadow:inset 0 0 0 1px var(--rule-soft), inset 0 8px 20px rgba(19,26,46,.18);}
+  .gc-radar{padding:0;}
+  .gc-radar .gc-map-wrap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;overflow:hidden;
+    background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 22%, var(--ocean)), var(--ocean));}
   .gc-map{display:block;position:relative;z-index:1;opacity:.9;}
   .gc-sweep{position:absolute;inset:-40%;z-index:2;background:conic-gradient(from 0deg,
     transparent 0 74%, color-mix(in srgb, var(--teal) 60%, transparent) 90%, transparent 100%);
@@ -707,17 +706,17 @@
     70%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 13px transparent;}
     100%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 transparent;}}
   /* 2 — Drapeau : éventail de vrais drapeaux, relief marqué, ouverture au survol. */
-  .gc-fan{width:120px;height:100%;position:relative;}
-  .gc-fanflag{width:60px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
+  .gc-fan{width:100%;height:100%;position:relative;}
+  .gc-fanflag{width:58px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
     left:50%;top:50%;border:2px solid var(--panel);
     box-shadow:0 10px 22px rgba(19,26,46,.32), 0 2px 4px rgba(19,26,46,.2);
     transition:transform .4s cubic-bezier(.22,.8,.3,1);}
-  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-12deg) translateX(-16px);}
+  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-13deg) translateX(-42px);}
   .gc-fanflag.f2{transform:translate(-50%,-50%) rotate(0deg);z-index:1;}
-  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(12deg) translateX(16px);}
-  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-20deg) translateX(-30px) translateY(-5px);}
-  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-10px) scale(1.04);}
-  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(20deg) translateX(30px) translateY(-5px);}
+  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(13deg) translateX(42px);}
+  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-16deg) translateX(-56px) translateY(-5px);}
+  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-9px) scale(1.05);}
+  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(16deg) translateX(56px) translateY(-5px);}
   .gf-q{position:absolute;right:14px;top:12px;width:24px;height:24px;border-radius:50%;z-index:2;
     background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #000));
     color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
@@ -2681,14 +2680,16 @@ function renderGames(){
 function hubFx(){
   const cv = el("view-games").querySelector(".gc-map");
   if (!cv || !GLOBE_FEATS || cv.dataset.on) return;
+  const wrap = cv.parentElement;
+  const W = Math.max(120, Math.round(wrap.clientWidth || 260));
+  const H = Math.max(60, Math.round(wrap.clientHeight || 96));
   cv.dataset.on = "1";
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const W = 150, H = 72;
   cv.width = W * dpr; cv.height = H * dpr;
   cv.style.width = W + "px"; cv.style.height = H + "px";
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const proj = d3.geoNaturalEarth1().fitExtent([[2, 2], [W - 2, H - 2]], { type: "Sphere" });
+  const proj = d3.geoNaturalEarth1().fitExtent([[6, 6], [W - 6, H - 6]], { type: "Sphere" });
   const path = d3.geoPath(proj, ctx);
   ctx.beginPath();
   for (const f of GLOBE_FEATS) path(f);
