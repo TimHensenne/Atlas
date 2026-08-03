@@ -6,7 +6,7 @@
 <title>Atlas · Marchés</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@300..600&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Carte marine par grand jour : papier, eau pâle, encre indigo. */
@@ -23,9 +23,9 @@
     --r-s:8px; --r-m:12px; --r-l:16px;
     --elev1:0 1px 2px rgba(19,26,46,.06),0 4px 14px rgba(19,26,46,.07);
     --elev2:0 2px 6px rgba(19,26,46,.08),0 14px 34px rgba(19,26,46,.13);
-    --display:'Bricolage Grotesque',system-ui,sans-serif;
-    --body:'IBM Plex Sans',system-ui,sans-serif;
-    --mono:'IBM Plex Mono',monospace;
+    --display:'Geist',system-ui,sans-serif;
+    --body:'Geist',system-ui,sans-serif;
+    --mono:'Geist Mono','SF Mono',ui-monospace,monospace;
   }
   /* ── Mode nuit : carte marine de nuit, augmentée — mer profonde, panneaux
      de verre, lueurs d'aurore indigo/sarcelle. ── */
@@ -49,7 +49,11 @@
   *,*::before,*::after{box-sizing:border-box;}
   html,body{height:100%;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
-    display:flex;flex-direction:column;}
+    display:flex;flex-direction:column;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;font-feature-settings:"cv01","ss01";letter-spacing:-.006em;}
+  /* Chiffres tabulaires partout : décimales alignées (données financières). */
+  .mono,[class*="num"],.g-count,.fxv-table,.db,.lb,.hchip b,.sp-total b{font-variant-numeric:tabular-nums;}
 
   /* Sur grand écran, la page ne défile jamais : seul le panneau défile.
      Sur mobile le panneau passe sous la carte, donc la page redevient scrollable. */
