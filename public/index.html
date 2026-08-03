@@ -448,10 +448,11 @@
   /* Super Série : étapes linéaires (non cliquables — on ne choisit pas) */
   .serie-prog{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
     color:var(--dim);margin:0 0 12px;}
-  .serie-steps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 18px;}
+  .serie-steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 auto 18px;
+    max-width:420px;width:100%;}
   .serie-step{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;
     background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px 14px 10px 12px;
-    min-width:150px;position:relative;}
+    min-width:0;position:relative;}
   .serie-step .sr-i{position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:10px;
     color:var(--dim);border:1px solid var(--rule);border-radius:50%;width:18px;height:18px;
     display:flex;align-items:center;justify-content:center;}
@@ -665,7 +666,7 @@
   .serie-step.current{animation:stepGlow 2.4s ease-in-out infinite;}
   /* Vignette commune des cartes. */
   .gc-viz{height:64px;display:flex;align-items:center;justify-content:center;gap:10px;
-    margin:2px 0 12px;position:relative;}
+    margin:2px 0 12px;position:relative;align-self:center;}
   .g-card:hover .gc-viz{transform:scale(1.07);}
   .gc-viz{transition:transform .25s ease;}
   /* 1 — Trouve le pays : mini-carte réelle + balayage radar. */
