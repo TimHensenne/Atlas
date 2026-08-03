@@ -793,6 +793,7 @@
     background:var(--ocean);border:1px solid var(--rule);margin-top:4px;}
   .bm-canvas{display:block;width:100%;}
   .bm-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--accent);
+    transform:translate(-50%,-50%);
     box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);}
   .bm-dot.d2{background:var(--indigo);box-shadow:0 0 0 4px color-mix(in srgb, var(--indigo) 18%, transparent);}
   .bm-dot.d3{background:var(--teal);box-shadow:0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);}
@@ -1899,9 +1900,7 @@ function renderHome(){
         L ? "180+ économies cliquables : PIB, inflation, dette, rendement 10 ans, spread et notations — la fiche complète en un clic."
           : "180+ clickable economies: GDP, inflation, debt, 10-year yield, spread and ratings — the full profile in one click.",
         `<div class="bm-wrap"><canvas class="bm-canvas" width="0" height="0"></canvas>
-          <span class="bm-dot" style="left:26%;top:34%"></span>
-          <span class="bm-dot d2" style="left:53%;top:30%"></span>
-          <span class="bm-dot d3" style="left:71%;top:52%"></span></div>`)}
+          <span class="bm-dot"></span><span class="bm-dot d2"></span><span class="bm-dot d3"></span></div>`)}
       ${card("b-db", "benchmark", "02", L ? "Comparer" : "Compare", L ? "La base de données" : "The database",
         L ? "Trie, filtre, épingle — le monde entier dans un tableur. Ci-dessous : les plus grandes économies mondiales par PIB, en direct des données."
           : "Sort, filter, pin — the whole world in a spreadsheet. Below: the world's largest economies by GDP, straight from the data.",
@@ -1966,6 +1965,14 @@ function homeBento(){
       const p = d3.geoPath(proj, ctx);
       ctx.beginPath(); for (const f of GLOBE_LAND) p(f);
       ctx.fillStyle = themeVar("--land"); ctx.fill();
+      // Points posés sur de VRAIES terres : on projette 3 lieux répartis
+      // (Amérique du Nord, Europe, Asie de l'Est) et on place les pastilles
+      // en pourcentage — elles restent alignées si la carte est redimensionnée.
+      const spots = [[-98, 39], [10, 50], [138, 37]];   // [lon, lat]
+      const dots = cv.parentElement.querySelectorAll(".bm-dot");
+      spots.forEach((c, i) => { const xy = proj(c); const d = dots[i];
+        if (xy && d){ d.style.left = (xy[0] / W * 100).toFixed(1) + "%";
+          d.style.top = (xy[1] / H * 100).toFixed(1) + "%"; } });
       return true;
     };
     if (!draw()){ loadGlobeLand(); const iv = setInterval(() => { if (draw()) clearInterval(iv); }, 250);
