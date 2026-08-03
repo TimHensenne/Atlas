@@ -814,20 +814,29 @@
     border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
   .bfx-pair .p{font-family:var(--mono);font-size:11px;color:var(--dim);}
   .bfx-pair b{font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
-  .bg-fanwrap{position:relative;height:64px;width:100%;margin-top:6px;}
-  .bg-fan{position:absolute;left:50%;top:50%;width:58px;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
-    border:1px solid var(--rule);box-shadow:0 6px 16px rgba(19,26,46,.28);
-    transition:transform .35s cubic-bezier(.22,.8,.3,1);}
-  .bg-fan.f1{transform:translate(-50%,-50%) rotate(-10deg) translateX(-16px);}
-  .bg-fan.f2{transform:translate(-50%,-50%);z-index:1;}
-  .bg-fan.f3{transform:translate(-50%,-50%) rotate(10deg) translateX(16px);}
-  .bento-card:hover .bg-fan.f1{transform:translate(-50%,-50%) rotate(-18deg) translateX(-30px) translateY(-4px);}
-  .bento-card:hover .bg-fan.f2{transform:translate(-50%,-50%) translateY(-8px);}
-  .bento-card:hover .bg-fan.f3{transform:translate(-50%,-50%) rotate(18deg) translateX(30px) translateY(-4px);}
-  .bg-fanwrap .gf-q{right:calc(50% - 52px);top:-2px;animation:none;}
   .bref{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
   .bref span{font-family:var(--mono);font-size:11px;color:var(--ink);border:1px solid var(--rule);
     border-radius:999px;padding:6px 13px;background:var(--paper);}
+  /* Carte jeux : grille 2×2, une tuile illustrée par jeu. */
+  .bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:6px;}
+  .bg-tile{display:flex;align-items:center;gap:9px;background:var(--paper);
+    border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:9px 11px;
+    transition:border-color .2s ease,background .2s ease;}
+  .bento-card:hover .bg-tile{border-color:color-mix(in srgb, var(--indigo) 30%, var(--rule));}
+  .bg-tile > span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--dim);
+    text-transform:uppercase;}
+  .bt-ico{width:30px;height:24px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--indigo);}
+  .bt-ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;}
+  .bt-flag img{width:28px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;
+    border:1px solid var(--rule);box-shadow:0 2px 6px rgba(19,26,46,.18);}
+  .bt-duel{gap:2px;position:relative;}
+  .bt-duel img{width:15px;aspect-ratio:4/3;object-fit:cover;border-radius:2px;border:1px solid var(--rule);}
+  .bt-duel em{font-family:var(--display);font-weight:800;font-size:8px;color:var(--dim);font-style:normal;}
+  .bt-podium{align-items:flex-end;gap:2.5px;}
+  .bt-podium i{width:6px;border-radius:2px 2px 0 0;display:block;}
+  .bt-podium .p1{height:20px;background:var(--grad);}
+  .bt-podium .p2{height:13px;background:color-mix(in srgb, var(--indigo) 45%, var(--panel));}
+  .bt-podium .p3{height:9px;background:color-mix(in srgb, var(--teal) 55%, var(--panel));}
   /* Révélation en cascade des cartes bento */
   .bento .bento-card.reveal{transition-delay:0s;}
   .bento .bento-card:nth-child(2).reveal{transition-delay:.07s;}
@@ -1863,8 +1872,14 @@ function renderHome(){
     `<div class="bfx-pair" data-bfx="${c}"><span class="p">EUR / ${c}</span><b>…</b></div>`).join("");
   const hp = loaded ? gPool().sort() : [];
   const hpick = (salt) => hp.length ? hp[seedHash(salt + todayKey()) % hp.length] : ["fr","jp","br"][salt.length % 3];
-  const fanFlags = ["b1","b2x","b3xx"].map((salt, i) =>
-    `<img class="bg-fan f${i + 1}" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(hpick(salt)).toLowerCase()}.svg" alt="" loading="lazy">`).join("");
+  const flagUrl = (iso) => `https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(iso).toLowerCase()}.svg`;
+  // Grille 2×2 : une tuile illustrée par jeu.
+  const gamesGrid = `<div class="bg-grid">
+    <div class="bg-tile"><div class="bt-ico"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5.5"/><circle cx="16" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg></div><span>${L ? "Pays" : "Country"}</span></div>
+    <div class="bg-tile"><div class="bt-ico bt-flag"><img src="${flagUrl(hpick("g-flag"))}" alt="" loading="lazy"></div><span>${L ? "Drapeau" : "Flag"}</span></div>
+    <div class="bg-tile"><div class="bt-ico bt-duel"><img src="${flagUrl(hpick("g-da"))}" alt="" loading="lazy"><em>VS</em><img src="${flagUrl(hpick("g-db"))}" alt="" loading="lazy"></div><span>Duel</span></div>
+    <div class="bg-tile"><div class="bt-ico bt-podium"><i class="p2"></i><i class="p1"></i><i class="p3"></i></div><span>Podium</span></div>
+  </div>`;
   // Une carte bento : tout est cliquable, le CTA se révèle au survol.
   const card = (cls, id, n, kicker, title, desc, media) => `
     <button class="bento-card tiltable ${cls} reveal" data-goto="${id}">
@@ -1911,7 +1926,7 @@ function renderHome(){
       ${card("b-games", "games", "04", L ? "Jouer" : "Play", L ? "Les jeux" : "The games",
         L ? "Pays mystère, drapeaux, duels, podiums — et la Super Série quotidienne : un défi, un classement, une tentative."
           : "Mystery countries, flags, duels, podiums — and the daily Super Series: one challenge, one leaderboard, one attempt.",
-        `<div class="bg-fanwrap">${fanFlags}<span class="gf-q">?</span></div>`)}
+        gamesGrid)}
       ${card("b-refs", "refs", "05", L ? "Comprendre" : "Understand", L ? "Références" : "Reference",
         L ? "Chaque terme défini en une phrase, chaque chiffre tracé jusqu'à sa source." : "Every term defined in one sentence, every figure traced to its source.",
         `<div class="bref">${["FMI","OCDE","BM","Wiki"].map(x => `<span>${x}</span>`).join("")}</div>`)}
