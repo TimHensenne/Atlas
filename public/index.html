@@ -512,6 +512,7 @@
   .reveal{opacity:0;transform:translateY(30px);filter:blur(6px);
     transition:opacity .8s cubic-bezier(.22,.8,.3,1),transform .8s cubic-bezier(.22,.8,.3,1),filter .8s ease;}
   .reveal.vis{opacity:1;transform:none;filter:none;}
+  .reveal.vis.instant{transition:none;}
   @media(max-width:720px){
     }
   /* Vignettes animées */
@@ -796,6 +797,8 @@
   .bm-dot.d2{background:var(--indigo);box-shadow:0 0 0 4px color-mix(in srgb, var(--indigo) 18%, transparent);}
   .bm-dot.d3{background:var(--teal);box-shadow:0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);}
   .bdb{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .b-db .bdb{flex:1;}
+  .b-db .bdb-row{flex:1;min-height:32px;}
   .bdb-row{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--rule-soft);
     border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
   .bdb-row .r{font-family:var(--mono);font-size:10px;color:var(--indigo);width:14px;}
@@ -1924,13 +1927,21 @@ function renderHome(){
 }
 function homeReveal(){
   const host = el("view-home");
-  const els = host.querySelectorAll(".reveal");
+  const els = [...host.querySelectorAll(".reveal")];
   if (!("IntersectionObserver" in window)){ els.forEach(x => x.classList.add("vis")); }
   else {
     const io = new IntersectionObserver((ents) => {
       for (const en of ents) if (en.isIntersecting){ en.target.classList.add("vis"); io.unobserve(en.target); }
-    }, { root: host.querySelector(".home-page"), threshold: 0.18 });
-    els.forEach(x => io.observe(x));
+    }, { root: host.querySelector(".home-page"), threshold: 0.14 });
+    // Ce qui est DÉJÀ dans l'écran au chargement s'affiche tout de suite, sans
+    // fondu (sinon il « pop » une frame trop tard, comme mal chargé) ; le reste
+    // est révélé à l'approche.
+    const vh = window.innerHeight || 800;
+    for (const x of els){
+      const r = x.getBoundingClientRect();
+      if (r.top < vh * 0.92) x.classList.add("vis", "instant");
+      else io.observe(x);
+    }
   }
   initGlobe();        // no-op tant que le trait de côte n'est pas chargé
   heroMagnet();
