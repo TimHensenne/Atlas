@@ -1179,6 +1179,44 @@
     .hero-t,.hero-eyebrow,.hero-d,.hero-ctas{animation:none;}
     .tabs button,.hs-cta,.m-go,.db-all,.g-card,.hv{transition:none;}
   }
+  /* ═══ COUCHE TYPOGRAPHIQUE — hiérarchie « produit » ═══════════════════
+     Règle d'or : le MONO est réservé aux DONNÉES (chiffres, codes, dates) ;
+     toute l'INTERFACE (onglets, boutons, titres, labels) est en sans.
+     C'est l'omniprésence du mono-capitales qui donnait le look « beta ». */
+  /* Réparation : la règle générique `.page h2` (mono souligné, pensée pour
+     la page But) écrasait les titres des cartes et sections. */
+  .page h2.bc-t{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.022em;
+    text-transform:none;border:0;padding:0;margin:0;color:var(--ink);}
+  .page h2.hs-t{font-family:var(--display);font-weight:700;letter-spacing:-.022em;
+    text-transform:none;border:0;padding:0;color:var(--ink);}
+  .page h2.refs-h{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.022em;
+    text-transform:none;border:0;padding:0;color:var(--ink);margin:34px 0 6px;}
+  /* Navigation : sans médium, casse normale — fini le mono-capitales. */
+  .tabs button{font-family:var(--body);font-size:13.5px;font-weight:500;
+    letter-spacing:0;text-transform:none;}
+  /* Boutons : sans semi-gras, casse normale. */
+  .hs-cta,.m-go,.db-all,.g-back,.serie-play,.serie-nextbtn,.authbar button{
+    font-family:var(--body);font-weight:600;letter-spacing:0;text-transform:none;}
+  .hs-cta{font-size:13.5px;}
+  .hs-cta.big,.serie-nextbtn{font-size:14.5px;}
+  .db-all,.g-back{font-size:12.5px;}
+  /* Kickers & eyebrows : sans 600, capitales conservées mais tracking réduit. */
+  .eyebrow,.hero-eyebrow,.g-eyebrow,.bc-k,.dl-metric,.pd-cat,.fxv-h{
+    font-family:var(--body);font-weight:600;letter-spacing:.09em;}
+  .fxv-h{text-transform:none;letter-spacing:-.01em;font-size:16.5px;}
+  .bc-n{font-family:var(--body);font-weight:600;}
+  /* Compteurs, chips, tuiles, pied de page : sans, casse normale. */
+  .g-count{font-family:var(--body);font-weight:500;font-size:12.5px;letter-spacing:0;text-transform:none;}
+  .hchip span{font-family:var(--body);font-weight:500;font-size:10.5px;letter-spacing:.06em;}
+  .bg-tile > span{font-family:var(--body);font-weight:500;letter-spacing:.02em;text-transform:none;font-size:12px;}
+  .bdb-more{font-family:var(--body);letter-spacing:.02em;}
+  .foot{font-family:var(--body);font-size:11.5px;letter-spacing:.01em;}
+  .tagmini{font-family:var(--body);font-weight:600;letter-spacing:.02em;text-transform:none;}
+  /* Texte secondaire un peu plus affirmé (contraste + taille). */
+  .bc-d{font-size:13.5px;line-height:1.6;}
+  .hero-d{font-size:16.5px;}
+  :root{--dim:#4C5A76;}
+  :root[data-theme="dark"]{--dim:#9AA9C6;}
 </style>
 <script>
   /* Applique le thème AVANT le premier rendu (pas de flash blanc au chargement) :
