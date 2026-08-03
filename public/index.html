@@ -664,6 +664,21 @@
   @keyframes stepGlow{0%,100%{box-shadow:0 0 0 1px var(--indigo) inset;}
     50%{box-shadow:0 0 0 1px var(--indigo) inset,0 0 16px color-mix(in srgb, var(--indigo) 45%, transparent);}}
   .serie-step.current{animation:stepGlow 2.4s ease-in-out infinite;}
+  /* Décor de la salle de jeux : drapeaux & symboles qui flottent en fond. */
+  .g-hub{position:relative;}
+  .g-hub .db-in{position:relative;z-index:1;}
+  .g-floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .g-fl{position:absolute;opacity:.1;filter:saturate(.85);
+    animation:gfloat linear infinite;will-change:transform;}
+  .g-fl.g-fle{opacity:.14;line-height:1;}
+  :root[data-theme="dark"] .g-fl{opacity:.13;}
+  :root[data-theme="dark"] .g-fl.g-fle{opacity:.18;}
+  .g-fl:nth-child(odd){animation-direction:alternate;}
+  @keyframes gfloat{
+    0%{transform:translate(0,0) rotate(-6deg);}
+    50%{transform:translate(14px,-22px) rotate(6deg);}
+    100%{transform:translate(-10px,-40px) rotate(-3deg);}}
+  @media(prefers-reduced-motion:reduce){ .g-fl{animation:none;} }
   /* Vignette commune des cartes. */
   .gc-viz{height:64px;display:flex;align-items:center;justify-content:center;gap:10px;
     margin:2px 0 12px;position:relative;align-self:center;}
@@ -2657,6 +2672,24 @@ function renderGameHub(){
   const nextG = serieNext();
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
+  // Décor : quelques vrais drapeaux (+ symboles de jeu) qui flottent en fond.
+  const hb = (loaded ? gPool().sort() : []);
+  const hbFlag = (salt) => hb.length ? hb[seedHash("bg" + salt + todayKey()) % hb.length] : "fr";
+  const floaters = [
+    { t: "f", v: hbFlag("a"), x: 6,  y: 14, s: 46, d: 0,  dur: 22 },
+    { t: "f", v: hbFlag("b"), x: 84, y: 10, s: 38, d: 3,  dur: 26 },
+    { t: "g", v: "🎯",        x: 90, y: 46, s: 30, d: 1,  dur: 24 },
+    { t: "f", v: hbFlag("c"), x: 12, y: 62, s: 42, d: 5,  dur: 28 },
+    { t: "g", v: "🏆",        x: 78, y: 74, s: 28, d: 2,  dur: 23 },
+    { t: "f", v: hbFlag("d"), x: 4,  y: 88, s: 36, d: 4,  dur: 27 },
+    { t: "g", v: "🚩",        x: 50, y: 6,  s: 26, d: 6,  dur: 25 },
+    { t: "f", v: hbFlag("e"), x: 94, y: 90, s: 40, d: 1.5,dur: 21 },
+  ];
+  const bg = `<div class="g-floaters" aria-hidden="true">${floaters.map(f => f.t === "f"
+    ? `<img class="g-fl" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${String(f.v).toLowerCase()}.svg" alt="" loading="lazy"
+         style="left:${f.x}%;top:${f.y}%;width:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">`
+    : `<span class="g-fl g-fle" style="left:${f.x}%;top:${f.y}%;font-size:${f.s}px;animation-duration:${f.dur}s;animation-delay:-${f.d}s">${f.v}</span>`
+  ).join("")}</div>`;
   // Étapes de la série (dans l'ordre, non cliquables : on ne choisit pas).
   const steps = SERIE.map((g, i) => {
     const st = serieGet(g);
@@ -2683,7 +2716,7 @@ function renderGameHub(){
   const hTop = hpool.map(iso => ({ iso, v: dVal(iso, "gdp") })).filter(x => x.v != null)
     .sort((a, b) => b.v - a.v).slice(0, 3).map(x => x.iso);
   setTimeout(hubFx, 0);   // dessine la mini-carte radar une fois le DOM posé
-  return `<div class="page db-page g-page"><div class="db-in g-center">
+  return `<div class="page db-page g-page g-hub">${bg}<div class="db-in g-center">
     <div class="g-eyebrow">${L ? "Jeux" : "Games"}</div>
     <h1 class="g-title">${L ? "Salle de jeux" : "Game room"}</h1>
     <div class="serie-row">
