@@ -1932,7 +1932,7 @@ function homeReveal(){
   else {
     const io = new IntersectionObserver((ents) => {
       for (const en of ents) if (en.isIntersecting){ en.target.classList.add("vis"); io.unobserve(en.target); }
-    }, { root: host.querySelector(".home-page"), threshold: 0.14 });
+    }, { root: host.querySelector(".home-page"), threshold: 0, rootMargin: "0px 0px 14% 0px" });
     // Ce qui est DÉJÀ dans l'écran au chargement s'affiche tout de suite, sans
     // fondu (sinon il « pop » une frame trop tard, comme mal chargé) ; le reste
     // est révélé à l'approche.
