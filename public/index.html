@@ -693,10 +693,11 @@
   .gc-radar .gc-map-wrap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;overflow:hidden;
     background:linear-gradient(160deg, color-mix(in srgb, var(--indigo) 22%, var(--ocean)), var(--ocean));}
   .gc-map{display:block;position:relative;z-index:1;opacity:.9;}
-  .gc-sweep{position:absolute;inset:-40%;z-index:2;background:conic-gradient(from 0deg,
-    transparent 0 74%, color-mix(in srgb, var(--teal) 60%, transparent) 90%, transparent 100%);
-    animation:gsweep 3.4s linear infinite;mix-blend-mode:screen;}
-  @keyframes gsweep{to{transform:rotate(360deg);}}
+  .gc-sweep{position:absolute;left:50%;top:50%;width:220px;height:220px;z-index:2;
+    background:conic-gradient(from 0deg,
+    transparent 0 74%, color-mix(in srgb, var(--teal) 55%, transparent) 90%, transparent 100%);
+    animation:gsweep 3.6s linear infinite;mix-blend-mode:screen;}
+  @keyframes gsweep{from{transform:translate(-50%,-50%) rotate(0);}to{transform:translate(-50%,-50%) rotate(360deg);}}
   .gc-ping{position:absolute;left:62%;top:40%;z-index:3;width:8px;height:8px;border-radius:50%;
     background:radial-gradient(circle, #fff 0 30%, var(--accent) 40%);
     box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),
@@ -707,16 +708,16 @@
     100%{box-shadow:0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent),0 0 0 0 transparent;}}
   /* 2 — Drapeau : éventail de vrais drapeaux, relief marqué, ouverture au survol. */
   .gc-fan{width:100%;height:100%;position:relative;}
-  .gc-fanflag{width:58px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
+  .gc-fanflag{width:52px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;position:absolute;
     left:50%;top:50%;border:2px solid var(--panel);
     box-shadow:0 10px 22px rgba(19,26,46,.32), 0 2px 4px rgba(19,26,46,.2);
     transition:transform .4s cubic-bezier(.22,.8,.3,1);}
-  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-13deg) translateX(-42px);}
+  .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-10deg) translateX(-40px);}
   .gc-fanflag.f2{transform:translate(-50%,-50%) rotate(0deg);z-index:1;}
-  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(13deg) translateX(42px);}
-  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-16deg) translateX(-56px) translateY(-5px);}
-  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-9px) scale(1.05);}
-  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(16deg) translateX(56px) translateY(-5px);}
+  .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(10deg) translateX(40px);}
+  .g-card:hover .gc-fanflag.f1{transform:translate(-50%,-50%) rotate(-13deg) translateX(-54px) translateY(-4px);}
+  .g-card:hover .gc-fanflag.f2{transform:translate(-50%,-50%) translateY(-8px) scale(1.05);}
+  .g-card:hover .gc-fanflag.f3{transform:translate(-50%,-50%) rotate(13deg) translateX(54px) translateY(-4px);}
   .gf-q{position:absolute;right:14px;top:12px;width:24px;height:24px;border-radius:50%;z-index:2;
     background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #000));
     color:#FFF;font-family:var(--mono);font-weight:700;font-size:13px;
@@ -2778,7 +2779,7 @@ function renderGameHub(){
           <span class="gf-q">?</span>
         </div>
         <div class="g-card-t">${L ? "Devine le drapeau" : "Guess the flag"}</div>
-        <div class="g-card-d">${L ? "Un drapeau, un pays à trouver. Forme, code pays et nom se dévoilent au fil des essais." : "One flag, one country to find. Shape, country code and name unlock as you try."}</div>
+        <div class="g-card-d">${L ? "Un drapeau, un pays à deviner. Trois indices au fil des essais." : "One flag, one country to guess. Three hints as you try."}</div>
         <span class="tagmini on">${L ? "Jouer" : "Play"} →</span>
       </div>
       <div class="g-card tiltable" data-gduel>
