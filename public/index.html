@@ -803,6 +803,8 @@
   .bdb-row .v{font-family:var(--mono);font-size:11.5px;color:var(--teal);}
   .bdb-row.skel .n{height:10px;background:var(--rule-soft);border-radius:3px;}
   .bdb-row.skel .v{width:52px;height:10px;background:var(--rule-soft);border-radius:3px;}
+  .bdb-more{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
+    color:var(--dim);padding:6px 0 2px;}
   .bfx{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
   .bfx-pair{display:flex;justify-content:space-between;align-items:center;background:var(--paper);
     border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
@@ -1842,14 +1844,17 @@ function renderHome(){
   const chip = (v, lbl) => `<div class="hchip"><b>${v ?? "—"}</b><span>${lbl}</span></div>`;
   // ── Aperçus RÉELS des cartes bento (pas des illustrations).
   const nf = new Intl.NumberFormat(L ? "fr-BE" : "en-GB", { maximumFractionDigits: 0 });
-  const top5 = loaded
+  const gdpAll = loaded
     ? Object.keys(macro.countries)
         .map(iso => ({ iso, n: macro.countries[iso].name, v: macro.countries[iso].indicators?.NGDPD?.value }))
-        .filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 5)
+        .filter(x => x.v != null).sort((a, b) => b.v - a.v)
     : [];
+  const top5 = gdpAll.slice(0, 8);
+  const dbMore = gdpAll.length > 8 ? gdpAll.length - 8 : 0;
   const dbRows = top5.length
     ? top5.map((x, i) => `<div class="bdb-row"><span class="r">${i + 1}</span><span class="n">${esc(x.n)}</span><span class="v">${nf.format(x.v)} Md$</span></div>`).join("")
-    : [1,2,3,4,5].map(i => `<div class="bdb-row skel"><span class="r">${i}</span><span class="n"></span><span class="v"></span></div>`).join("");
+      + (dbMore ? `<div class="bdb-more">+ ${dbMore} ${L ? "autres pays" : "more countries"}</div>` : "")
+    : [1,2,3,4,5,6,7,8].map(i => `<div class="bdb-row skel"><span class="r">${i}</span><span class="n"></span><span class="v"></span></div>`).join("");
   const fxPairs = ["USD","GBP","JPY"].map(c =>
     `<div class="bfx-pair" data-bfx="${c}"><span class="p">EUR / ${c}</span><b>…</b></div>`).join("");
   const hp = loaded ? gPool().sort() : [];
@@ -1895,8 +1900,8 @@ function renderHome(){
           <span class="bm-dot d2" style="left:53%;top:30%"></span>
           <span class="bm-dot d3" style="left:71%;top:52%"></span></div>`)}
       ${card("b-db", "benchmark", "02", L ? "Comparer" : "Compare", L ? "La base de données" : "The database",
-        L ? "Trie, filtre, épingle — le monde entier dans un tableur. Ci-dessous : le vrai top 5 mondial par PIB, en direct des données."
-          : "Sort, filter, pin — the whole world in a spreadsheet. Below: the real world top 5 by GDP, straight from the data.",
+        L ? "Trie, filtre, épingle — le monde entier dans un tableur. Ci-dessous : les plus grandes économies mondiales par PIB, en direct des données."
+          : "Sort, filter, pin — the whole world in a spreadsheet. Below: the world's largest economies by GDP, straight from the data.",
         `<div class="bdb">${dbRows}</div>`)}
       ${card("b-fx", "fx", "03", L ? "Convertir" : "Convert", "FX / " + (L ? "Devises" : "Currency"),
         L ? "200+ devises, taux du jour, conversion dans les deux sens." : "200+ currencies, daily rates, two-way conversion.",
