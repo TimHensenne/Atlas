@@ -1836,7 +1836,7 @@ function renderHome(){
   const nC = loaded ? Object.keys(macro.countries).length : null;
   const nCur = loaded ? new Set(Object.values(ident).map(d => d && d.code).filter(Boolean)).size : null;
   const maj = macro.generatedAt
-    ? new Date(macro.generatedAt).toLocaleDateString(L ? "fr-BE" : "en-GB", { month: "short", year: "numeric" }) : null;
+    ? new Date(macro.generatedAt).toLocaleDateString(L ? "fr-BE" : "en-GB", { month: "long", year: "numeric" }) : null;
   const chip = (v, lbl) => `<div class="hchip"><b>${v ?? "—"}</b><span>${lbl}</span></div>`;
   // ── Aperçus RÉELS des cartes bento (pas des illustrations).
   const nf = new Intl.NumberFormat(L ? "fr-BE" : "en-GB", { maximumFractionDigits: 0 });
@@ -1879,7 +1879,7 @@ function renderHome(){
         <div class="hero-stats">
           ${chip(nC, L ? "économies couvertes" : "economies covered")}
           ${chip(nCur, L ? "devises converties" : "currencies converted")}
-          ${chip(maj, L ? "dernière mise à jour" : "last refresh")}
+          ${chip(maj, L ? "données macro (FMI)" : "macro data (IMF)")}
         </div>
       </div>
       <div class="hero-cue" aria-hidden="true">▾</div>
