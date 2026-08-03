@@ -679,10 +679,10 @@
   .g-hub .db-in{position:relative;z-index:1;}
   .g-floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
   .g-worldbg{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;
-    opacity:.4;
-    -webkit-mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);
-            mask-image:radial-gradient(130% 90% at 50% 42%, #000 62%, transparent 100%);}
-  :root[data-theme="dark"] .g-worldbg{opacity:.5;}
+    opacity:.42;
+    -webkit-mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);
+            mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);}
+  :root[data-theme="dark"] .g-worldbg{opacity:.52;}
   .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
     box-shadow:0 6px 18px rgba(19,26,46,.12);animation:gfloat linear infinite;will-change:transform;}
   :root[data-theme="dark"] .g-fl{opacity:.11;box-shadow:0 6px 18px rgba(0,0,0,.3);}
@@ -692,6 +692,51 @@
     50%{transform:translate(14px,-22px) rotate(6deg);}
     100%{transform:translate(-10px,-40px) rotate(-3deg);}}
   @media(prefers-reduced-motion:reduce){ .g-fl{animation:none;} }
+  /* ── Petit explorateur (mascotte originale) — vit sur la gauche du hub ── */
+  .g-mascot{position:fixed;left:2.5%;bottom:7%;width:150px;z-index:1;pointer-events:none;
+    filter:drop-shadow(0 10px 18px rgba(19,26,46,.18));}
+  .masc-move{transition:transform .5s cubic-bezier(.34,1.3,.4,1);}
+  .masc-svg{width:100%;height:auto;overflow:visible;}
+  .masc-shadow{fill:rgba(19,26,46,.14);}
+  .masc-leg{fill:#2C3550;}
+  .masc-torso{fill:var(--indigo);}
+  .masc-pack{fill:#0FA8A0;}
+  .masc-arm{fill:var(--indigo);}
+  .masc-face{fill:#F1C9A5;}
+  .masc-ear{fill:#F1C9A5;}
+  .masc-eye{fill:#22243A;}
+  .masc-mouth{fill:none;stroke:#7A4A2B;stroke-width:2.2;stroke-linecap:round;}
+  .masc-hat-top{fill:#7A5230;}
+  .masc-hat-band{fill:#5C3D22;}
+  .masc-hat-brim{fill:#8A5E38;}
+  /* Respiration : le corps se soulève doucement. */
+  .masc-body{transform-box:fill-box;transform-origin:50% 100%;animation:mascBreathe 3.6s ease-in-out infinite;}
+  @keyframes mascBreathe{0%,100%{transform:translateY(0) scaleY(1);}50%{transform:translateY(-1.5px) scaleY(1.02);}}
+  /* Tête : léger balancement permanent. */
+  .masc-head{transform-box:fill-box;transform-origin:50% 100%;animation:mascSway 5.2s ease-in-out infinite;}
+  @keyframes mascSway{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+  /* Clignement des yeux (déclenché en JS via .blink). */
+  .masc-eyes{transform-box:fill-box;transform-origin:50% 50%;transition:transform .08s ease;}
+  .g-mascot.blink .masc-eyes{transform:scaleY(.12);}
+  /* Grattage de tête : le bras droit se lève et frotte (classe .scratch). */
+  .masc-armR{transform-box:fill-box;transform-origin:50% 0%;}
+  .g-mascot.scratch .masc-armR{animation:mascScratch 1.5s ease-in-out;}
+  @keyframes mascScratch{0%,100%{transform:rotate(0);}
+    20%{transform:rotate(-125deg) translateX(2px);}
+    35%{transform:rotate(-135deg) translateX(2px);}50%{transform:rotate(-125deg) translateX(2px);}
+    65%{transform:rotate(-135deg) translateX(2px);}80%{transform:rotate(-128deg) translateX(2px);}}
+  /* Regarde autour (classe .look). */
+  .g-mascot.look .masc-head{animation:mascLook 1.4s ease-in-out;}
+  @keyframes mascLook{0%,100%{transform:rotate(0);}30%{transform:rotate(-9deg);}70%{transform:rotate(9deg);}}
+  /* Sursaut quand on l'embête (classe .startled) : les yeux s'écarquillent. */
+  .g-mascot.startled .masc-eye{r:4.4;}
+  .g-mascot.startled .masc-body{animation:mascJump .5s ease;}
+  @keyframes mascJump{0%{transform:translateY(0) scaleY(1);}30%{transform:translateY(-6px) scaleY(1.06);}
+    60%{transform:translateY(0) scaleY(.94);}100%{transform:translateY(0) scaleY(1);}}
+  @media(prefers-reduced-motion:reduce){
+    .masc-body,.masc-head{animation:none;}
+    .g-mascot.scratch .masc-armR,.g-mascot.look .masc-head,.g-mascot.startled .masc-body{animation:none;}}
+  @media(max-width:1180px){ .g-mascot{display:none;} }   /* évite tout chevauchement */
   /* ── Vignettes de cartes : de vraies petites scènes, fond dégradé + relief ── */
   .gc-viz{width:100%;height:96px;display:flex;align-items:center;justify-content:center;gap:10px;
     margin:2px 0 14px;position:relative;align-self:stretch;overflow:hidden;
@@ -2706,6 +2751,45 @@ function renderGames(){
   if (gScreen === "podium") return renderPodiumGame();
   return renderCountryGame();
 }
+// Le petit explorateur : il vit (respire/se balance en CSS), cligne des yeux,
+// se gratte ou regarde autour par moments, et s'enfuit du curseur.
+let mascotReady = false;
+function hubMascot(){
+  if (!document.querySelector(".g-mascot")) return;
+  if (mascotReady) return;
+  mascotReady = true;
+  const cur = () => document.querySelector(".g-mascot");
+  // Fuite : si le curseur approche, l'explorateur bondit à l'opposé, puis revient.
+  let raf = null, ev = null, back = null;
+  document.addEventListener("pointermove", (e) => { ev = e;
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null;
+      const m = cur(); if (!m || getComputedStyle(m).display === "none") return;
+      const mv = m.querySelector(".masc-move"); if (!mv) return;
+      const r = m.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height * 0.5;
+      const dx = cx - ev.clientX, dy = cy - ev.clientY;
+      const dist = Math.hypot(dx, dy), R = 150;
+      if (dist < R){
+        const k = 1 - dist / R, push = 40 + k * 70, ang = Math.atan2(dy, dx);
+        mv.style.transform = `translate(${(Math.cos(ang) * push).toFixed(0)}px, ${(Math.sin(ang) * push * 0.5).toFixed(0)}px)`;
+        m.classList.add("startled");
+        clearTimeout(back);
+        back = setTimeout(() => { mv.style.transform = ""; m.classList.remove("startled"); }, 700);
+      }
+    });
+  }, { passive: true });
+  // Gestes de vie : de temps en temps, il se gratte la tête ou regarde autour.
+  setInterval(() => { const m = cur(); if (!m || m.classList.contains("startled")) return;
+    const act = Math.random() < 0.5 ? "scratch" : "look";
+    m.classList.add(act); setTimeout(() => m.classList.remove(act), act === "scratch" ? 1550 : 1450);
+  }, 5600);
+  // Clignement.
+  setInterval(() => { const m = cur(); if (!m) return;
+    m.classList.add("blink"); setTimeout(() => m.classList.remove("blink"), 150);
+  }, 3800);
+}
+
 // Fond « GeoGuessr » : carte du monde en pointillés. On peint les terres sur
 // un canvas hors-écran, puis on ne garde qu'un point là où il y a de la terre.
 function hubWorldBg(){
@@ -2732,16 +2816,20 @@ function hubWorldBg(){
   octx.beginPath(); for (const f of GLOBE_LAND) opath(f);
   octx.fillStyle = "#000"; octx.fill();
   const mask = octx.getImageData(0, 0, W, H).data;
-  // Points sur une grille : gardés seulement au-dessus des terres (aspect pointillé).
-  const step = 7, r = 1.6;
-  ctx.fillStyle = themeVar("--indigo");
+  // Trame sur TOUTE la fenêtre : points d'océan très discrets + points de
+  // terre plus marqués → le fond est rempli partout, les continents ressortent.
+  const step = 7;
+  const dotCol = themeVar("--indigo");
+  ctx.fillStyle = dotCol;
   for (let y = 0; y < H; y += step){
+    const off = (Math.floor(y / step) % 2 ? step / 2 : 0);
     for (let x = 0; x < W; x += step){
-      if (mask[(y * W + x) * 4 + 3] > 40){
-        ctx.beginPath(); ctx.arc(x + (Math.floor(y / step) % 2 ? step / 2 : 0), y, r, 0, 6.283); ctx.fill();
-      }
+      const land = mask[(y * W + x) * 4 + 3] > 40;
+      ctx.globalAlpha = land ? 1 : 0.22;
+      ctx.beginPath(); ctx.arc(x + off, y, land ? 1.6 : 1.05, 0, 6.283); ctx.fill();
     }
   }
+  ctx.globalAlpha = 1;
 }
 
 // Mini-carte monde de la carte « Trouve le pays » (canvas, données réelles).
@@ -2774,9 +2862,36 @@ function renderGameHub(){
   const startedN = doneN;                       // nb de manches déjà faites
   // Décor GeoGuessr : carte du monde en pointillés bleus (canvas).
   setTimeout(hubWorldBg, 0);   // dessine la carte pointillée une fois le DOM posé
+  setTimeout(hubMascot, 0);    // anime le petit explorateur
   const bg = `<div class="g-floaters" aria-hidden="true">
     <canvas class="g-worldbg" width="0" height="0"></canvas>
-  </div>`;
+  </div>
+  <div class="g-mascot" aria-hidden="true"><div class="masc-move">
+    <svg viewBox="0 0 120 162" class="masc-svg">
+      <ellipse class="masc-shadow" cx="60" cy="152" rx="30" ry="6"/>
+      <g class="masc-body">
+        <rect class="masc-leg" x="48" y="112" width="10" height="32" rx="5"/>
+        <rect class="masc-leg" x="62" y="112" width="10" height="32" rx="5"/>
+        <path class="masc-pack" d="M42 88 Q60 82 78 88 L80 112 Q60 118 40 112 Z"/>
+        <path class="masc-torso" d="M41 86 Q60 76 79 86 L82 116 Q60 124 38 116 Z"/>
+        <rect class="masc-arm masc-armL" x="30" y="88" width="10" height="32" rx="5"/>
+        <rect class="masc-arm masc-armR" x="80" y="88" width="10" height="32" rx="5"/>
+        <g class="masc-head">
+          <circle class="masc-ear" cx="36" cy="58" r="5"/>
+          <circle class="masc-ear" cx="84" cy="58" r="5"/>
+          <circle class="masc-face" cx="60" cy="56" r="26"/>
+          <g class="masc-eyes">
+            <circle class="masc-eye" cx="51" cy="56" r="3.4"/>
+            <circle class="masc-eye" cx="69" cy="56" r="3.4"/>
+          </g>
+          <path class="masc-mouth" d="M53 66 Q60 72 67 66"/>
+          <path class="masc-hat-top" d="M44 42 Q46 24 60 23 Q74 24 76 42 Z"/>
+          <path class="masc-hat-band" d="M44 40 Q60 45 76 40 L76 43 Q60 48 44 43 Z"/>
+          <path class="masc-hat-brim" d="M26 43 Q60 32 94 43 Q60 53 26 43 Z"/>
+        </g>
+      </g>
+    </svg>
+  </div></div>`;
   // Étapes de la série (dans l'ordre, non cliquables : on ne choisit pas).
   const steps = SERIE.map((g, i) => {
     const st = serieGet(g);
