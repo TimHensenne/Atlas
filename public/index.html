@@ -677,12 +677,23 @@
   /* Décor de la salle de jeux : drapeaux & symboles qui flottent en fond. */
   .g-hub{position:relative;}
   .g-hub .db-in{position:relative;z-index:1;}
-  .g-floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
-  .g-worldbg{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;
-    opacity:.42;
+  /* Fond pointillé global (carte du monde) — présent sur tout le site, dosé
+     par vue pour préserver la lisibilité des tableaux et textes denses. */
+  #worldbg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;
+    opacity:0;transition:opacity .4s ease;
     -webkit-mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);
             mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);}
-  :root[data-theme="dark"] .g-worldbg{opacity:.52;}
+  .topbar,.tabs,.view,#foot{position:relative;z-index:1;}   /* contenu au-dessus du fond */
+  :root[data-view="games"] #worldbg{opacity:.42;}
+  :root[data-view="games"][data-theme="dark"] #worldbg{opacity:.52;}
+  :root[data-view="benchmark"] #worldbg,
+  :root[data-view="fx"] #worldbg,
+  :root[data-view="refs"] #worldbg{opacity:.14;}         /* discret : tableaux/textes lisibles */
+  :root[data-view="purpose"] #worldbg{opacity:.2;}
+  :root[data-view="home"] #worldbg{opacity:.16;}
+  :root[data-view="map"] #worldbg{opacity:0;}            /* la carte occupe déjà l'écran */
+  .g-floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .g-floaters .g-fl{display:none;}
   .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
     box-shadow:0 6px 18px rgba(19,26,46,.12);animation:gfloat linear infinite;will-change:transform;}
   :root[data-theme="dark"] .g-fl{opacity:.11;box-shadow:0 6px 18px rgba(0,0,0,.3);}
@@ -1337,6 +1348,7 @@
 </script>
 </head>
 <body>
+<canvas id="worldbg" aria-hidden="true"></canvas>
 
 <header class="topbar">
   <div class="brand">
@@ -1972,6 +1984,7 @@ function applyView(v){
   if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
   view = v;
+  document.documentElement.dataset.view = v;   // pilote l'opacité du fond pointillé
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
   renderTabs();
   renderView(v);
@@ -2772,22 +2785,21 @@ function hubMascot(){
 // Fond « GeoGuessr » : carte du monde en pointillés. On peint les terres sur
 // un canvas hors-écran, puis on ne garde qu'un point là où il y a de la terre.
 function hubWorldBg(){
-  const cv = el("view-games") && el("view-games").querySelector(".g-worldbg");
-  if (!cv || cv.dataset.on) return;
+  const cv = el("worldbg");
+  if (!cv) return;
   if (!GLOBE_LAND){ loadGlobeLand(); setTimeout(hubWorldBg, 200); return; }
   const W = Math.round(window.innerWidth);
   const H = Math.round(window.innerHeight);
-  cv.dataset.on = "1";
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cv.width = W * dpr; cv.height = H * dpr;
   cv.style.width = W + "px"; cv.style.height = H + "px";
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
   // La carte remplit largement l'écran, bien centrée (H et V).
   const proj = d3.geoNaturalEarth1();
   proj.fitSize([W, H], { type: "Sphere" });
-  const sc = proj.scale();
-  proj.scale(sc * 1.18).translate([W / 2, H / 2]);
+  proj.scale(proj.scale() * 1.18).translate([W / 2, H / 2]);
   // Masque des terres sur un canvas hors-écran.
   const off = document.createElement("canvas"); off.width = W; off.height = H;
   const octx = off.getContext("2d");
@@ -2795,21 +2807,24 @@ function hubWorldBg(){
   octx.beginPath(); for (const f of GLOBE_LAND) opath(f);
   octx.fillStyle = "#000"; octx.fill();
   const mask = octx.getImageData(0, 0, W, H).data;
-  // Trame sur TOUTE la fenêtre : points d'océan très discrets + points de
-  // terre plus marqués → le fond est rempli partout, les continents ressortent.
+  // Trame sur toute la fenêtre : points d'océan discrets + points de terre
+  // plus marqués → fond rempli partout, continents qui ressortent.
   const step = 7;
-  const dotCol = themeVar("--indigo");
-  ctx.fillStyle = dotCol;
+  ctx.fillStyle = themeVar("--indigo");
   for (let y = 0; y < H; y += step){
-    const off = (Math.floor(y / step) % 2 ? step / 2 : 0);
+    const dx = (Math.floor(y / step) % 2 ? step / 2 : 0);
     for (let x = 0; x < W; x += step){
       const land = mask[(y * W + x) * 4 + 3] > 40;
       ctx.globalAlpha = land ? 1 : 0.22;
-      ctx.beginPath(); ctx.arc(x + off, y, land ? 1.6 : 1.05, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + dx, y, land ? 1.6 : 1.05, 0, 6.283); ctx.fill();
     }
   }
   ctx.globalAlpha = 1;
 }
+// Redessin au redimensionnement (débounce) + au changement de thème.
+let worldbgTimer = null;
+function worldbgRefresh(){ clearTimeout(worldbgTimer); worldbgTimer = setTimeout(hubWorldBg, 180); }
+window.addEventListener("resize", worldbgRefresh);
 
 // Mini-carte monde de la carte « Trouve le pays » (canvas, données réelles).
 function hubFx(){
@@ -2839,12 +2854,9 @@ function renderGameHub(){
   const nextG = serieNext();
   const doneN = SERIE.filter(g => serieGet(g)).length;
   const startedN = doneN;                       // nb de manches déjà faites
-  // Décor GeoGuessr : carte du monde en pointillés bleus (canvas).
-  setTimeout(hubWorldBg, 0);   // dessine la carte pointillée une fois le DOM posé
-  setTimeout(hubMascot, 0);    // anime le petit explorateur
-  const bg = `<div class="g-floaters" aria-hidden="true">
-    <canvas class="g-worldbg" width="0" height="0"></canvas>
-  </div>
+  // Mascotte du hub (fond pointillé désormais global à tout le site).
+  setTimeout(hubMascot, 0);
+  const bg = `<div class="g-floaters" aria-hidden="true"></div>
   <div class="g-mascot" aria-hidden="true"><div class="masc-inner">
     <img class="masc-img" src="robot.png" alt="" loading="lazy">
     <span class="masc-lid lidL" aria-hidden="true"></span>
@@ -3630,6 +3642,7 @@ async function boot(){
   const v0 = viewFromHash();
   history.replaceState({ view: v0, gScreen: "hub" }, "", location.hash || location.pathname + location.search);
   applyView(v0);
+  hubWorldBg();   // fond pointillé global (se relance seul quand les données sont prêtes)
   function renderStamp(){
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
     el("stamp").textContent =
@@ -3980,6 +3993,7 @@ async function boot(){
   const box = el("theme"); if (!box) return;
   function paint(dark){
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    if (typeof worldbgRefresh === "function") worldbgRefresh();   // recolore les points
     for (const b of box.querySelectorAll("button")){
       const on = (b.dataset.themeSet === "dark") === dark;
       b.classList.toggle("on", on);
