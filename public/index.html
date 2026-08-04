@@ -68,32 +68,39 @@
   ::-webkit-scrollbar-thumb:hover{background:var(--scroll-hi);background-clip:padding-box;}
   ::-webkit-scrollbar-corner{background:transparent;}
 
-  .topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:none;
-    background:var(--topbar-bg);
-    padding:16px 24px;border-bottom:1px solid var(--rule);}
-  .brand{flex:none;}
+  .topbar{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;flex:none;
+    background:var(--topbar-bg);position:relative;
+    padding:12px 20px;}
+  /* Fondu doux sous le bandeau : évite la couture nette avec le quadrillage. */
+  .topbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:22px;
+    background:linear-gradient(to bottom, var(--topbar-bg), transparent);
+    pointer-events:none;z-index:2;}
+  .brand{flex:1 1 0;min-width:0;}
   .wordmark{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;}
   .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--indigo);text-transform:uppercase;}
-  /* Tous les outils vivent à droite, dans un seul groupe. L'espacement passe
-     par le gap du conteneur — plus aucun margin-left bricolé sur les éléments. */
-  .tools{display:flex;align-items:center;gap:10px;margin-left:auto;
-    flex-wrap:wrap;justify-content:flex-end;}
-  .stamp{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim);
-    text-transform:uppercase;}
+  /* Outils à droite. */
+  .tools{display:flex;align-items:center;gap:8px;flex:1 1 0;
+    flex-wrap:nowrap;justify-content:flex-end;}
+  .stamp{display:none;}
   /* Devise et langue partagent exactement le même gabarit de bouton. */
-  .fx,.lang,.theme{display:flex;border:1px solid var(--rule);}
-  .fx button,.lang button,.theme button{background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
-    font-family:var(--mono);font-size:11px;padding:5px 10px;line-height:1;color:var(--dim);
-    transition:background .15s ease,color .15s ease;}
-  .fx button:last-child,.lang button:last-child,.theme button:last-child{border-right:0;}
-  .fx button.on,.lang button.on,.theme button.on{background:var(--indigo);color:#FFF;}
-  .fx button:hover:not(.on),.lang button:hover:not(.on),.theme button:hover:not(.on){background:var(--ocean);color:var(--ink);}
-  .theme button{font-size:13px;padding:4px 9px;}
+  .fx,.lang,.theme{display:inline-flex;gap:2px;padding:4px;position:relative;}
+  /* Pilule unique qui glisse vers le bouton actif (même effet que les onglets). */
+  .ctl-glide{position:absolute;top:0;left:0;width:0;height:0;border-radius:999px;background:var(--grad);
+    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);z-index:0;pointer-events:none;}
+  .ctl-glide.armed{transition:transform .45s cubic-bezier(.5,1.5,.35,1),
+    width .45s cubic-bezier(.5,1.5,.35,1), height .45s ease;}
+  .fx button,.lang button,.theme button{position:relative;z-index:1;background:transparent;border:0;cursor:pointer;border-radius:999px;
+    font-family:var(--mono);font-size:11px;padding:6px 11px;line-height:1;color:var(--dim);
+    transition:color .25s ease;}
+  .fx button.on,.lang button.on,.theme button.on{color:#FFF;background:transparent;box-shadow:none;}
+  .fx button:hover:not(.on),.lang button:hover:not(.on),.theme button:hover:not(.on){color:var(--ink);}
+  .theme button{font-size:13px;padding:5px 10px;}
   .fx button:focus-visible,.lang button:focus-visible,.theme button:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px;}
   /* Mobile : les outils passent en pleine largeur sous la marque, la recherche
      s'étire pour occuper la place. La barre ne se disloque plus. */
   @media(max-width:640px){
-    .tools{width:100%;margin-left:0;justify-content:flex-start;}
+    .topbar{flex-wrap:wrap;}
+    .tools{width:100%;margin-left:0;justify-content:flex-start;flex-wrap:wrap;}
     .map-search{right:12px;}
     .map-search input{width:100%;}
   }
@@ -188,8 +195,8 @@
     border:1px solid var(--rule);}
   .macro.identity{grid-auto-flow:row dense;}
   .cell{background:var(--panel);padding:12px 14px;}
-  .cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);
-    text-transform:uppercase;}
+  .cell .k{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;
+    color:color-mix(in srgb, var(--dim) 75%, var(--ink));text-transform:uppercase;}
   .cell .v{font-family:var(--display);font-weight:600;font-size:21px;letter-spacing:-.02em;
     margin-top:5px;line-height:1;}
   .cell .v small{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--dim);
@@ -201,10 +208,11 @@
      repères sont en HTML (positionnés en %) pour rester ronds même dans la case
      large du PIB, où le SVG est étiré. */
   .chart{margin:12px 0 2px;}
-  .chart-head{font-family:var(--mono);font-size:9px;letter-spacing:.02em;color:var(--dim);
-    height:12px;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  .chart-head{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.01em;
+    color:color-mix(in srgb, var(--dim) 80%, var(--ink));
+    height:14px;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     transition:color .1s ease;}
-  .chart-head.on{color:var(--indigo);font-weight:500;}
+  .chart-head.on{color:var(--indigo);font-weight:600;}
   .spark-wrap{position:relative;height:48px;cursor:crosshair;margin-top:2px;}
   .spark{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
   .spark-line{fill:none;stroke:var(--indigo);stroke-width:1.5;
@@ -216,8 +224,8 @@
   .spark-hdot{background:var(--indigo);box-shadow:0 0 0 2px var(--panel);display:none;}
   .spark-guide{position:absolute;top:0;bottom:0;width:1px;background:var(--dim);opacity:.5;
     transform:translateX(-50%);pointer-events:none;display:none;}
-  .chart-x{display:flex;justify-content:space-between;margin-top:2px;
-    font-family:var(--mono);font-size:8.5px;letter-spacing:.02em;color:var(--dim);opacity:.75;}
+  .chart-x{display:flex;justify-content:space-between;margin-top:3px;
+    font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;color:var(--dim);}
   .macro-src{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--dim);
     text-transform:uppercase;opacity:.8;margin-top:16px;}
   .mkt-sub{font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:var(--dim);margin-top:8px;}
@@ -275,11 +283,47 @@
   .view[hidden]{display:none;}
   .page{flex:1;min-height:0;overflow-y:auto;padding:34px 28px 56px;}
   .page-in{max-width:760px;margin:0 auto;}
+  .purpose-in{max-width:1080px;padding-top:12px;}
+  .purpose-card{padding:24px 28px;margin-bottom:18px;}
+  /* Carte « À propos » réordonnée. */
+  .about-role{margin:0 0 10px;}
+  .about-link{margin-bottom:16px;}
+  .about-body{margin-top:0;}
+  /* Bande de chiffres-clés réels. */
+  .pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+  .pstat{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-m);
+    box-shadow:var(--elev1);padding:18px 16px;text-align:center;}
+  .pstat-n{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.02em;
+    line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pstat-k{margin-top:7px;font-size:12.5px;color:var(--dim);line-height:1.35;}
+  /* Stack technique (matrice de compétences) : catégorie → puces. */
+  .pstack{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
+  .pstack-row{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start;
+    padding:12px 0;border-top:1px solid var(--rule-soft);}
+  .pstack-row:first-child{border-top:0;}
+  .pstack-c{font-family:var(--body);font-weight:600;font-size:13.5px;color:var(--ink);padding-top:3px;}
+  .pstack-items{display:flex;flex-wrap:wrap;gap:7px;}
+  .pstack-chip{font-family:var(--mono);font-size:12px;color:var(--indigo);
+    background:color-mix(in srgb, var(--indigo) 10%, transparent);
+    border:1px solid color-mix(in srgb, var(--indigo) 28%, transparent);
+    border-radius:999px;padding:5px 11px;}
+  @media(max-width:720px){
+    .pstats{grid-template-columns:repeat(2,1fr);}
+    .pstack-row{grid-template-columns:1fr;gap:8px;}
+  }
+  /* Page But : sections dans des panneaux opaques (lisibles sur le fond pointillé). */
+  .purpose-card{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-l);
+    padding:22px 26px;box-shadow:var(--elev2);margin-bottom:16px;position:relative;z-index:1;}
+  .purpose-card h2:first-child,.purpose-card .about-head + h2{margin-top:0;}
+  .purpose-card > h2:first-of-type{margin-top:14px;}
   .page h1{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.02em;
     margin:0 0 6px;color:var(--ink);}
   .page .lead{color:var(--dim);font-size:14px;line-height:1.6;margin:0 0 26px;max-width:640px;}
   .page h2{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
+  .purpose-card h2{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.015em;
+    text-transform:none;color:var(--ink);border-bottom:0;padding-bottom:0;margin:20px 0 12px;}
+  .purpose-card h2:first-of-type,.purpose-card .about-head + h2{margin-top:0;}
   .page p.body{color:var(--ink);font-size:14.5px;line-height:1.7;margin:0 0 16px;}
   /* Profil (page But) */
   .about-head{display:flex;gap:22px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
@@ -303,15 +347,20 @@
   .fb-btn:disabled{opacity:.6;cursor:default;}
   .fb-status{font-family:var(--mono);font-size:12px;color:var(--dim);min-height:16px;}
   /* Lexique */
-  .lex{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
-  .lex-item{background:var(--panel);padding:13px 16px;}
+  .lex{display:flex;flex-direction:column;background:var(--panel);
+    border:1px solid var(--rule);border-radius:var(--r-m);overflow:hidden;}
+  .lex-item{background:transparent;padding:14px 18px;border-top:1px solid var(--rule-soft);}
+  .lex-item:first-child{border-top:0;}
   .lex-term{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
   .lex-term small{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--dim);
     text-transform:uppercase;letter-spacing:.05em;margin-left:8px;}
   .lex-def{color:var(--dim);font-size:13px;line-height:1.55;margin-top:3px;}
   /* Base de données */
-  .src{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);}
-  .src-item{background:var(--panel);padding:14px 16px;display:flex;flex-wrap:wrap;gap:5px 12px;align-items:baseline;}
+  .src{display:flex;flex-direction:column;background:var(--panel);
+    border:1px solid var(--rule);border-radius:var(--r-m);overflow:hidden;}
+  .src-item{background:transparent;padding:14px 18px;display:flex;flex-wrap:wrap;gap:5px 12px;
+    align-items:baseline;border-top:1px solid var(--rule-soft);}
+  .src-item:first-child{border-top:0;}
   .src-name{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);}
   .src-freq{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
     color:var(--indigo);border:1px solid var(--rule);border-radius:2px;padding:2px 7px;}
@@ -502,7 +551,7 @@
   .sp-rank b{color:var(--indigo);font-family:var(--mono);}
   .serie-free{text-align:center;color:var(--dim);font-size:12.5px;margin:2px 0 12px;}
   /* ── Accueil (landing) ─────────────────────────────────────────────── */
-  .home-page{display:block;overflow-y:auto;overflow-x:hidden;height:100%;padding:0 22px 60px;
+  .home-page{display:block;overflow-y:auto;overflow-x:hidden;height:100%;padding:26px 22px 60px;
     scroll-behavior:smooth;}
   .hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;position:relative;padding:40px 0 30px;}
@@ -684,14 +733,18 @@
     -webkit-mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);
             mask-image:radial-gradient(150% 120% at 50% 45%, #000 78%, transparent 100%);}
   .topbar,.tabs,.view,#foot{position:relative;z-index:1;}   /* contenu au-dessus du fond */
-  :root[data-view="games"] #worldbg{opacity:.42;}
-  :root[data-view="games"][data-theme="dark"] #worldbg{opacity:.52;}
+  :root[data-view="games"] #worldbg,
   :root[data-view="benchmark"] #worldbg,
   :root[data-view="fx"] #worldbg,
-  :root[data-view="refs"] #worldbg{opacity:.14;}         /* discret : tableaux/textes lisibles */
-  :root[data-view="purpose"] #worldbg{opacity:.2;}
-  :root[data-view="home"] #worldbg{opacity:.16;}
-  :root[data-view="map"] #worldbg{opacity:0;}            /* la carte occupe déjà l'écran */
+  :root[data-view="refs"] #worldbg,
+  :root[data-view="purpose"] #worldbg{opacity:.1;}
+  :root[data-theme="dark"][data-view="games"] #worldbg,
+  :root[data-theme="dark"][data-view="benchmark"] #worldbg,
+  :root[data-theme="dark"][data-view="fx"] #worldbg,
+  :root[data-theme="dark"][data-view="refs"] #worldbg,
+  :root[data-theme="dark"][data-view="purpose"] #worldbg{opacity:.14;}
+  :root[data-view="home"] #worldbg{opacity:0;}   /* le globe du héro suffit */
+  :root[data-view="map"] #worldbg{opacity:0;}    /* la carte occupe déjà l'écran */
   .g-floaters{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
   .g-floaters .g-fl{display:none;}
   .g-fl{position:absolute;opacity:.09;border-radius:3px;filter:saturate(.9);
@@ -994,13 +1047,14 @@
     .lb-card{flex:1 1 auto;max-width:none;}
   }
   /* Comptes : boutons barre + modale */
-  .authbar{display:flex;gap:1px;border:1px solid var(--rule);}
-  .authbar button{background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
-    font-family:var(--mono);font-size:11px;padding:5px 10px;line-height:1;color:var(--dim);white-space:nowrap;}
-  .authbar button:last-child{border-right:0;}
-  .authbar button.pri{background:var(--indigo);color:#FFF;}
-  .authbar button:hover:not(.pri){color:var(--ink);background:var(--ocean);}
-  .authbar .who{display:flex;align-items:center;gap:6px;padding:5px 10px;color:var(--ink);
+  .authbar{display:inline-flex;gap:2px;padding:4px;}
+  .authbar button{background:transparent;border:0;cursor:pointer;border-radius:999px;
+    font-family:var(--mono);font-size:11px;padding:6px 12px;line-height:1;color:var(--dim);white-space:nowrap;
+    transition:background .15s ease,color .15s ease,box-shadow .15s ease;}
+  .authbar button.pri{background:var(--grad);color:#FFF;
+    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
+  .authbar button:hover:not(.pri){color:var(--ink);background:var(--rule-soft);}
+  .authbar .who{display:flex;align-items:center;gap:6px;padding:6px 12px;color:var(--ink);
     font-family:var(--mono);font-size:11px;}
   .authbar .who b{color:var(--indigo);font-weight:600;}
   .modal{position:fixed;inset:0;z-index:200;background:rgba(8,12,20,.55);
@@ -1151,6 +1205,26 @@
   .empty{border:1px dashed var(--rule);padding:18px;font-size:13.5px;
     line-height:1.55;color:var(--dim);}
   .empty code{font-family:var(--mono);font-size:12px;color:var(--indigo);}
+  /* État vide du panneau carte : guide clair + données + pays-exemples. */
+  .pguide{margin-top:14px;display:flex;flex-direction:column;gap:12px;}
+  .pg-step{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.5;color:var(--ink);}
+  .pg-num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--grad);color:#fff;
+    font-family:var(--mono);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .pg-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px 32px;}
+  .pg-chip{font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:var(--indigo);
+    background:color-mix(in srgb, var(--indigo) 12%, transparent);
+    border:1px solid color-mix(in srgb, var(--indigo) 30%, transparent);
+    border-radius:999px;padding:4px 10px;}
+  .pg-try{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);margin-top:4px;}
+  .pg-exs{display:flex;flex-wrap:wrap;gap:8px;}
+  .pg-ex{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--rule);border-radius:999px;
+    padding:7px 13px 7px 8px;font-family:var(--body);font-size:13px;font-weight:600;color:var(--ink);
+    transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;}
+  .pg-ex img{width:22px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;border:1px solid var(--rule-soft);}
+  .pg-ex:hover{border-color:var(--indigo);background:color-mix(in srgb, var(--indigo) 6%, var(--panel));
+    box-shadow:0 4px 12px color-mix(in srgb, var(--indigo) 20%, transparent);}
   .hint{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
     text-transform:uppercase;margin:auto;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
@@ -1175,23 +1249,29 @@
   }
   /* Chrome : barre verre dépoli + onglets à pilule glissante. */
   .topbar{background:var(--topbar-bg);backdrop-filter:blur(16px) saturate(1.25);
-    -webkit-backdrop-filter:blur(16px) saturate(1.25);box-shadow:0 1px 0 var(--rule-soft);}
+    -webkit-backdrop-filter:blur(16px) saturate(1.25);}
   .wordmark{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .tabs{background:transparent;border-bottom:1px solid var(--rule);padding:10px 12px;gap:0;
+  .tabs{background:transparent;border-bottom:0;padding:0;gap:0;flex:0 0 auto;
     display:flex;justify-content:center;overflow:visible;}
-  .tab-cap{display:inline-flex;gap:2px;padding:4px;border-radius:999px;
+  .tab-cap{position:relative;display:inline-flex;gap:2px;padding:4px;border-radius:999px;
     background:var(--panel);border:1px solid var(--rule);box-shadow:var(--elev1);}
-  .tabs button{border-bottom:0;border-radius:999px;padding:9px 16px;background:transparent;
-    transition:color .18s ease,background .18s ease,box-shadow .18s ease;}
-  .tabs button:hover{background:var(--rule-soft);}
-  .tabs button.on{color:#FFF;background:var(--grad);box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
+  /* Pilule unique qui glisse vers l'onglet actif (effet liquide élastique). */
+  .tab-glide{position:absolute;top:4px;height:calc(100% - 8px);left:0;width:0;border-radius:999px;
+    background:var(--grad);box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);
+    z-index:0;pointer-events:none;opacity:0;transition:opacity .2s ease;}
+  .tab-glide.armed{transition:transform .5s cubic-bezier(.5,1.5,.35,1),
+    width .5s cubic-bezier(.5,1.5,.35,1), opacity .2s ease;}
+  .tabs button{position:relative;z-index:1;border-bottom:0;border-radius:999px;padding:9px 16px;
+    background:transparent;transition:color .25s ease;}
+  .tabs button:hover:not(.on){color:var(--ink);}
+  .tabs button.on{color:#FFF;background:transparent;box-shadow:none;}
   :root[data-theme="light"] .tabs button.on{color:#FFF;}
   /* Entrée de vue : fondu + légère montée à chaque changement d'onglet. */
   @keyframes vEnter{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
   .view.v-enter{animation:vEnter .34s cubic-bezier(.22,.8,.3,1) both;}
   /* Boutons & contrôles : rayons, élévation au survol, appui tactile. */
-  .fx,.lang,.theme,.authbar{border-radius:999px;overflow:hidden;background:var(--glass);
-    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .fx,.lang,.theme,.authbar{border-radius:999px;background:var(--panel);
+    border:1px solid var(--rule);box-shadow:var(--elev1);}
   .hs-cta,.m-go,.db-all,.g-back,.serie-play{border-radius:999px;
     transition:box-shadow .18s ease,background .18s ease,color .18s ease,filter .18s ease;}
   .hs-cta:hover,.m-go:hover,.serie-play:hover{filter:brightness(1.06);background:var(--grad);
@@ -1204,7 +1284,7 @@
     border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb, var(--indigo) 22%, transparent);outline:none;}
   :focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:4px;}
   /* Cartes & panneaux : verre, rayons larges, ombres douces, hover vivant. */
-  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,.lex-item,.src-item,
+  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,
   .macro,.results,.reports a{border-radius:var(--r-m);}
   .serie-card,.lb-card,.modal-card{background:var(--glass);backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);box-shadow:var(--elev1);}
@@ -1248,7 +1328,7 @@
   .fxv-table th,.fxv-table td{padding-left:14px;padding-right:14px;}
   .lb-card{background:var(--panel);}
   :root[data-theme="dark"] .lb-card{background:var(--panel);}
-  .lex-item,.src-item{background:var(--panel);}
+  .lex,.src{background:var(--panel);}
   .fxv-table tbody tr,.lb tbody tr{transition:background .15s ease;}
   .fxv-table tbody tr:hover td,.lb tbody tr:hover td{background:var(--rule-soft);}
   /* Landing : héro cinétique (dégradé animé sur le titre) + orbes flottants. */
@@ -1355,11 +1435,11 @@
     <div class="eyebrow" id="eyebrow">Marchés</div>
     <div class="wordmark">Atlas</div>
   </div>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
   <div class="tools">
-    <div class="stamp" id="stamp">—</div>
     <div class="fx" id="fx" role="group" aria-label="Devise" hidden>
-      <button type="button" data-cur="USD" class="on" aria-pressed="true">$ USD</button>
-      <button type="button" data-cur="EUR" aria-pressed="false">€ EUR</button>
+      <button type="button" data-cur="USD" class="on" aria-pressed="true" aria-label="Dollar américain" title="USD">$</button>
+      <button type="button" data-cur="EUR" aria-pressed="false" aria-label="Euro" title="EUR">€</button>
     </div>
     <div class="lang" id="lang" role="group" aria-label="Langue">
       <button type="button" data-lang="fr" class="on" aria-pressed="true">FR</button>
@@ -1372,8 +1452,6 @@
     <div class="authbar" id="authbar" hidden></div>
   </div>
 </header>
-
-<nav class="tabs" id="tabs" role="tablist"></nav>
 
 <section id="view-home" class="view"></section>
 <section id="view-map" class="view" hidden>
@@ -1858,8 +1936,33 @@ function renderIdentity(iso){
 function renderPanel(){
   const p = el("panel");
   if(!selected){
-    p.innerHTML = `<div class="cname">${t("choose")}</div>
-      <div class="empty">${t("chooseHint")}</div>`;
+    const L = lang === "fr";
+    const chips = (L
+      ? ["PIB", "Croissance", "Inflation", "Dette", "Rendement 10 ans", "Notations"]
+      : ["GDP", "Growth", "Inflation", "Debt", "10-year yield", "Ratings"])
+      .map(c => `<span class="pg-chip">${c}</span>`).join("");
+    const exN = { US: L ? "États-Unis" : "United States", CN: L ? "Chine" : "China",
+      DE: L ? "Allemagne" : "Germany", JP: L ? "Japon" : "Japan" };
+    const ex = ["US", "CN", "DE", "JP"].map(iso =>
+      `<button class="pg-ex" type="button" data-pick="${iso}">
+        <img src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="" loading="lazy" onerror="this.style.display='none'">
+        ${esc((macro.countries?.[iso]?.name) || exN[iso])}
+      </button>`).join("");
+    p.innerHTML = `
+      <div class="cname">${t("choose")}</div>
+      <div class="pguide">
+        <div class="pg-step">
+          <span class="pg-num">1</span>
+          <span>${L ? "Clique un pays sur la carte (ou cherche-le)." : "Click a country on the map (or search it)."}</span>
+        </div>
+        <div class="pg-step">
+          <span class="pg-num">2</span>
+          <span>${L ? "Sa fiche s'ouvre ici avec ses indicateurs :" : "Its profile opens here with its indicators:"}</span>
+        </div>
+        <div class="pg-chips">${chips}</div>
+        <div class="pg-try">${L ? "Essaie tout de suite :" : "Try it now:"}</div>
+        <div class="pg-exs">${ex}</div>
+      </div>`;
     return;
   }
   const name = macro.countries?.[selected.iso]?.name || selected.name;
@@ -1892,6 +1995,12 @@ function renderPanel(){
 
 // Bascule d'onglet (délégation : le panneau est reconstruit à chaque rendu).
 el("panel").addEventListener("click", (e) => {
+  const pick = e.target.closest("[data-pick]");
+  if (pick && window.__select){
+    const iso = pick.dataset.pick;
+    window.__select(iso, (macro.countries?.[iso]?.name) || iso);
+    return;
+  }
   const cur = e.target.closest("[data-fxcur]");
   if (cur){
     fxFrom = cur.dataset.fxcur;
@@ -1963,21 +2072,60 @@ const NAV_LABELS = {
 let view = "home";
 
 function renderTabs(){
-  // Onglets groupés dans une capsule centrée ; le DOM persiste pour que la
-  // pilule active puisse s'animer en CSS.
+  // Onglets dans une capsule centrée ; une pilule unique glisse vers l'onglet
+  // actif (effet liquide) au lieu d'allumer un fond par bouton.
   const host = el("tabs");
   let cap = host.querySelector(".tab-cap");
-  if (!cap || cap.childElementCount !== VIEW_ORDER.length || host.dataset.lang !== lang){
+  let rebuilt = false;
+  if (!cap || cap.querySelectorAll("button").length !== VIEW_ORDER.length || host.dataset.lang !== lang){
     host.dataset.lang = lang;
-    host.innerHTML = `<div class="tab-cap" role="tablist">${VIEW_ORDER.map(v =>
+    host.innerHTML = `<div class="tab-cap" role="tablist"><span class="tab-glide" aria-hidden="true"></span>${VIEW_ORDER.map(v =>
       `<button data-view="${v}" role="tab">${esc(NAV_LABELS[v][lang])}</button>`).join("")}</div>`;
     cap = host.querySelector(".tab-cap");
+    rebuilt = true;
   }
-  for (const b of cap.children){
+  for (const b of cap.querySelectorAll("button")){
     const on = b.dataset.view === view;
     b.classList.toggle("on", on);
     b.setAttribute("aria-selected", String(on));
   }
+  positionTabGlide(cap, rebuilt);
+}
+// Place la pilule sous l'onglet actif. `instant` = sans transition (1er rendu/resize).
+function positionTabGlide(cap, instant){
+  const glide = cap.querySelector(".tab-glide");
+  const active = cap.querySelector("button.on");
+  if (!glide) return;
+  if (!active){ glide.style.opacity = "0"; return; }   // accueil : aucun onglet → pas de pilule
+  glide.style.opacity = "1";
+  const place = () => {
+    const cr = cap.getBoundingClientRect(), r = active.getBoundingClientRect();
+    glide.style.width = r.width + "px";
+    glide.style.transform = `translateX(${(r.left - cr.left - cap.clientLeft).toFixed(1)}px)`;
+  };
+  if (instant){ glide.classList.remove("armed"); place(); requestAnimationFrame(() => glide.classList.add("armed")); }
+  else { glide.classList.add("armed"); place(); }
+}
+window.addEventListener("resize", () => {
+  const cap = el("tabs") && el("tabs").querySelector(".tab-cap");
+  if (cap) positionTabGlide(cap, true);
+  for (const id of ["fx", "lang", "theme"]) ctlGlide(el(id), true);
+});
+// Place (et crée au besoin) la pilule glissante d'un groupe de contrôles sous
+// son bouton actif. `instant` = sans animation (1er placement / resize).
+function ctlGlide(box, instant){
+  if (!box || box.hidden) return;
+  let glide = box.querySelector(".ctl-glide");
+  if (!glide){ glide = document.createElement("span"); glide.className = "ctl-glide";
+    glide.setAttribute("aria-hidden", "true"); box.insertBefore(glide, box.firstChild); }
+  const active = box.querySelector("button.on"); if (!active) return;
+  const apply = () => {
+    const cr = box.getBoundingClientRect(), r = active.getBoundingClientRect();
+    glide.style.width = r.width + "px"; glide.style.height = r.height + "px";
+    glide.style.transform = `translate(${(r.left - cr.left - box.clientLeft).toFixed(1)}px, ${(r.top - cr.top - box.clientTop).toFixed(1)}px)`;
+  };
+  if (instant){ glide.classList.remove("armed"); apply(); requestAnimationFrame(() => glide.classList.add("armed")); }
+  else { glide.classList.add("armed"); apply(); }
 }
 // Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
 function applyView(v){
@@ -2436,28 +2584,59 @@ function renderPurpose(){
   const L = lang === "fr" ? "fr" : "en";
   const about = PROFILE.about[L].map(p => `<p class="body">${esc(p)}</p>`).join("");
   const proj = PROFILE.project[L].map(p => `<p class="body">${esc(p)}</p>`).join("");
-  return `<div class="page"><div class="page-in">
-    <div class="about-head">
-      <div class="about-id">
-        <div class="about-role">${esc(PROFILE.role[L])}</div>
-        <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>
-      </div>
-    </div>
-    <h2>${L === "fr" ? "À propos" : "About"}</h2>
-    ${about}
-    <h2>${L === "fr" ? "Le projet" : "The project"}</h2>
-    ${proj}
-    <h2>${L === "fr" ? "Vos retours" : "Feedback"}</h2>
-    <p class="body">${L === "fr"
-      ? "Une remarque, une donnée manquante, une idée d'amélioration ? Dites-le-moi."
-      : "A remark, a missing figure, an idea to improve Atlas? Let me know."}</p>
-    <form class="fb-form" novalidate>
-      <input name="name" type="text" placeholder="${L === "fr" ? "Nom (facultatif)" : "Name (optional)"}" autocomplete="name">
-      <input name="email" type="email" placeholder="${L === "fr" ? "E-mail, pour une réponse (facultatif)" : "Email, for a reply (optional)"}" autocomplete="email">
-      <textarea name="message" rows="4" placeholder="${L === "fr" ? "Votre message…" : "Your message…"}"></textarea>
-      <button type="submit" class="fb-btn">${L === "fr" ? "Envoyer" : "Send"}</button>
-      <div class="fb-status" role="status" aria-live="polite"></div>
-    </form>
+  const nCountries = Object.keys(macro.countries || {}).length;
+  const nRated = Object.keys((ratings && ratings.countries) || {}).length;
+  // Chiffres-clés réels du projet.
+  const stats = [
+    { n: nCountries ? nCountries + "+" : "160+", k: L === "fr" ? "pays couverts" : "countries covered" },
+    { n: "8", k: L === "fr" ? "indicateurs / pays" : "indicators / country" },
+    { n: nRated ? String(nRated) : "160+", k: L === "fr" ? "notations souveraines" : "sovereign ratings" },
+    { n: "4", k: L === "fr" ? "jeux quotidiens" : "daily games" },
+  ].map(s => `<div class="pstat"><div class="pstat-n">${s.n}</div><div class="pstat-k">${s.k}</div></div>`).join("");
+  // Stack technique (matrice de compétences).
+  const stack = [
+    { c: L === "fr" ? "Interface" : "Frontend", items: ["JavaScript (ES modules)", "D3.js", "Canvas / SVG"] },
+    { c: L === "fr" ? "Données" : "Data", items: ["API FMI (DataMapper)", "exchange-api (FX)", "world-atlas (TopoJSON)"] },
+    { c: L === "fr" ? "Backend" : "Backend", items: ["Supabase (auth + classement)"] },
+    { c: L === "fr" ? "Automatisation" : "Automation", items: ["Node.js", "GitHub Actions (mensuel)"] },
+    { c: L === "fr" ? "Hébergement" : "Hosting", items: ["GitHub Pages"] },
+  ].map(r => `<div class="pstack-row">
+      <div class="pstack-c">${r.c}</div>
+      <div class="pstack-items">${r.items.map(i => `<span class="pstack-chip">${esc(i)}</span>`).join("")}</div>
+    </div>`).join("");
+  return `<div class="page"><div class="page-in purpose-in">
+    <section class="purpose-card">
+      <h2>${L === "fr" ? "À propos" : "About"}</h2>
+      <div class="about-role">${esc(PROFILE.role[L])}</div>
+      <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <div class="about-body">${about}</div>
+    </section>
+
+    <div class="pstats">${stats}</div>
+
+    <section class="purpose-card">
+      <h2>${L === "fr" ? "La démarche" : "The approach"}</h2>
+      ${proj}
+    </section>
+
+    <section class="purpose-card">
+      <h2>${L === "fr" ? "Stack technique" : "Tech stack"}</h2>
+      <div class="pstack">${stack}</div>
+    </section>
+
+    <section class="purpose-card">
+      <h2>${L === "fr" ? "Vos retours" : "Feedback"}</h2>
+      <p class="body">${L === "fr"
+        ? "Une remarque, une donnée manquante, une idée d'amélioration ? Dites-le-moi."
+        : "A remark, a missing figure, an idea to improve Atlas? Let me know."}</p>
+      <form class="fb-form" novalidate>
+        <input name="name" type="text" placeholder="${L === "fr" ? "Nom (facultatif)" : "Name (optional)"}" autocomplete="name">
+        <input name="email" type="email" placeholder="${L === "fr" ? "E-mail, pour une réponse (facultatif)" : "Email, for a reply (optional)"}" autocomplete="email">
+        <textarea name="message" rows="4" placeholder="${L === "fr" ? "Votre message…" : "Your message…"}"></textarea>
+        <button type="submit" class="fb-btn">${L === "fr" ? "Envoyer" : "Send"}</button>
+        <div class="fb-status" role="status" aria-live="polite"></div>
+      </form>
+    </section>
   </div></div>`;
 }
 
@@ -3644,8 +3823,9 @@ async function boot(){
   applyView(v0);
   hubWorldBg();   // fond pointillé global (se relance seul quand les données sont prêtes)
   function renderStamp(){
+    const s = el("stamp"); if (!s) return;   // date/pays retirés du bandeau fusionné
     const loc = lang === "fr" ? "fr-BE" : "en-GB";
-    el("stamp").textContent =
+    s.textContent =
       `${new Date().toLocaleDateString(loc, { day: "2-digit", month: "short" })} · ${nCountries} ${t("countriesWord")}`;
   }
   renderStamp();
@@ -3867,6 +4047,7 @@ async function boot(){
 
   if (macro.fx?.usdToEur) {
     el("fx").hidden = false;
+    ctlGlide(el("fx"), true);
     el("fx").addEventListener("click", (e) => {
       const b = e.target.closest("[data-cur]");
       if (!b) return;
@@ -3876,6 +4057,7 @@ async function boot(){
         btn.classList.toggle("on", on);
         btn.setAttribute("aria-pressed", String(on));
       }
+      ctlGlide(el("fx"));
       // Le panneau pays ET le tableur affichent des montants : on rerend les deux.
       if (selected) renderPanel();
       renderView(view);
@@ -3965,6 +4147,7 @@ async function boot(){
       btn.classList.toggle("on", on);
       btn.setAttribute("aria-pressed", String(on));
     }
+    ctlGlide(el("lang"));
     // retraduire tout ce qui vit hors du panneau
     el("eyebrow").textContent = t("eyebrow");
     el("lg-cov").textContent = t("covered");
@@ -3983,6 +4166,7 @@ async function boot(){
   el("map").hidden = false;
   el("zoomctl").hidden = false;
   el("legend").hidden = false;
+  ctlGlide(el("lang"), true);
   renderPanel();
 }
 
@@ -3991,7 +4175,7 @@ async function boot(){
 // synchronise l'état des boutons et on gère le clic + la persistance.
 (function setupTheme(){
   const box = el("theme"); if (!box) return;
-  function paint(dark){
+  function paint(dark, instant){
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     if (typeof worldbgRefresh === "function") worldbgRefresh();   // recolore les points
     for (const b of box.querySelectorAll("button")){
@@ -3999,13 +4183,14 @@ async function boot(){
       b.classList.toggle("on", on);
       b.setAttribute("aria-pressed", String(on));
     }
+    ctlGlide(box, instant);
   }
-  paint(document.documentElement.getAttribute("data-theme") === "dark");
+  paint(document.documentElement.getAttribute("data-theme") === "dark", true);
   box.addEventListener("click", (e) => {
     const b = e.target.closest("[data-theme-set]");
     if (!b) return;
     const dark = b.dataset.themeSet === "dark";
-    paint(dark);
+    paint(dark, false);
     try { localStorage.setItem("atlas-theme", dark ? "dark" : "light"); } catch {}
   });
 })();
