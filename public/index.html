@@ -202,6 +202,14 @@
   .cell .v small{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--dim);
     letter-spacing:0;margin-left:3px;}
   .cell.wide{grid-column:1 / -1;}
+  /* Contexte de rang sous la valeur : position mondiale + régionale du pays
+     pour cet indicateur (1 = valeur la plus élevée). Flex : chaque rang reste
+     insécable et bascule proprement à la ligne dans les cases étroites. */
+  .cell .rank{display:flex;flex-wrap:wrap;column-gap:10px;row-gap:1px;
+    font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.02em;
+    color:var(--dim);margin-top:6px;line-height:1.3;}
+  .cell .rank .rk-p{white-space:nowrap;}
+  .cell .rank b{color:color-mix(in srgb, var(--dim) 40%, var(--ink));font-weight:600;}
   .trend-up{color:#1E7A46;} .trend-down{color:#B4462A;}
   /* Mini-graphe d'historique (15 ans) : en-tête = échelle verticale (min…max) qui
      devient « année · valeur » au survol ; bas = années début/fin. Les points et
@@ -408,6 +416,73 @@
   .chip.on{background:var(--indigo);border-color:var(--indigo);color:#FFF;}
   .chip:disabled{opacity:.4;cursor:default;}
   .chip:disabled:hover{color:var(--dim);border-color:var(--rule);}
+  /* Base de données : bascule Tableau / Graphique */
+  .db-mode{display:flex;gap:6px;margin:0 0 12px;flex:none;}
+  /* Comparateur multi-pays */
+  .cmp-header{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;margin:0 0 12px;flex:none;}
+  .cmp-hleft{flex:1 1 auto;min-width:0;}
+  .cmp-inds{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;margin:0;}
+  .cmp-selcol{flex:0 0 380px;display:flex;flex-direction:column;}
+  .cmp-chosen-wrap{flex:1 1 0;position:relative;min-height:52px;}
+  .cmp-sel-empty{color:var(--dim);font-size:12.5px;}
+  .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
+    font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 4px;border-radius:4px;}
+  .cmp-reset:hover{color:var(--indigo);}
+  .cmp-scroll{overflow:auto;flex:1;min-height:0;}
+  .cmp-note{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);margin:8px 0 0;}
+  .cmp-wrap{position:relative;border:1px solid var(--rule);border-radius:var(--r-m);
+    background:var(--panel);padding:12px 14px;}
+  .compare-plot{width:100%;height:auto;max-height:66vh;display:block;cursor:crosshair;}
+  .cmp-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
+  .cmp-grid{stroke:var(--rule);stroke-width:1;}
+  .cmp-zero{stroke:var(--dim);stroke-width:1;stroke-dasharray:3 3;opacity:.55;}
+  .cmp-guide{stroke:var(--dim);stroke-width:1;stroke-dasharray:2 2;opacity:.6;}
+  .cmp-ylab,.cmp-xlab{font-family:var(--mono);font-size:11px;fill:var(--dim);}
+  .cmp-tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);
+    border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--ink);
+    box-shadow:0 6px 22px rgba(0,0,0,.18);min-width:130px;z-index:5;}
+  .cmp-tip .ty{color:var(--dim);font-weight:600;margin-bottom:5px;}
+  .cmp-tip .tr{display:flex;align-items:center;gap:7px;white-space:nowrap;line-height:1.55;}
+  .cmp-tip .tr .sw{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .cmp-tip .tr b{margin-left:auto;padding-left:14px;}
+  .cmp-empty{border:1px dashed var(--rule);border-radius:var(--r-m);text-align:center;
+    color:var(--dim);font-size:14px;line-height:1.6;}
+  .cmp-main > .cmp-empty{aspect-ratio:1000 / 310;display:flex;align-items:center;justify-content:center;padding:24px;}
+  /* Graphique + panneau droit (sélecteur de pays, définition) */
+  .cmp-main{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;}
+  .cmp-main > .cmp-wrap,.cmp-main > .cmp-empty{flex:1 1 420px;min-width:0;align-self:flex-start;}
+  .cmp-side{flex:0 0 250px;display:flex;flex-direction:column;gap:12px;}
+  .cmp-block{border:1px solid var(--rule);border-radius:var(--r-m);background:var(--panel);padding:12px 14px;}
+  .cmp-block-grow{flex:1 1 0;display:flex;flex-direction:column;min-height:0;}
+  .cmp-block-h{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);margin:0 0 10px;}
+  .cmp-chosen{position:absolute;inset:0;overflow:auto;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;}
+  .cmp-pick-err{font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;color:#C9553B;margin:0 0 8px;}
+  .cmp-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:20px;
+    padding:3px 4px 3px 9px;}
+  .cmp-cdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .cmp-cx{background:none;border:0;color:var(--dim);cursor:pointer;font-size:15px;line-height:1;
+    padding:0 3px;border-radius:50%;}
+  .cmp-cx:hover{color:var(--ink);}
+  .cmp-pick-search{font-family:var(--body);font-size:12.5px;width:100%;padding:6px 10px;margin:0 0 8px;
+    background:var(--paper);border:1px solid var(--rule);border-radius:3px;color:var(--ink);
+    outline:none;box-sizing:border-box;}
+  .cmp-pick-search:focus{border-color:var(--indigo);}
+  .cmp-pick-search::placeholder{color:var(--dim);}
+  .cmp-pick-listwrap{flex:1 1 0;position:relative;min-height:60px;}
+  .cmp-pick-list{position:absolute;inset:0;overflow:auto;display:flex;flex-direction:column;gap:1px;}
+  .cmp-pick{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);cursor:pointer;
+    padding:5px 6px;border-radius:5px;}
+  .cmp-pick:hover,.cmp-pick.on{background:var(--rule-soft);}
+  .cmp-pick input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
+  .cmp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .cmp-dot.off{background:var(--rule);}
+  .cmp-pick-none{color:var(--dim);font-size:12.5px;padding:8px 4px;}
+  .cmp-def-metric{font-family:var(--display);font-weight:600;font-size:15px;margin:0 0 6px;}
+  .cmp-def-text{font-size:12.5px;line-height:1.55;color:color-mix(in srgb, var(--dim) 30%, var(--ink));}
+  @media (max-width:1024px){ .cmp-side,.cmp-selcol{flex:1 1 100%;} .cmp-chosen-wrap{flex:none;height:110px;} .cmp-block-grow{flex:none;} .cmp-pick-listwrap{flex:none;height:300px;} }
   /* Jeu : trouve le pays */
   .g-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;}
   .g-searchwrap{position:relative;}
@@ -1857,6 +1932,25 @@ function renderFX(iso){
     <div class="macro-src">${upd ? esc(upd) + " · " : ""}exchange-api</div></div>`;
 }
 
+// Rang d'un pays pour un indicateur : sa position par valeur décroissante,
+// dans le monde et dans sa région. 1 = valeur la plus élevée. Renvoie null si
+// le pays n'a pas la donnée. Ordre concurrentiel simple (ex æquo = même rang).
+function indRank(iso, key){
+  const val = macro.countries?.[iso]?.indicators?.[key]?.value;
+  if (val == null || !isFinite(val)) return null;
+  const reg = ident[iso]?.reg;
+  let worldN = 0, worldAbove = 0, regN = 0, regAbove = 0;
+  for (const [k, m] of Object.entries(macro.countries || {})){
+    const v = m.indicators?.[key]?.value;
+    if (v == null || !isFinite(v)) continue;
+    worldN++; if (v > val) worldAbove++;
+    if (reg && ident[k]?.reg === reg){ regN++; if (v > val) regAbove++; }
+  }
+  return { worldRank: worldAbove + 1, worldN, regRank: regAbove + 1, regN, reg };
+}
+// Ordinal court, sans genre marqué : 1ᵉʳ, 2ᵉ, 3ᵉ…
+const ordFr = (n) => n === 1 ? "1ᵉʳ" : n + "ᵉ";
+
 function renderMacro(iso){
   const m = macro.countries?.[iso];
   if(!m || !m.indicators || !Object.keys(m.indicators).length){
@@ -1873,9 +1967,19 @@ function renderMacro(iso){
     const wide = (k === "NGDPD" || (k === lastKey && normalCount % 2 === 1)) ? " wide" : "";
     const trend = d.fmt === "pct" && (k === "NGDP_RPCH")
       ? (d.value >= 0 ? " trend-up" : " trend-down") : "";
+    const rk = indRank(iso, k);
+    let rankLine = "";
+    if (rk){
+      const world = `<span class="rk-p">${lang === "fr" ? "Monde" : "World"} <b>${ordFr(rk.worldRank)}</b>/${rk.worldN}</span>`;
+      const regName = lang === "fr" ? (ident[iso]?.regFr || rk.reg) : rk.reg;
+      const region = (rk.regN > 1 && regName)
+        ? `<span class="rk-p">${esc(regName)} <b>${ordFr(rk.regRank)}</b>/${rk.regN}</span>` : "";
+      rankLine = `<div class="rank">${world}${region}</div>`;
+    }
     return `<div class="cell${wide}">
       <div class="k">${esc(IND_LABELS[k]?.[lang] || d.label)}</div>
       <div class="v${trend}">${fmtVal(d)}</div>
+      ${rankLine}
       ${d.hist ? sparkChart(d.hist, yearLabels(d.hist, d.hist0), d.fmt) : ""}
     </div>`;
   }).join("");
@@ -2672,6 +2776,29 @@ const dbRegions = new Set();  // filtres région (clés EN stables : Europe, Asi
 const dbGrades = new Set();   // familles de notation : "A", "B", "C"
 let dbQInd = null;            // indicateur des quartiles : gdp|pop|debt|budget|cab
 const dbQuarts = new Set();   // quartiles retenus : 1..4
+// Mode de l'onglet Base de données : tableau (défaut) ou graphique comparateur.
+let dbMode = "table";
+// Indicateur tracé dans le comparateur (clé FMI). Dette publique par défaut :
+// comparable d'un pays à l'autre quelle que soit la taille.
+let dbChartInd = "GGXWDG_NGDP";
+const CHART_INDS = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
+const CHART_FMT = { NGDPD:"moneyMd", NGDPDPC:"money", NGDP_RPCH:"pct", PCPIPCH:"pct",
+  GGXWDG_NGDP:"pct", GGXCNL_NGDP:"pct", BCA_NGDPD:"pct", LUR:"pct" };
+// Palette des séries : lisible sur fond clair comme sombre. 10 = limite de sélection.
+const SERIES_COLORS = ["#4F6BED","#12A594","#E0823D","#B4462A","#7C4DBE","#2A8C5A","#C23B87","#8A6D3B","#2FA8C4","#B5892B"];
+const MAX_PICK = SERIES_COLORS.length;   // nb max de pays comparés
+let dbPickQuery = "";   // recherche du sélecteur de pays (panneau du mode Graphique)
+// Définition courte de chaque métrique, affichée sous le graphe.
+const MET_DEF = {
+  NGDPD:       { fr:"Produit intérieur brut : valeur de tous les biens et services produits en un an, en milliards de dollars courants.", en:"Gross domestic product: value of all goods and services produced in a year, in current-USD billions." },
+  NGDPDPC:     { fr:"PIB rapporté à la population : richesse produite par habitant, en dollars courants.", en:"GDP relative to population: output per person, in current USD." },
+  NGDP_RPCH:   { fr:"Variation annuelle du PIB réel, corrigé de l'inflation, en %.", en:"Annual change in real (inflation-adjusted) GDP, in %." },
+  PCPIPCH:     { fr:"Hausse annuelle moyenne des prix à la consommation, en %.", en:"Average annual rise in consumer prices, in %." },
+  GGXWDG_NGDP: { fr:"Dette brute des administrations publiques, en % du PIB.", en:"Gross general-government debt, as % of GDP." },
+  GGXCNL_NGDP: { fr:"Solde des administrations publiques (recettes − dépenses), en % du PIB ; négatif = déficit.", en:"Government net lending/borrowing (revenue − spending), as % of GDP; negative = deficit." },
+  BCA_NGDPD:   { fr:"Solde des échanges courants avec l'étranger (biens, services, revenus), en % du PIB.", en:"Current-account balance with the rest of the world, as % of GDP." },
+  LUR:         { fr:"Part de la population active sans emploi et à la recherche d'un travail, en %.", en:"Share of the labour force unemployed and seeking work, in %." },
+};
 const REG_LABELS = {
   Europe:{fr:"Europe",en:"Europe"}, Asia:{fr:"Asie",en:"Asia"}, Africa:{fr:"Afrique",en:"Africa"},
   Americas:{fr:"Amériques",en:"Americas"}, Oceania:{fr:"Océanie",en:"Oceania"},
@@ -2691,7 +2818,28 @@ function gradeOf(iso){
   return rank >= 15 ? "A" : rank >= 6 ? "B" : "C";
 }
 
+// Onglet Base de données : en-tête + bascule Tableau / Graphique, puis le corps
+// correspondant. Le comparateur (Graphique) réutilise les pays épinglés.
 function renderDatabase(){
+  const L = lang === "fr";
+  const modeChip = (m, label) =>
+    `<button class="chip${dbMode === m ? " on" : ""}" data-dbmode="${m}">${label}</button>`;
+  const toggle = `<div class="db-mode">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}</div>`;
+  const lead = dbMode === "chart"
+    ? (L ? "Sélectionne des pays et compare leurs trajectoires sur un indicateur."
+         : "Select countries and compare their trajectories on one indicator.")
+    : (L ? "Trie par en-tête, filtre, et coche un pays pour l'épingler pendant tes recherches."
+         : "Sort by header, filter, and tick a country to pin it while you search.");
+  const h1 = `<h1>${L ? "Base de données" : "Database"}</h1>`;
+  const leadP = `<p class="lead">${lead}</p>`;
+  if (dbMode === "chart") return renderCompareView(h1, leadP, toggle);
+  return `<div class="page db-page"><div class="db-in">
+    ${h1}${leadP}${toggle}
+    ${renderTableBody()}
+  </div></div>`;
+}
+
+function renderTableBody(){
   const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
   const toggleable = DB_COLS.filter(c => !c.always);
   const allBtn = `<button class="db-all" data-dbreset title="${lang === "fr" ? "Tout réafficher, vider recherche et épingles" : "Show all, clear search and pins"}">⟳ ${lang === "fr" ? "Réinitialiser" : "Reset"}</button>`;
@@ -2752,12 +2900,7 @@ function renderDatabase(){
     return `<td class="${c.text ? "" : "num"}">${disp}</td>`;
   }).join("")}</tr>`).join("")
     || `<tr><td colspan="${cols.length}" class="db-none">${lang === "fr" ? "Aucun pays ne correspond." : "No country matches."}</td></tr>`;
-  return `<div class="page db-page"><div class="db-in">
-    <h1>${lang === "fr" ? "Base de données" : "Database"}</h1>
-    <p class="lead">${lang === "fr"
-      ? "Trie par en-tête, filtre, et coche un pays pour l'épingler pendant tes recherches."
-      : "Sort by header, filter, and tick a country to pin it while you search."}</p>
-    <div class="db-cols">${allBtn}${toggles}</div>
+  return `<div class="db-cols">${allBtn}${toggles}</div>
     ${filters}
     <input class="db-search" type="text" autocomplete="off" spellcheck="false"
       value="${esc(dbQuery)}" placeholder="${lang === "fr" ? "Rechercher un pays…" : "Search a country…"}"
@@ -2768,9 +2911,166 @@ function renderDatabase(){
     </table></div>
     <div class="macro-src db-src">${lang === "fr"
       ? "Sources : FMI (macro) · Banque mondiale (population) · world-countries (région) · OCDE via FRED (rendements) · Wikipédia (notations)"
-      : "Sources: IMF (macro) · World Bank (population) · world-countries (region) · OECD via FRED (yields) · Wikipedia (ratings)"}</div>
+      : "Sources: IMF (macro) · World Bank (population) · world-countries (region) · OECD via FRED (yields) · Wikipedia (ratings)"}</div>`;
+}
+// Graduations « rondes », en visant au plus n intervalles (pas 1/2/2,5/5/10 ×10ⁿ).
+function niceTicks(min, max, n){
+  const span = (max - min) || 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(span / n)));
+  const cand = [1, 2, 2.5, 5, 10].map(s => s * mag);
+  const step = cand.find(s => span / s <= n) || cand[cand.length - 1];
+  const out = [];
+  for (let v = Math.ceil(min / step) * step; v <= max + step * 1e-6; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+
+// Libellé d'axe compact (les valeurs pleines restent dans l'infobulle) : montants
+// à l'échelle k/M/Md/T, symbole collé, décimale seulement si utile → tient à gauche.
+function fmtAxis(v, fmt){
+  if (fmt !== "moneyMd" && fmt !== "money"){
+    return (v % 1 ? v.toFixed(1).replace(".", ",") : String(v)) + " %";
+  }
+  let x = fmt === "moneyMd" ? v * 1e9 : v;
+  const rate = macro.fx?.usdToEur;
+  if (currency === "EUR" && rate) x *= rate;
+  const sym = currency === "EUR" ? "€" : "$";
+  const scaled = (d, u) => (x / d).toFixed((x / d) % 1 ? 1 : 0).replace(".", ",") + " " + u + sym;
+  const a = Math.abs(x);
+  if (a >= 1e12) return scaled(1e12, "T");
+  if (a >= 1e9)  return scaled(1e9, "Md");
+  if (a >= 1e6)  return scaled(1e6, "M");
+  if (a >= 1e3)  return scaled(1e3, "k");
+  return Math.round(x) + sym;
+}
+
+// Graphe comparateur : superpose les trajectoires annuelles de plusieurs pays
+// sur un même indicateur. SVG à repère fixe (axes valeurs + années), une courbe
+// par pays, survol pour lire toutes les valeurs d'une année. Les colonnes
+// (année → valeurs par série) sont stockées sur le SVG pour le survol.
+function compareChart(isos, key, fmt){
+  const series = isos.slice(0, SERIES_COLORS.length).map((iso, idx) => {
+    const d = macro.countries[iso].indicators[key];
+    const y0 = d.hist0;
+    const pts = d.hist.map((v, i) => [y0 + i, v]).filter(([, v]) => typeof v === "number" && isFinite(v));
+    return { iso, name: (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries[iso].name,
+             color: SERIES_COLORS[idx], pts };
+  }).filter(s => s.pts.length);
+  if (!series.length) return "";
+  let xMin = Infinity, xMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+  series.forEach(s => s.pts.forEach(([yr, v]) => {
+    if (yr < xMin) xMin = yr; if (yr > xMax) xMax = yr;
+    if (v < vMin) vMin = v; if (v > vMax) vMax = v;
+  }));
+  if (xMin === xMax) xMax = xMin + 1;
+  let y0 = vMin, y1 = vMax;
+  if (y0 === y1){ y0 -= 1; y1 += 1; }
+  const pad = (y1 - y0) * 0.08; y0 -= pad; y1 += pad;
+  const zeroIn = y0 < 0 && y1 > 0;
+  const W = 1000, H = 310, mL = 66, mR = 20, mT = 16, mB = 30;
+  const pw = W - mL - mR, ph = H - mT - mB;
+  const sx = yr => mL + (yr - xMin) / ((xMax - xMin) || 1) * pw;
+  const sy = v  => mT + (1 - (v - y0) / ((y1 - y0) || 1)) * ph;
+  const grid = niceTicks(y0, y1, 5).filter(tv => tv >= y0 && tv <= y1).map(tv => {
+    const yy = sy(tv).toFixed(1);
+    return `<line class="cmp-grid" x1="${mL}" y1="${yy}" x2="${W - mR}" y2="${yy}"/>`
+      + `<text class="cmp-ylab" x="${mL - 8}" y="${yy}" text-anchor="end" dominant-baseline="middle">${esc(fmtAxis(tv, fmt))}</text>`;
+  }).join("");
+  const zeroLine = zeroIn ? `<line class="cmp-zero" x1="${mL}" y1="${sy(0).toFixed(1)}" x2="${W - mR}" y2="${sy(0).toFixed(1)}"/>` : "";
+  const years = []; for (let y = xMin; y <= xMax; y++) years.push(y);
+  const step = Math.max(1, Math.round(years.length / 6));
+  const xlabs = years.filter((y, i) => i % step === 0 || y === xMax).map(y =>
+    `<text class="cmp-xlab" x="${sx(y).toFixed(1)}" y="${H - 8}" text-anchor="middle">${y}</text>`).join("");
+  const paths = series.map(s => {
+    const d = s.pts.map(([yr, v], k) => (k ? "L" : "M") + sx(yr).toFixed(1) + "," + sy(v).toFixed(1)).join(" ");
+    return `<path class="cmp-line" d="${d}" style="stroke:${s.color}"/>`;
+  }).join("");
+  const ends = series.map(s => { const p = s.pts[s.pts.length - 1];
+    return `<circle r="3" cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" style="fill:${s.color}"/>`; }).join("");
+  const cols = years.map(y => ({
+    year: y, x: +sx(y).toFixed(1),
+    vals: series.map((s, si) => { const p = s.pts.find(pp => pp[0] === y);
+      return p ? { name: s.name, color: s.color, y: +sy(p[1]).toFixed(1), v: p[1], si } : null; }).filter(Boolean)
+  })).filter(c => c.vals.length);
+  const hdots = series.map((s, i) => `<circle class="cmp-hdot" data-i="${i}" r="3.5" style="fill:${s.color};display:none"/>`).join("");
+  return `<svg class="compare-plot" viewBox="0 0 ${W} ${H}" data-fmt="${fmt}" data-vbw="${W}" data-cols='${esc(JSON.stringify(cols))}'>
+      ${grid}${zeroLine}
+      <line class="cmp-guide" x1="0" y1="${mT}" x2="0" y2="${H - mB}" style="display:none"/>
+      ${paths}${ends}${hdots}${xlabs}
+    </svg>
+    <div class="cmp-tip" style="display:none"></div>`;
+}
+
+// Corps du mode Graphique : puces d'indicateurs, graphe des pays sélectionnés
+// (à gauche) et panneau à droite (liste cochable des pays + définition).
+function renderCompareView(h1, leadP, toggle){
+  const L = lang === "fr";
+  const nameOf = iso => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : (macro.countries?.[iso]?.name || iso);
+  const inds = CHART_INDS.map(k =>
+    `<button class="chip${k === dbChartInd ? " on" : ""}" data-cind="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("");
+  // Pays tracés : sélectionnés ayant la donnée pour l'indicateur, dans l'ordre, max 10.
+  const withData = [...dbPicked].filter(iso => macro.countries?.[iso]?.indicators?.[dbChartInd]?.hist);
+  const plotted = withData.slice(0, SERIES_COLORS.length);
+  const colorOf = {}; plotted.forEach((iso, i) => colorOf[iso] = SERIES_COLORS[i]);
+  const chips = plotted.length
+    ? plotted.map(iso =>
+        `<span class="cmp-chip"><span class="cmp-cdot" style="background:${colorOf[iso]}"></span>${esc(nameOf(iso))}<button class="cmp-cx" data-unpin="${iso}" title="${L ? "Retirer" : "Remove"}" aria-label="${L ? "Retirer" : "Remove"}">×</button></span>`).join("")
+    : `<div class="cmp-sel-empty">${L ? "Aucun pays sélectionné." : "No country selected."}</div>`;
+  const resetBtn = dbPicked.size
+    ? `<button class="cmp-reset" data-cmpreset title="${L ? "Tout désélectionner" : "Clear all"}">⟳ ${L ? "Réinitialiser" : "Reset"}</button>` : "";
+  const selBlock = `<div class="cmp-block cmp-selcol">
+      <div class="cmp-block-h cmp-selhead"><span>${L ? "Sélection" : "Selection"}</span>${resetBtn}</div>
+      <div class="cmp-chosen-wrap"><div class="cmp-chosen">${chips}</div></div>
+    </div>`;
+  const plot = plotted.length
+    ? `<div class="cmp-wrap">${compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd])}</div>`
+    : `<div class="cmp-empty">${L ? "Sélectionne des pays dans la liste pour tracer leurs courbes." : "Select countries in the list to plot their curves."}</div>`;
+  const noData = dbPicked.size - withData.length;
+  const noteHtml = noData > 0
+    ? `<div class="cmp-note">${L ? `${noData} pays sans donnée ici.` : `${noData} country(ies) without data here.`}</div>` : "";
+  const src = `<div class="macro-src db-src">${L ? "Source : FMI — World Economic Outlook" : "Source: IMF — World Economic Outlook"}</div>`;
+  // Liste cochable de tous les pays (pastille de couleur si tracé).
+  const fold = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const q = fold(dbPickQuery.trim());
+  const rows = Object.keys(macro.countries || {})
+    .filter(iso => !q || fold(nameOf(iso)).includes(q) || iso.toLowerCase() === q)
+    .sort((a, b) => nameOf(a).localeCompare(nameOf(b), lang))
+    .map(iso => {
+      const on = dbPicked.has(iso);
+      const dot = colorOf[iso] ? `<span class="cmp-dot" style="background:${colorOf[iso]}"></span>` : `<span class="cmp-dot off"></span>`;
+      return `<label class="cmp-pick${on ? " on" : ""}"><input type="checkbox" data-pickctry="${iso}"${on ? " checked" : ""}>${dot}${esc(nameOf(iso))}</label>`;
+    }).join("") || `<div class="cmp-pick-none">${L ? "Aucun pays." : "No country."}</div>`;
+  const def = MET_DEF[dbChartInd]?.[lang] || "";
+  const side = `<div class="cmp-side">
+      <div class="cmp-block cmp-block-grow">
+        <div class="cmp-block-h">${L ? "Pays" : "Countries"}</div>
+        <input class="cmp-pick-search" type="text" autocomplete="off" spellcheck="false"
+          value="${esc(dbPickQuery)}" placeholder="${L ? "Rechercher…" : "Search…"}"
+          aria-label="${L ? "Rechercher un pays" : "Search a country"}">
+        <div class="cmp-pick-err" style="display:none"></div>
+        <div class="cmp-pick-listwrap"><div class="cmp-pick-list">${rows}</div></div>
+      </div>
+      <div class="cmp-block">
+        <div class="cmp-block-h">${L ? "Définition" : "Definition"}</div>
+        <div class="cmp-def-metric">${esc(IND_LABELS[dbChartInd]?.[lang] || dbChartInd)}</div>
+        <div class="cmp-def-text">${esc(def)}</div>
+      </div>
+    </div>`;
+  return `<div class="page db-page"><div class="db-in">
+    <div class="cmp-header">
+      <div class="cmp-hleft">${h1}${leadP}${toggle}<div class="cmp-inds">${inds}</div></div>
+      ${selBlock}
+    </div>
+    <div class="cmp-scroll">
+      <div class="cmp-main">
+        ${plot}
+        ${side}
+      </div>
+      ${noteHtml}
+      ${src}
+    </div>
   </div></div>`;
 }
+
 function renderBenchmark(){ return renderDatabase(); }
 // ── Jeu : trouve le pays (façon LoLdle/Worldle) ──
 // 6 indices par essai : Région, Population, PIB, Frontaliers, Densité, Fuseau.
@@ -3736,7 +4036,24 @@ async function boot(){
     if (e.target.classList.contains("fb-form")){ e.preventDefault(); submitFeedback(e.target); }
   });
   // Base de données : tri par en-tête, colonnes cochables.
+  let pickErrTimer = null;   // masquage différé du message « max N pays »
   el("view-benchmark").addEventListener("click", (e) => {
+    const md = e.target.closest("[data-dbmode]");
+    if (md){ dbMode = md.dataset.dbmode; el("view-benchmark").innerHTML = renderDatabase(); return; }
+    const cin = e.target.closest("[data-cind]");
+    if (cin){ dbChartInd = cin.dataset.cind; el("view-benchmark").innerHTML = renderDatabase(); return; }
+    const up = e.target.closest("[data-unpin]");
+    if (up){
+      dbPicked.delete(up.dataset.unpin);
+      const list = el("view-benchmark").querySelector(".cmp-pick-list");
+      const st = list ? list.scrollTop : 0;
+      el("view-benchmark").innerHTML = renderDatabase();
+      const l2 = el("view-benchmark").querySelector(".cmp-pick-list");
+      if (l2) l2.scrollTop = st;
+      return;
+    }
+    const cre = e.target.closest("[data-cmpreset]");
+    if (cre){ dbPicked.clear(); dbPickQuery = ""; el("view-benchmark").innerHTML = renderDatabase(); return; }
     const rst = e.target.closest("[data-dbreset]");
     if (rst){
       dbQuery = ""; dbPicked.clear(); dbSort = "name"; dbDir = 1;
@@ -3767,6 +4084,15 @@ async function boot(){
   el("view-benchmark").addEventListener("input", (e) => {
     const cb = e.target.closest("input[data-col]");
     if (cb) return;   // les cases passent par l'écouteur change
+    const ps = e.target.closest(".cmp-pick-search");
+    if (ps){
+      dbPickQuery = ps.value;
+      const pos = ps.selectionStart;
+      el("view-benchmark").innerHTML = renderDatabase();
+      const p2 = el("view-benchmark").querySelector(".cmp-pick-search");
+      if (p2){ p2.focus(); p2.setSelectionRange(pos, pos); }
+      return;
+    }
     const s = e.target.closest(".db-search");
     if (!s) return;
     dbQuery = s.value;
@@ -3776,6 +4102,31 @@ async function boot(){
     if (s2){ s2.focus(); s2.setSelectionRange(pos, pos); }   // le curseur ne saute pas
   });
   el("view-benchmark").addEventListener("change", (e) => {
+    const pc = e.target.closest("input[data-pickctry]");
+    if (pc){
+      const iso = pc.dataset.pickctry;
+      if (pc.checked && !dbPicked.has(iso) && dbPicked.size >= MAX_PICK){
+        pc.checked = false;   // refus : on ne dépasse pas la limite
+        const box = el("view-benchmark").querySelector(".cmp-pick-err");
+        if (box){
+          box.textContent = lang === "fr" ? `Maximum ${MAX_PICK} pays.` : `Maximum ${MAX_PICK} countries.`;
+          box.style.display = "block";
+          clearTimeout(pickErrTimer);
+          pickErrTimer = setTimeout(() => {
+            const b = el("view-benchmark").querySelector(".cmp-pick-err");
+            if (b) b.style.display = "none";
+          }, 2500);
+        }
+        return;
+      }
+      if (pc.checked) dbPicked.add(iso); else dbPicked.delete(iso);
+      const list = el("view-benchmark").querySelector(".cmp-pick-list");
+      const st = list ? list.scrollTop : 0;
+      el("view-benchmark").innerHTML = renderDatabase();
+      const l2 = el("view-benchmark").querySelector(".cmp-pick-list");
+      if (l2) l2.scrollTop = st;   // la liste ne saute pas au cochage
+      return;
+    }
     const pk = e.target.closest("input[data-pick]");
     if (pk){
       if (pk.checked) dbPicked.add(pk.dataset.pick); else dbPicked.delete(pk.dataset.pick);
@@ -3787,6 +4138,47 @@ async function boot(){
     if (cb.checked) dbVisible.add(cb.dataset.col); else dbVisible.delete(cb.dataset.col);
     el("view-benchmark").innerHTML = renderDatabase();
   });
+
+  // Survol du comparateur : guide vertical, points sur chaque courbe et
+  // infobulle listant la valeur de tous les pays pour l'année survolée.
+  const cmpHideTip = () => {
+    const plot = el("view-benchmark").querySelector(".compare-plot");
+    if (plot){
+      const g = plot.querySelector(".cmp-guide"); if (g) g.style.display = "none";
+      plot.querySelectorAll(".cmp-hdot").forEach(d => d.style.display = "none");
+    }
+    const tip = el("view-benchmark").querySelector(".cmp-tip");
+    if (tip) tip.style.display = "none";
+  };
+  el("view-benchmark").addEventListener("pointermove", (e) => {
+    const plot = e.target.closest(".compare-plot");
+    if (!plot){ cmpHideTip(); return; }
+    const wrap = plot.closest(".cmp-wrap");
+    const cols = JSON.parse(plot.dataset.cols);
+    if (!cols.length) return;
+    const fmt = plot.dataset.fmt;
+    const vbw = +plot.dataset.vbw || 1000;
+    const rect = plot.getBoundingClientRect();
+    const vbX = (e.clientX - rect.left) / rect.width * vbw;   // px écran → unités viewBox
+    let best = cols[0], bd = Infinity;
+    for (const c of cols){ const dd = Math.abs(c.x - vbX); if (dd < bd){ bd = dd; best = c; } }
+    const guide = plot.querySelector(".cmp-guide");
+    guide.setAttribute("x1", best.x); guide.setAttribute("x2", best.x); guide.style.display = "block";
+    const hdots = plot.querySelectorAll(".cmp-hdot");
+    hdots.forEach(d => d.style.display = "none");
+    best.vals.forEach(val => { const dot = hdots[val.si];
+      if (dot){ dot.setAttribute("cx", best.x); dot.setAttribute("cy", val.y); dot.style.display = "block"; } });
+    const tip = wrap.querySelector(".cmp-tip");
+    tip.innerHTML = `<div class="ty">${best.year}</div>` + best.vals.map(v =>
+      `<div class="tr"><span class="sw" style="background:${v.color}"></span>${esc(v.name)}<b>${esc(fmtHist(v.v, fmt))}</b></div>`).join("");
+    tip.style.display = "block";
+    const wr = wrap.getBoundingClientRect();
+    const gx = rect.left + best.x / vbw * rect.width - wr.left;
+    const tw = tip.offsetWidth;
+    let left = gx + 14; if (left + tw > wr.width - 6) left = gx - tw - 14;
+    tip.style.left = Math.max(6, left) + "px"; tip.style.top = "14px";
+  });
+  el("view-benchmark").addEventListener("pointerleave", cmpHideTip);
 
   try {
     const r = await fetch("./macro.json");
