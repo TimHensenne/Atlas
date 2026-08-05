@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "news": "node fetch-news.mjs",
     "macro": "node fetch-macro.mjs",
     "identity": "node fetch-identity.mjs",
     "yields": "node fetch-yields.mjs",
@@ -13,7 +12,6 @@
     "start": "npx --yes serve public -l 3000"
   },
   "dependencies": {
-    "rss-parser": "^3.13.0",
     "world-countries": "^5.1.0"
   }
 }

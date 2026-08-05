@@ -93,23 +93,11 @@ grant select on public.leaderboard_today to anon, authenticated;
 -- =====================================================================
 
 -- =====================================================================
--- AJOUT (connexion par pseudo) — à exécuter aussi si tu veux permettre
--- de se connecter avec le pseudo et pas seulement l'email.
--- ⚠️ Compromis vie privée : cette fonction renvoie l'email associé à un
--- pseudo (nécessaire pour que Supabase authentifie). Quelqu'un qui connaît
--- un pseudo peut donc récupérer l'email correspondant. Acceptable pour un
--- jeu ; si tu veux l'éviter, ne lance PAS ce bloc (connexion par email seule).
+-- CONNEXION : par EMAIL uniquement.
+-- L'ancienne fonction public.email_for_pseudo(text) renvoyait l'email
+-- associé à un pseudo — or les pseudos sont publics (classement), donc
+-- n'importe qui pouvait énumérer les emails. Elle a été SUPPRIMÉE.
+-- Si elle existe encore dans ta base, exécute ceci pour l'enlever :
+revoke execute on function public.email_for_pseudo(text) from anon, authenticated;
+drop function if exists public.email_for_pseudo(text);
 -- =====================================================================
-create or replace function public.email_for_pseudo(p text)
-  returns text
-  language sql
-  security definer
-  set search_path = public
-as $$
-  select u.email::text
-  from public.profiles pr
-  join auth.users u on u.id = pr.id
-  where lower(pr.pseudo) = lower(p)
-  limit 1;
-$$;
-grant execute on function public.email_for_pseudo(text) to anon, authenticated;

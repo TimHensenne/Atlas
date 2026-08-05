@@ -2,6 +2,7 @@
 # Publie le dossier public/ sur GitHub Pages. Se redéclenche :
 #  - à chaque push sur main (tes modifications),
 #  - après le workflow « Mise à jour des données Atlas » (les données live),
+#    uniquement s'il a réussi,
 #  - manuellement (bouton Run workflow).
 name: Déploiement GitHub Pages
 
@@ -24,6 +25,10 @@ concurrency:
 
 jobs:
   deploy:
+    # Si on est déclenché par la mise à jour des données, ne déployer que si
+    # elle a réussi (sinon on republierait pour rien). Les autres déclencheurs
+    # (push, manuel) déploient toujours.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

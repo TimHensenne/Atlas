@@ -4,6 +4,23 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Atlas · Marchés</title>
+<meta name="description" content="Atlas — web-app macroéconomique : carte interactive, base de données de 183 pays, notations souveraines, convertisseur de devises et jeux. Données FMI, Banque mondiale et OCDE.">
+<meta name="author" content="Tim Hensenne">
+<meta name="theme-color" content="#070D1B">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atlas">
+<meta property="og:title" content="Atlas · Marchés">
+<meta property="og:description" content="Explorer les marchés et l'économie mondiale : 183 pays, notations souveraines, FX, jeux. Données FMI, Banque mondiale, OCDE.">
+<meta property="og:url" content="https://timhensenne.github.io/Atlas/">
+<meta property="og:image" content="https://timhensenne.github.io/Atlas/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atlas · Marchés">
+<meta name="twitter:description" content="Explorer les marchés et l'économie mondiale : 183 pays, notations souveraines, FX, jeux.">
+<meta name="twitter:image" content="https://timhensenne.github.io/Atlas/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@300..600&display=swap" rel="stylesheet">
@@ -110,7 +127,7 @@
   .map-search{position:absolute;top:12px;left:12px;z-index:25;}
   .map-search input{background:var(--panel);box-shadow:0 1px 6px rgba(0,0,0,.12);}
   .search input{font-family:var(--body);font-size:13px;width:190px;padding:6px 10px;
-    background:var(--panel);border:1px solid var(--rule);color:var(--ink);outline:none;
+    background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-s);color:var(--ink);outline:none;
     transition:border-color .15s ease;}
   .search input:focus{border-color:var(--indigo);}
   .search input::placeholder{color:var(--dim);}
@@ -192,7 +209,7 @@
 
   /* ── bloc données macro ── */
   .macro{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
-    border:1px solid var(--rule);}
+    border:1px solid var(--rule);border-radius:var(--r-m);overflow:hidden;flex:none;}
   .macro.identity{grid-auto-flow:row dense;}
   .cell{background:var(--panel);padding:12px 14px;}
   .cell .k{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;
@@ -211,6 +228,35 @@
   .cell .rank .rk-p{white-space:nowrap;}
   .cell .rank b{color:color-mix(in srgb, var(--dim) 40%, var(--ink));font-weight:600;}
   .trend-up{color:#1E7A46;} .trend-down{color:#B4462A;}
+  /* Carte « Risque souverain » (profil économique) */
+  .risk-card{border:1px solid var(--rule);border-radius:var(--r-m);background:var(--panel);
+    padding:16px 18px;margin:0 0 16px;}
+  .risk-na{color:var(--dim);font-size:13px;}
+  .risk-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .risk-title{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
+  .risk-score{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;letter-spacing:-.02em;}
+  .risk-score span{font-size:14px;font-weight:600;color:var(--dim);margin-left:1px;}
+  .risk-band{font-family:var(--body);font-weight:700;font-size:14px;margin:3px 0 14px;}
+  .risk-bars{display:flex;flex-direction:column;gap:7px;}
+  .risk-row{display:grid;grid-template-columns:92px 1fr 64px;align-items:center;gap:10px;font-size:12px;}
+  .risk-lab{color:var(--ink);font-weight:600;}
+  .risk-track{height:7px;border-radius:5px;background:var(--rule-soft);overflow:hidden;}
+  .risk-fill{height:100%;border-radius:5px;transition:width .3s ease;}
+  .risk-val{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right;}
+  .risk-adj .risk-val{color:#D2732E;}
+  .risk-adj .risk-track{background:none;}
+  .risk-warn{font-size:11.5px;line-height:1.5;color:#D2732E;margin-top:14px;padding:9px 11px;border-radius:8px;
+    background:color-mix(in srgb,#D2732E 10%,transparent);border:1px solid color-mix(in srgb,#D2732E 32%,transparent);}
+  .risk-click{cursor:pointer;transition:border-color .15s ease;}
+  .risk-click:hover{border-color:var(--dim);}
+  .risk-click:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;}
+  .risk-more{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--indigo);
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--rule-soft);}
+  .risk-ag{margin-top:10px;}
+  .risk-ag-lab{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--dim);margin-bottom:3px;}
+  .risk-ag-vals{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;
+    color:var(--ink);white-space:nowrap;}
   /* Mini-graphe d'historique (15 ans) : en-tête = échelle verticale (min…max) qui
      devient « année · valeur » au survol ; bas = années début/fin. Les points et
      repères sont en HTML (positionnés en %) pour rester ronds même dans la case
@@ -293,9 +339,6 @@
   .page-in{max-width:760px;margin:0 auto;}
   .purpose-in{max-width:1080px;padding-top:12px;}
   .purpose-card{padding:24px 28px;margin-bottom:18px;}
-  /* Carte « À propos » réordonnée. */
-  .about-role{margin:0 0 10px;}
-  .about-link{margin-bottom:16px;}
   .about-body{margin-top:0;}
   /* Bande de chiffres-clés réels. */
   .pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
@@ -334,13 +377,16 @@
   .purpose-card h2:first-of-type,.purpose-card .about-head + h2{margin-top:0;}
   .page p.body{color:var(--ink);font-size:14.5px;line-height:1.7;margin:0 0 16px;}
   /* Profil (page But) */
-  .about-head{display:flex;gap:22px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
-  .about-id h1{margin:0 0 5px;}
-  .about-role{color:var(--dim);font-size:13px;line-height:1.5;margin-bottom:10px;}
-  .about-link{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.05em;
-    text-transform:uppercase;color:var(--indigo);text-decoration:none;
-    border:1px solid var(--rule);border-radius:2px;padding:5px 11px;}
-  .about-link:hover{border-color:var(--indigo);background:var(--rule-soft);}
+  .about-head{display:flex;gap:20px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .about-photo{width:96px;height:96px;border-radius:14px;object-fit:cover;object-position:50% 45%;
+    flex:0 0 auto;border:1px solid var(--rule);box-shadow:var(--elev1);}
+  .about-id{min-width:0;}
+  .about-id h2{margin:0 0 5px;}
+  .about-role{color:var(--dim);font-size:13px;line-height:1.5;margin-bottom:8px;}
+  .about-link{display:inline-flex;align-items:center;line-height:0;border-radius:6px;
+    transition:opacity .15s ease,transform .15s ease;opacity:.92;}
+  .about-link:hover{opacity:1;transform:translateY(-1px);}
+  .about-link svg{display:block;}
   /* Formulaire de feedback */
   .fb-form{display:flex;flex-direction:column;gap:10px;max-width:480px;margin-top:4px;}
   .fb-form input,.fb-form textarea{background:var(--paper);border:1px solid var(--rule);
@@ -399,7 +445,8 @@
   .db-search::placeholder{color:var(--dim);}
   .db-none{color:var(--dim);text-align:center;padding:18px;}
   .db-src{margin-top:7px;flex:none;}
-  .pickcell{display:flex;align-items:center;gap:9px;cursor:pointer;}
+  .pickcell{display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0;}
+  .pickcell .pn{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pickcell input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
   table.db tr.picked td{background:var(--rule-soft);}
   table.db tr.picked td:first-child{background:var(--panel);box-shadow:inset 3px 0 0 var(--indigo);}
@@ -416,29 +463,57 @@
   .chip.on{background:var(--indigo);border-color:var(--indigo);color:#FFF;}
   .chip:disabled{opacity:.4;cursor:default;}
   .chip:disabled:hover{color:var(--dim);border-color:var(--rule);}
-  /* Base de données : bascule Tableau / Graphique */
-  .db-mode{display:flex;gap:6px;margin:0 0 12px;flex:none;}
+  /* Base de données : bascule Tableau / Graphique en segmented control */
+  .db-seg{position:relative;display:inline-flex;align-self:flex-start;gap:3px;padding:3px;margin:0 0 14px;
+    flex:none;background:var(--panel);border:1px solid var(--rule);border-radius:10px;}
+  .db-seg button{position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.01em;
+    color:var(--dim);background:none;border:0;border-radius:7px;padding:7px 16px;transition:color .25s ease;}
+  .db-seg button:not(.on):hover{color:var(--ink);}
+  .db-seg button.on{color:#fff;}
+  .db-seg svg{width:15px;height:15px;flex:0 0 auto;}
+  /* Pilule unique qui glisse vers le segment actif (même effet que le bandeau). */
+  .seg-glide{position:absolute;top:0;left:0;width:0;height:0;border-radius:7px;background:var(--grad);
+    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);z-index:0;pointer-events:none;}
+  .seg-glide.armed{transition:transform .45s cubic-bezier(.5,1.5,.35,1),
+    width .45s cubic-bezier(.5,1.5,.35,1),height .45s ease;}
   /* Comparateur multi-pays */
   .cmp-header{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;margin:0 0 12px;flex:none;}
-  .cmp-hleft{flex:1 1 auto;min-width:0;}
-  .cmp-inds{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;margin:0;}
-  .cmp-selcol{flex:0 0 380px;display:flex;flex-direction:column;}
+  .cmp-hleft{flex:0 1 auto;min-width:0;}
+  /* Menu vertical des métriques (à gauche du graphe) : même langage que les
+     onglets du bandeau, mais en colonne, avec pilule liquide glissante. */
+  .cmp-metrics{position:relative;flex:0 0 250px;display:flex;flex-direction:column;gap:2px;
+    padding:4px;background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--elev1);}
+  .cmp-metrics button{position:relative;z-index:1;flex:1 1 0;display:flex;align-items:center;text-align:left;cursor:pointer;
+    font-family:var(--body);font-size:13px;font-weight:600;color:var(--dim);
+    background:none;border:0;border-radius:10px;padding:10px 14px;transition:color .25s ease;}
+  .cmp-metrics button:hover:not(.on){color:var(--ink);}
+  .cmp-metrics button.on{color:#fff;}
+  .mseg-glide{position:absolute;top:0;left:0;width:0;height:0;border-radius:10px;background:var(--grad);
+    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);z-index:0;pointer-events:none;}
+  .mseg-glide.armed{transition:transform .45s cubic-bezier(.5,1.5,.35,1),
+    width .45s cubic-bezier(.5,1.5,.35,1),height .45s ease;}
+  .cmp-selcol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
   .cmp-chosen-wrap{flex:1 1 0;position:relative;min-height:52px;}
   .cmp-sel-empty{color:var(--dim);font-size:12.5px;}
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
     font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 4px;border-radius:4px;}
   .cmp-reset:hover{color:var(--indigo);}
-  .cmp-scroll{overflow:auto;flex:1;min-height:0;}
-  .cmp-note{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);margin:8px 0 0;}
+  .cmp-scroll{overflow:auto;flex:1;min-height:0;display:flex;flex-direction:column;}
+  .cmp-note{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);margin:8px 0 0;flex:none;}
   .cmp-wrap{position:relative;border:1px solid var(--rule);border-radius:var(--r-m);
-    background:var(--panel);padding:12px 14px;}
-  .compare-plot{width:100%;height:auto;max-height:66vh;display:block;cursor:crosshair;}
+    background:var(--panel);padding:12px 14px;flex:1 1 420px;min-width:0;display:flex;flex-direction:column;}
+  .cmp-plotbox{flex:1 1 0;min-height:0;position:relative;}
+  .compare-plot{width:100%;height:100%;display:block;cursor:crosshair;}
   .cmp-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
   .cmp-grid{stroke:var(--rule);stroke-width:1;}
   .cmp-zero{stroke:var(--dim);stroke-width:1;stroke-dasharray:3 3;opacity:.55;}
   .cmp-guide{stroke:var(--dim);stroke-width:1;stroke-dasharray:2 2;opacity:.6;}
-  .cmp-ylab,.cmp-xlab{font-family:var(--mono);font-size:11px;fill:var(--dim);}
+  .cmp-axis{stroke:var(--dim);stroke-width:1.2;}
+  .cmp-ylab,.cmp-xlab{font-family:var(--body);font-weight:600;font-size:11px;
+    fill:color-mix(in srgb, var(--dim) 25%, var(--ink));}
+  .cmp-unit,.cmp-axtitle{font-family:var(--body);font-weight:600;font-size:10.5px;letter-spacing:.02em;fill:var(--dim);}
   .cmp-tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);
     border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--ink);
     box-shadow:0 6px 22px rgba(0,0,0,.18);min-width:130px;z-index:5;}
@@ -448,10 +523,12 @@
   .cmp-tip .tr b{margin-left:auto;padding-left:14px;}
   .cmp-empty{border:1px dashed var(--rule);border-radius:var(--r-m);text-align:center;
     color:var(--dim);font-size:14px;line-height:1.6;}
-  .cmp-main > .cmp-empty{aspect-ratio:1000 / 310;display:flex;align-items:center;justify-content:center;padding:24px;}
-  /* Graphique + panneau droit (sélecteur de pays, définition) */
-  .cmp-main{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;}
-  .cmp-main > .cmp-wrap,.cmp-main > .cmp-empty{flex:1 1 420px;min-width:0;align-self:flex-start;}
+  .cmp-plotbox > .cmp-empty{width:100%;height:100%;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;padding:24px;}
+  /* Graphique + panneaux : remplit la hauteur de page, sans défilement. */
+  .cmp-main{flex:1 1 auto;min-height:0;display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;}
+  .cmp-title{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.02em;
+    text-align:center;color:var(--ink);margin:0 0 8px;flex:none;}
   .cmp-side{flex:0 0 250px;display:flex;flex-direction:column;gap:12px;}
   .cmp-block{border:1px solid var(--rule);border-radius:var(--r-m);background:var(--panel);padding:12px 14px;}
   .cmp-block-grow{flex:1 1 0;display:flex;flex-direction:column;min-height:0;}
@@ -459,7 +536,7 @@
     color:var(--dim);margin:0 0 10px;}
   .cmp-chosen{position:absolute;inset:0;overflow:auto;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;}
   .cmp-pick-err{font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;color:#C9553B;margin:0 0 8px;}
-  .cmp-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+  .cmp-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--body);font-size:13px;font-weight:600;
     color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:20px;
     padding:3px 4px 3px 9px;}
   .cmp-cdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
@@ -473,8 +550,8 @@
   .cmp-pick-search::placeholder{color:var(--dim);}
   .cmp-pick-listwrap{flex:1 1 0;position:relative;min-height:60px;}
   .cmp-pick-list{position:absolute;inset:0;overflow:auto;display:flex;flex-direction:column;gap:1px;}
-  .cmp-pick{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);cursor:pointer;
-    padding:5px 6px;border-radius:5px;}
+  .cmp-pick{display:flex;align-items:center;gap:8px;font-family:var(--body);font-size:13px;font-weight:600;
+    color:var(--ink);cursor:pointer;padding:5px 6px;border-radius:5px;}
   .cmp-pick:hover,.cmp-pick.on{background:var(--rule-soft);}
   .cmp-pick input{accent-color:var(--indigo);cursor:pointer;margin:0;flex:none;}
   .cmp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
@@ -482,7 +559,7 @@
   .cmp-pick-none{color:var(--dim);font-size:12.5px;padding:8px 4px;}
   .cmp-def-metric{font-family:var(--display);font-weight:600;font-size:15px;margin:0 0 6px;}
   .cmp-def-text{font-size:12.5px;line-height:1.55;color:color-mix(in srgb, var(--dim) 30%, var(--ink));}
-  @media (max-width:1024px){ .cmp-side,.cmp-selcol{flex:1 1 100%;} .cmp-chosen-wrap{flex:none;height:110px;} .cmp-block-grow{flex:none;} .cmp-pick-listwrap{flex:none;height:300px;} }
+  @media (max-width:1024px){ .cmp-side,.cmp-selcol,.cmp-metrics{flex:1 1 100%;} .cmp-chosen-wrap{flex:none;height:110px;} .cmp-block-grow{flex:none;} .cmp-pick-listwrap{flex:none;height:300px;} }
   /* Jeu : trouve le pays */
   .g-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;}
   .g-searchwrap{position:relative;}
@@ -834,11 +911,7 @@
   /* ── Mascotte robot (image) — vit à gauche, à côté du panneau ────────── */
   .g-mascot{position:fixed;left:1.5%;bottom:18%;width:270px;z-index:3;pointer-events:none;
     filter:drop-shadow(0 16px 24px rgba(19,26,46,.22));}
-  .masc-inner{position:relative;transform-origin:50% 92%;
-    animation:mascFloat 3.8s ease-in-out infinite;}
-  @keyframes mascFloat{
-    0%,100%{transform:translateY(0);}
-    50%{transform:translateY(-6px);}}
+  .masc-inner{position:relative;transform-origin:50% 92%;}
   .masc-img{display:block;width:100%;height:auto;}
   /* Boule d'antenne : s'allume en rouge au survol (calée sur l'image). */
   .masc-antenna{position:absolute;pointer-events:none;opacity:0;transition:opacity .18s ease;
@@ -853,7 +926,7 @@
   .masc-lid.lidL{left:37%;} .masc-lid.lidR{left:53.3%;}
   .g-mascot.blink .masc-lid{animation:mascBlink .19s ease;}
   @keyframes mascBlink{0%{transform:scaleY(0);}45%{transform:scaleY(1.06);}100%{transform:scaleY(0);}}
-  @media(prefers-reduced-motion:reduce){ .masc-inner{animation:none;} .g-mascot.blink .masc-lid{animation:none;} }
+  @media(prefers-reduced-motion:reduce){ .g-mascot.blink .masc-lid{animation:none;} }
   @media(max-width:900px){ .g-mascot{display:none;} }
     /* ── Vignettes de cartes : de vraies petites scènes, fond dégradé + relief ── */
   .gc-viz{width:100%;height:96px;display:flex;align-items:center;justify-content:center;gap:10px;
@@ -1188,6 +1261,9 @@
   .m-legal h4{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
     color:var(--ink);margin:14px 0 4px;}
   .m-legal p{margin:0 0 8px;}
+  .m-legal ul{margin:0 0 8px;padding-left:18px;}
+  .m-legal li{margin:0 0 4px;}
+  .m-legal li b{color:var(--ink);font-weight:600;}
   .lb-you{color:var(--indigo);}
   .lb tbody tr.me{background:var(--rule-soft);}
   .lb-load{color:var(--dim);font-size:12.5px;padding:14px 0;text-align:center;}
@@ -1243,14 +1319,18 @@
     font-weight:600;z-index:1;}
   table.db th:first-child{z-index:2;}
   /* Onglets Identité / Économie — même langage visuel que les bascules du bandeau. */
-  .ptabs{display:flex;border:1px solid var(--rule);}
-  .ptabs button{flex:1;background:none;border:0;border-right:1px solid var(--rule);cursor:pointer;
-    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-    padding:9px 6px;color:var(--dim);transition:background .15s ease,color .15s ease;}
-  .ptabs button:last-child{border-right:0;}
-  .ptabs button.on{background:var(--indigo);color:#FFF;}
-  .ptabs button:hover:not(.on){background:var(--ocean);color:var(--ink);}
-  .ptabs button:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px;}
+  .ptabs{position:relative;display:flex;gap:3px;padding:3px;border:1px solid var(--rule);
+    border-radius:10px;background:var(--panel);}
+  .ptabs button{position:relative;z-index:1;flex:1;background:none;border:0;cursor:pointer;
+    font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.01em;
+    padding:9px 6px;border-radius:7px;color:var(--dim);transition:color .25s ease;}
+  .ptabs button.on{color:#FFF;}
+  .ptabs button:hover:not(.on){color:var(--ink);}
+  .ptabs button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;}
+  .ptab-glide{position:absolute;top:0;left:0;width:0;height:0;border-radius:7px;background:var(--grad);
+    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);z-index:0;pointer-events:none;}
+  .ptab-glide.armed{transition:transform .45s cubic-bezier(.5,1.5,.35,1),
+    width .45s cubic-bezier(.5,1.5,.35,1),height .45s ease;}
   /* Valeurs de la fiche d'identité : du texte, donc plus petit et en police de
      lecture (le grand affichage est réservé aux chiffres macro). */
   .macro.identity .v{font-family:var(--body);font-weight:600;font-size:15px;
@@ -1378,12 +1458,10 @@
      se mêler au fond — on pose un fond panel plein sous chaque table. */
   .db-scroll{background:var(--panel);border-radius:var(--r-m);}
   table.db th{background:var(--panel);}
-  /* Colonnes équilibrées : hors « Pays », chaque colonne se serre sur son
-     contenu. Avec peu de colonnes cochées, elles restent groupées côte à
-     côte (plus de Région étirée sur un quart d'écran, plus de ligne à
-     suivre des yeux d'un bord à l'autre). Avec tout coché : inchangé. */
-  table.db th:not(:first-child),table.db td:not(:first-child){width:1%;}
-  table.db td:first-child,table.db th:first-child{min-width:190px;}
+  /* La colonne « Pays » se serre sur son contenu (nom tronqué au besoin) et
+     n'absorbe plus l'espace : le surplus se répartit sur les colonnes de
+     données, plus aérées et plus lisibles. */
+  table.db td:first-child,table.db th:first-child{width:1%;min-width:150px;}
   /* Zébrage façon tableur : blanc / bleu très pâle assorti à la DA
      (l'équivalent nuit mélange l'indigo au panneau sombre). */
   table.db tbody tr:nth-child(even) td{background:color-mix(in srgb, var(--indigo) 5%, var(--panel));}
@@ -1577,7 +1655,9 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
    entrée, et une entrée dans LANGS. Rien d'autre à toucher.
    ══════════════════════════════════════════════════════════════ */
 const LANGS = [["fr","FR"],["en","EN"]];
+// Langue d'affichage — restaurée depuis la dernière visite si mémorisée.
 let lang = "fr";
+try { const s = localStorage.getItem("atlas-lang"); if (s === "en" || s === "fr") lang = s; } catch {}
 
 const I18N = {
   eyebrow:        { fr:"Marchés",                    en:"Markets" },
@@ -1595,6 +1675,7 @@ const I18N = {
   countriesWord:  { fr:"pays",                       en:"countries" },
   tabIdent:       { fr:"Identité",                   en:"Identity" },
   tabEco:         { fr:"Économie",                   en:"Economics" },
+  tabAnalysis:    { fr:"Analyse",                    en:"Analysis" },
   idUnavail:      { fr:"Fiche indisponible.",        en:"Profile unavailable." },
 };
 
@@ -1664,7 +1745,8 @@ let macro = { countries:{} };
 
 // Un pays est "couvert" (indigo, cliquable) dès qu'il a des données macro.
 const hasContent = (iso) => !!(iso && macro.countries?.[iso]);
-let currency = "USD";  // devise d'affichage, bascule globale
+let currency = "USD";  // devise d'affichage, bascule globale — restaurée si mémorisée
+try { const s = localStorage.getItem("atlas-currency"); if (s === "USD" || s === "EUR") currency = s; } catch {}
 let selected = null;
 let panelTab = "identity";        // onglet actif du panneau, mémorisé entre pays
 let ident = {};                   // fiches d'identité locales (countries.json), par ISO
@@ -1676,16 +1758,20 @@ let GLOBE_FEATS = null;           // toutes les géométries : globe du héro + 
 
 // Convertit et formate un montant. `unit` = "Md" si la valeur FMI est déjà en
 // milliards de dollars (NGDPD), sinon "" pour des dollars bruts (PIB/habitant).
+// Abréviation des milliards : « Md » en français, « B » (billion) en anglais.
 const fmtMoney = (usd, unit) => {
   const rate = macro.fx?.usdToEur;
   const eur = currency === "EUR" && rate;
   let v = eur ? usd * rate : usd;
   const sym = eur ? " €" : " $";
+  const fr = lang === "fr";
+  const dec = (s) => fr ? s.replace(".", ",") : s;
+  const B = fr ? "Md" : "B";
   if (unit === "Md") v = v * 1e9;   // ramène en unités pour choisir l'échelle
-  if (v >= 1e12) return `${(v/1e12).toFixed(2)}`.replace('.',',') + " T" + sym;
-  if (v >= 1e9)  return `${(v/1e9).toFixed(0)}` + " Md" + sym;
-  if (v >= 1e6)  return `${(v/1e6).toFixed(1)}`.replace('.',',') + " M" + sym;
-  return Math.round(v).toLocaleString("fr-BE") + sym;
+  if (v >= 1e12) return dec((v / 1e12).toFixed(2)) + " T" + sym;
+  if (v >= 1e9)  return (v / 1e9).toFixed(0) + " " + B + sym;
+  if (v >= 1e6)  return dec((v / 1e6).toFixed(1)) + " M" + sym;
+  return Math.round(v).toLocaleString(fr ? "fr-BE" : "en-GB") + sym;
 };
 const fmtVal = (ind) =>
   ind.fmt === "moneyMd" ? fmtMoney(ind.value, "Md")
@@ -1951,6 +2037,151 @@ function indRank(iso, key){
 // Ordinal court, sans genre marqué : 1ᵉʳ, 2ᵉ, 3ᵉ…
 const ordFr = (n) => n === 1 ? "1ᵉʳ" : n + "ᵉ";
 
+// Score de risque souverain v2 (0-100, plus haut = plus risqué). Composite de
+// 6 piliers, avec non-linéarités et dynamique — voir la modale « Méthodologie »
+// (le texte doit rester fidèle à ce code). « Tout ou rien » : null si un
+// fondamental manque. Plus haut = plus risqué.
+function sovereignRisk(iso){
+  const ind = macro.countries?.[iso]?.indicators;
+  if (!ind) return null;
+  const g = k => ind[k], val = k => g(k)?.value;
+  const debt = val("GGXWDG_NGDP"), bal = val("GGXCNL_NGDP"), ca = val("BCA_NGDPD"),
+        infl = val("PCPIPCH"), grow = val("NGDP_RPCH"), gpc = val("NGDPDPC");
+  if ([debt, bal, ca, infl, grow, gpc].some(x => x == null || !isFinite(x))) return null;
+  const clamp = x => Math.max(0, Math.min(100, x));
+  const lin = (x, lo, hi) => clamp((x - lo) / (hi - lo) * 100);
+  const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const sdev = a => { const m = mean(a); return Math.sqrt(mean(a.map(x => (x - m) * (x - m)))); };
+  const tail = (h, n) => (h || []).filter(v => isFinite(v)).slice(-n);
+  // 6. Capacité (10 %) — calculée d'abord car elle sert aussi au pilier dette :
+  //    percentile mondial du PIB/habitant (part des pays plus riches). Richesse
+  //    = assiette fiscale et capacité institutionnelle.
+  const allGpc = Object.values(macro.countries).map(c => c.indicators?.NGDPDPC?.value)
+    .filter(v => v != null && isFinite(v));
+  const pCap = allGpc.filter(v => v > gpc).length / allGpc.length * 100;
+  // 1. Dette (25 %) : niveau en S-curve logistique dont le CENTRE dépend du
+  //    revenu (« debt intolerance » : un pays riche porte plus de dette qu'un
+  //    pays pauvre) — centre de 65 % (plus pauvres) à 95 % (plus riches) —
+  //    + tendance sur 5 ans (une dette qui monte est plus risquée qu'une dette
+  //    qui baisse), 75/25.
+  const mid = 65 + 30 * (1 - pCap / 100);
+  const dLevel = 100 / (1 + Math.exp(-0.045 * (debt - mid)));
+  const d5 = tail(g("GGXWDG_NGDP").hist, 6);
+  const dTrend = d5.length >= 2 ? lin(d5[d5.length - 1] - d5[0], -15, 30) : 33;
+  const pDebt = 0.75 * dLevel + 0.25 * dTrend;
+  // 2. Budget (20 %) : solde moyen des 3 dernières années (persistance, lisse
+  //    les à-coups) ; +3 % → 0, −12 % → 100.
+  const b3 = mean(tail(g("GGXCNL_NGDP").hist, 3).length ? tail(g("GGXCNL_NGDP").hist, 3) : [bal]);
+  const pBud = lin(-b3, -3, 12);
+  // 3. Balance (15 %) : balance courante moyenne 3 ans ; +5 % → 0, −10 % → 100.
+  const c3 = mean(tail(g("BCA_NGDPD").hist, 3).length ? tail(g("BCA_NGDPD").hist, 3) : [ca]);
+  const pExt = lin(-c3, -5, 10);
+  // 4. Prix (15 %) : le pire de la surchauffe (2 % → 0, 25 % → 100) et de la
+  //    déflation (0 % → 0, −4 % → 100), + volatilité 5 ans (1 pt → 0,
+  //    10 pts → 100), 75/25 — l'instabilité des prix est un risque en soi.
+  const pPrixLvl = Math.max(lin(infl, 2, 25), lin(-infl, 0, 4));
+  const iv = tail(g("PCPIPCH").hist, 5);
+  const pPrixVol = iv.length >= 3 ? lin(sdev(iv), 1, 10) : 50;
+  const pPrix = 0.75 * pPrixLvl + 0.25 * pPrixVol;
+  // 5. Croissance (15 %) : potentiel (moyenne 5 ans ; +5 % → 0, −5 % → 100)
+  //    et instabilité (écart-type historique ; 1 pt → 0, 8 pts → 100), 60/40.
+  const gh = (g("NGDP_RPCH").hist || [grow]).filter(v => isFinite(v));
+  const g5 = mean(tail(gh, 5).length ? tail(gh, 5) : [grow]);
+  const vol = gh.length >= 6 ? sdev(gh) : 3;
+  const pCro = 0.6 * lin(-g5, -5, 5) + 0.4 * lin(vol, 1, 8);
+  let score = 0.25 * pDebt + 0.20 * pBud + 0.15 * pExt + 0.15 * pPrix + 0.15 * pCro + 0.10 * pCap;
+  // Interactions (plafonnées à +10 au total) :
+  // « boule de neige » — dette > 90 % ET déficit moyen > 4 % : le service de
+  // la dette s'auto-alimente ; « déficits jumeaux » — budget ET balance
+  // courante négatifs : dépendance simultanée aux deux financements.
+  const snow = (debt > 90 && (-b3) > 4)
+    ? Math.min(8, (debt - 90) * 0.1 + ((-b3) - 4) * 0.8) : 0;
+  const twin = (b3 < 0 && c3 < 0) ? Math.min(5, Math.sqrt((-b3) * (-c3))) : 0;
+  const adjust = Math.min(10, snow + twin);
+  score = Math.round(Math.min(100, score + adjust));
+  const band = score < 25 ? { fr:"Risque faible", en:"Low risk", c:"#2E9E5B" }
+    : score < 45 ? { fr:"Risque modéré", en:"Moderate risk", c:"#C9922E" }
+    : score < 65 ? { fr:"Risque élevé", en:"High risk", c:"#D2732E" }
+    : { fr:"Risque très élevé", en:"Very high risk", c:"#D6503E" };
+  const fmtPct = v => (lang === "fr" ? String(Math.round(v * 10) / 10).replace(".", ",") : String(Math.round(v * 10) / 10)) + " %";
+  const pillars = [
+    { fr:"Dette",      en:"Debt",      risk:pDebt, disp: fmtPct(debt) },
+    { fr:"Budget",     en:"Fiscal",    risk:pBud,  disp: fmtPct(bal) },
+    { fr:"Balance",    en:"Balance",   risk:pExt,  disp: fmtPct(ca) },
+    { fr:"Inflation",  en:"Inflation", risk:pPrix, disp: fmtPct(infl) },
+    { fr:"Croissance", en:"Growth",    risk:pCro,  disp: fmtPct(grow) },
+    { fr:"Capacité",   en:"Capacity",  risk:pCap,  disp: fmtMoney(gpc, "") },
+  ];
+  return { score, band, pillars, adjust: Math.round(adjust) };
+}
+
+// Carte « Risque souverain » affichée en tête du profil économique.
+// Catégorie d'une notation souveraine : "ig" (investment grade), "spec"
+// (spéculatif) ou "sub" (très spéculatif → défaut). Gère S&P/Fitch et Moody's.
+function ratingCat(r){
+  if (!r) return null;
+  const k = String(r).toUpperCase().trim();
+  const sp = ["AAA","AA+","AA","AA-","A+","A","A-","BBB+","BBB","BBB-","BB+","BB","BB-","B+","B","B-","CCC+","CCC","CCC-","CC","C","D"];
+  const mo = ["AAA","AA1","AA2","AA3","A1","A2","A3","BAA1","BAA2","BAA3","BA1","BA2","BA3","B1","B2","B3","CAA1","CAA2","CAA3","CA","C"];
+  let i = sp.indexOf(k); if (i < 0) i = mo.indexOf(k);
+  if (i < 0) return null;
+  return i <= 9 ? "ig" : i <= 15 ? "spec" : "sub";   // BBB-/Baa3 = dernière IG (index 9)
+}
+// Pire catégorie parmi les agences disponibles (sub > spec > ig).
+function worstRatingCat(iso){
+  const rt = ratings.countries?.[iso]; if (!rt) return null;
+  const order = { ig: 0, spec: 1, sub: 2 };
+  let worst = null;
+  for (const r of [rt.sp, rt.moody, rt.fitch]){
+    const c = ratingCat(r);
+    if (c && (worst === null || order[c] > order[worst])) worst = c;
+  }
+  return worst;
+}
+
+function renderRiskCard(iso){
+  const L = lang === "fr";
+  const r = sovereignRisk(iso);
+  if (!r) return `<div class="risk-card risk-na">${L ? "Risque souverain : données insuffisantes." : "Sovereign risk: insufficient data."}</div>`;
+  const barCol = k => k < 25 ? "#2E9E5B" : k < 45 ? "#C9922E" : k < 65 ? "#D2732E" : "#D6503E";
+  const bars = r.pillars.map(p => `
+    <div class="risk-row">
+      <div class="risk-lab">${L ? p.fr : p.en}</div>
+      <div class="risk-track"><div class="risk-fill" style="width:${p.risk.toFixed(0)}%;background:${barCol(p.risk)}"></div></div>
+      <div class="risk-val">${esc(p.disp)}</div>
+    </div>`).join("");
+  const adj = r.adjust > 0 ? `
+    <div class="risk-row risk-adj">
+      <div class="risk-lab">${L ? "Interactions" : "Interactions"}</div>
+      <div class="risk-track"></div>
+      <div class="risk-val">+${r.adjust} pts</div>
+    </div>` : "";
+  const rt = ratings.countries?.[iso];
+  const ag = rt ? [rt.sp && `S&P ${rt.sp}`, rt.moody && `Moody's ${rt.moody}`, rt.fitch && `Fitch ${rt.fitch}`].filter(Boolean).join(" · ") : "";
+  const agLine = ag ? `<div class="risk-ag"><span class="risk-ag-lab">${L ? "Notations d'agence" : "Agency ratings"}</span><span class="risk-ag-vals">${esc(ag)}</span></div>` : "";
+  // Divergence : fondamentaux sains mais notation d'agence spéculative → le score
+  // (purement macro) ne capte pas le risque politique/institutionnel.
+  const worst = worstRatingCat(iso);
+  const diverges = r.score < 45 && (worst === "spec" || worst === "sub");
+  const warn = diverges ? `<div class="risk-warn">${L
+    ? "Score fondamentaux uniquement : la notation d'agence est nettement plus dégradée. Le risque politique et institutionnel (sanctions, gouvernance, convertibilité) n'est pas capté ici."
+    : "Fundamentals-only score: agency ratings are markedly worse. Political and institutional risk (sanctions, governance, convertibility) is not captured here."}</div>` : "";
+  return `<div class="risk-card risk-click" data-legal="method" role="button" tabindex="0" title="${L ? "Voir la méthode de calcul" : "See the calculation method"}">
+    <div class="risk-head">
+      <div class="risk-title">${L ? "Risque souverain" : "Sovereign risk"}</div>
+      <div class="risk-score" style="color:${r.band.c}">${r.score}<span>/100</span></div>
+    </div>
+    <div class="risk-band" style="color:${r.band.c}">${L ? r.band.fr : r.band.en}</div>
+    <div class="risk-bars">${bars}${adj}</div>
+    ${warn}
+    ${agLine}
+    <div class="risk-more">${L ? "Méthode de calcul →" : "Calculation method →"}</div>
+  </div>`;
+}
+
+// Onglet Analyse : la carte de risque souverain.
+function renderAnalysis(iso){ return renderRiskCard(iso); }
+
 function renderMacro(iso){
   const m = macro.countries?.[iso];
   if(!m || !m.indicators || !Object.keys(m.indicators).length){
@@ -2073,7 +2304,9 @@ function renderPanel(){
   const flag = selected.iso
     ? `<img class="flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${selected.iso.toLowerCase()}.svg" alt="" loading="lazy" onerror="this.style.display='none'">`
     : "";
-  const body = panelTab === "identity" ? renderIdentity(selected.iso) : renderMacro(selected.iso);
+  const body = panelTab === "analysis" ? renderAnalysis(selected.iso)
+    : panelTab === "identity" ? renderIdentity(selected.iso)
+    : renderMacro(selected.iso);
 
   p.innerHTML = `
     <div class="phead">
@@ -2085,10 +2318,12 @@ function renderPanel(){
     <div class="ptabs" role="tablist">
       <button type="button" role="tab" data-tab="identity"  aria-selected="${panelTab==="identity"}"  class="${panelTab==="identity"?"on":""}">${t("tabIdent")}</button>
       <button type="button" role="tab" data-tab="economics" aria-selected="${panelTab==="economics"}" class="${panelTab==="economics"?"on":""}">${t("tabEco")}</button>
+      <button type="button" role="tab" data-tab="analysis"  aria-selected="${panelTab==="analysis"}"  class="${panelTab==="analysis"?"on":""}">${t("tabAnalysis")}</button>
     </div>
     ${body}
   `;
   p.scrollTop = 0;
+  positionPanelGlide();
   // Précharge le taux de change en fond dès la sélection (une fois par devise),
   // pour qu'il soit déjà prêt quand on ouvre l'onglet Économie.
   if (selected.iso){
@@ -2099,6 +2334,8 @@ function renderPanel(){
 
 // Bascule d'onglet (délégation : le panneau est reconstruit à chaque rendu).
 el("panel").addEventListener("click", (e) => {
+  const lg = e.target.closest("[data-legal]");
+  if (lg){ openLegal(lg.dataset.legal); return; }
   const pick = e.target.closest("[data-pick]");
   if (pick && window.__select){
     const iso = pick.dataset.pick;
@@ -2118,8 +2355,17 @@ el("panel").addEventListener("click", (e) => {
   }
   const b = e.target.closest("[data-tab]");
   if (!b) return;
+  const from = panelTab;
   panelTab = b.dataset.tab;
   renderPanel();
+  positionPanelGlide(from);
+  if (view === "map" && selected?.iso)
+    history.replaceState({ view: "map", gScreen: "hub" }, "", hashFor("map"));
+});
+el("panel").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const lg = e.target.closest("[data-legal]");
+  if (lg){ e.preventDefault(); openLegal(lg.dataset.legal); }
 });
 
 // Saisie dans le convertisseur : recalcule le résultat en place (sans re-render,
@@ -2214,6 +2460,10 @@ window.addEventListener("resize", () => {
   const cap = el("tabs") && el("tabs").querySelector(".tab-cap");
   if (cap) positionTabGlide(cap, true);
   for (const id of ["fx", "lang", "theme"]) ctlGlide(el(id), true);
+  positionSegGlide();
+  positionMetricGlide();
+  positionPanelGlide();
+  fitChart();
 });
 // Place (et crée au besoin) la pilule glissante d'un groupe de contrôles sous
 // son bouton actif. `instant` = sans animation (1er placement / resize).
@@ -2231,6 +2481,67 @@ function ctlGlide(box, instant){
   if (instant){ glide.classList.remove("armed"); apply(); requestAnimationFrame(() => glide.classList.add("armed")); }
   else { glide.classList.add("armed"); apply(); }
 }
+// Pilule liquide générique : positionne une pilule sous le bouton actif d'un
+// conteneur ; si `fromBtn` diffère de l'actif, elle part de lui puis glisse
+// (même effet élastique que le bandeau). Marche à l'horizontale et à la verticale.
+function slideGlide(box, glideCls, fromBtn){
+  if (!box) return;
+  let glide = box.querySelector("." + glideCls);
+  if (!glide){ glide = document.createElement("span"); glide.className = glideCls;
+    glide.setAttribute("aria-hidden", "true"); box.insertBefore(glide, box.firstChild); }
+  const active = box.querySelector("button.on"); if (!active) return;
+  const place = (btn) => {
+    const cr = box.getBoundingClientRect(), r = btn.getBoundingClientRect();
+    glide.style.width = r.width + "px"; glide.style.height = r.height + "px";
+    glide.style.transform = `translate(${(r.left - cr.left - box.clientLeft).toFixed(1)}px, ${(r.top - cr.top - box.clientTop).toFixed(1)}px)`;
+  };
+  if (fromBtn && fromBtn !== active){
+    glide.classList.remove("armed"); place(fromBtn);
+    requestAnimationFrame(() => { glide.classList.add("armed"); place(active); });
+  } else {
+    glide.classList.remove("armed"); place(active);
+    requestAnimationFrame(() => glide.classList.add("armed"));
+  }
+}
+// Pilule du sélecteur Tableau/Graphique. `fromMode` = mode précédent (glissement).
+function positionSegGlide(fromMode){
+  const box = el("view-benchmark") && el("view-benchmark").querySelector(".db-seg");
+  const fromBtn = (box && fromMode && fromMode !== dbMode) ? box.querySelector(`button[data-dbmode="${fromMode}"]`) : null;
+  slideGlide(box, "seg-glide", fromBtn);
+}
+// Pilule du menu vertical des métriques. `fromInd` = indicateur précédent.
+function positionMetricGlide(fromInd){
+  const box = el("view-benchmark") && el("view-benchmark").querySelector(".cmp-metrics");
+  const fromBtn = (box && fromInd && fromInd !== dbChartInd) ? box.querySelector(`button[data-cind="${fromInd}"]`) : null;
+  slideGlide(box, "mseg-glide", fromBtn);
+}
+// Pilule des onglets du panneau pays (Identité/Économie/Analyse). `fromTab` = onglet précédent.
+function positionPanelGlide(fromTab){
+  const box = el("panel") && el("panel").querySelector(".ptabs");
+  const fromBtn = (box && fromTab && fromTab !== panelTab) ? box.querySelector(`button[data-tab="${fromTab}"]`) : null;
+  slideGlide(box, "ptab-glide", fromBtn);
+}
+// Re-rend l'onglet base de données et replace la pilule du sélecteur.
+function drawDb(fromMode, fromInd){
+  el("view-benchmark").innerHTML = renderDatabase();
+  positionSegGlide(fromMode);
+  positionMetricGlide(fromInd);
+  fitChart();
+}
+// Recalcule la hauteur du viewBox du graphe d'après la place réelle de la zone
+// de traçage → le graphe remplit la hauteur disponible, à scale uniforme (le SVG
+// est en preserveAspectRatio="none", donc H ∝ hauteur/largeur = pas de déformation).
+function fitChart(){
+  const root = el("view-benchmark");
+  const box = root && root.querySelector(".cmp-plotbox");
+  if (!box) return;
+  const withData = [...dbPicked].filter(iso => macro.countries?.[iso]?.indicators?.[dbChartInd]?.hist);
+  const plotted = withData.slice(0, SERIES_COLORS.length);
+  if (!plotted.length) return;   // état vide : rien à ajuster
+  const w = box.clientWidth, h = box.clientHeight;
+  if (w < 40 || h < 40) return;
+  box.innerHTML = compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd], 1000 * h / w);
+}
 // Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
 function applyView(v){
   if (v === "lexicon" || v === "data") v = "refs";
@@ -2246,12 +2557,22 @@ function applyView(v){
 }
 // Change de vue ET ajoute une entrée d'historique → le bouton « retour » du
 // navigateur ramène à la vue précédente au lieu de sortir du site.
+// Construit le hash d'une vue : sur la carte, il embarque aussi le pays
+// sélectionné et l'onglet du panneau (deep-link partageable).
+function hashFor(v){
+  if (v === "home") return location.pathname + location.search;
+  let h = "#view=" + v;
+  if (v === "map" && selected?.iso){
+    h += "&c=" + selected.iso;
+    if (panelTab !== "identity") h += "&t=" + panelTab;
+  }
+  return h;
+}
 function setView(v){
   if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
   if (v === "games") gScreen = "hub";               // arriver par l'onglet = sélection
-  const want = v === "home" ? location.pathname + location.search : "#view=" + v;
-  history.pushState({ view: v, gScreen: "hub" }, "", want);
+  history.pushState({ view: v, gScreen: "hub" }, "", hashFor(v));
   applyView(v);
 }
 // Entre dans un écran de jeu en empilant une entrée d'historique : le retour
@@ -2266,7 +2587,7 @@ function renderView(v){
   if (v === "home")           { el("view-home").innerHTML   = renderHome(); homeReveal(); }
   else if (v === "refs")      el("view-refs").innerHTML     = renderRefs();
   else if (v === "purpose")   el("view-purpose").innerHTML  = renderPurpose();
-  else if (v === "benchmark") el("view-benchmark").innerHTML = renderBenchmark();
+  else if (v === "benchmark") drawDb();
   else if (v === "games")     el("view-games").innerHTML    = renderGames();
   else if (v === "fx")        renderFxView();
 }
@@ -2710,9 +3031,14 @@ function renderPurpose(){
     </div>`).join("");
   return `<div class="page"><div class="page-in purpose-in">
     <section class="purpose-card">
-      <h2>${L === "fr" ? "À propos" : "About"}</h2>
-      <div class="about-role">${esc(PROFILE.role[L])}</div>
-      <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <div class="about-head">
+        <img class="about-photo" src="tim.jpg" alt="Tim Hensenne" loading="lazy">
+        <div class="about-id">
+          <h2>${L === "fr" ? "À propos" : "About"}</h2>
+          <div class="about-role">${esc(PROFILE.role[L])}</div>
+          <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="#0A66C2" d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .78 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .78 23.2 0 22.22 0z"/></svg></a>
+        </div>
+      </div>
       <div class="about-body">${about}</div>
     </section>
 
@@ -2822,9 +3148,13 @@ function gradeOf(iso){
 // correspondant. Le comparateur (Graphique) réutilise les pays épinglés.
 function renderDatabase(){
   const L = lang === "fr";
+  const segIcon = {
+    table: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9.5" y1="4" x2="9.5" y2="20"/></svg>`,
+    chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><polyline points="6 15 11 10 14 13 20 6"/></svg>`
+  };
   const modeChip = (m, label) =>
-    `<button class="chip${dbMode === m ? " on" : ""}" data-dbmode="${m}">${label}</button>`;
-  const toggle = `<div class="db-mode">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}</div>`;
+    `<button class="${dbMode === m ? "on" : ""}" data-dbmode="${m}">${segIcon[m]}${label}</button>`;
+  const toggle = `<div class="db-seg" role="tablist" aria-label="${L ? "Vue" : "View"}">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}</div>`;
   const lead = dbMode === "chart"
     ? (L ? "Sélectionne des pays et compare leurs trajectoires sur un indicateur."
          : "Select countries and compare their trajectories on one indicator.")
@@ -2896,7 +3226,7 @@ function renderTableBody(){
   const tbody = shown.map(iso => `<tr${dbPicked.has(iso) ? ' class="picked"' : ""}>${cols.map(c => {
     const v = c.get(iso);
     const disp = (v == null || v === "") ? "—" : (c.fmt ? c.fmt(v) : esc(String(v)));
-    if (c.key === "name") return `<td><label class="pickcell"><input type="checkbox" data-pick="${iso}"${dbPicked.has(iso) ? " checked" : ""}>${disp}</label></td>`;
+    if (c.key === "name") return `<td><label class="pickcell"><input type="checkbox" data-pick="${iso}"${dbPicked.has(iso) ? " checked" : ""}><span class="pn" title="${disp}">${disp}</span></label></td>`;
     return `<td class="${c.text ? "" : "num"}">${disp}</td>`;
   }).join("")}</tr>`).join("")
     || `<tr><td colspan="${cols.length}" class="db-none">${lang === "fr" ? "Aucun pays ne correspond." : "No country matches."}</td></tr>`;
@@ -2924,30 +3254,35 @@ function niceTicks(min, max, n){
   return out;
 }
 
-// Libellé d'axe compact (les valeurs pleines restent dans l'infobulle) : montants
-// à l'échelle k/M/Md/T, symbole collé, décimale seulement si utile → tient à gauche.
-function fmtAxis(v, fmt){
+// Unité et format des graduations de l'axe Y. Renvoie { label, fmtTick } : une
+// seule unité pour tout l'axe (affichée en étiquette), les graduations n'étant
+// alors que des nombres. Les valeurs pleines restent dans l'infobulle.
+function yAxisUnit(fmt, ticks){
+  const fr = lang === "fr";
+  const dec = (s) => fr ? s.replace(".", ",") : s;
   if (fmt !== "moneyMd" && fmt !== "money"){
-    return (v % 1 ? v.toFixed(1).replace(".", ",") : String(v)) + " %";
+    return { label: "%", fmtTick: (v) => v % 1 ? dec(v.toFixed(1)) : String(v) };
   }
-  let x = fmt === "moneyMd" ? v * 1e9 : v;
   const rate = macro.fx?.usdToEur;
-  if (currency === "EUR" && rate) x *= rate;
-  const sym = currency === "EUR" ? "€" : "$";
-  const scaled = (d, u) => (x / d).toFixed((x / d) % 1 ? 1 : 0).replace(".", ",") + " " + u + sym;
-  const a = Math.abs(x);
-  if (a >= 1e12) return scaled(1e12, "T");
-  if (a >= 1e9)  return scaled(1e9, "Md");
-  if (a >= 1e6)  return scaled(1e6, "M");
-  if (a >= 1e3)  return scaled(1e3, "k");
-  return Math.round(x) + sym;
+  const sym = (currency === "EUR" && rate) ? "€" : "$";
+  const nativeMul = fmt === "moneyMd" ? 1e9 : 1;              // → USD
+  const eurMul = (currency === "EUR" && rate) ? rate : 1;
+  const toDisp = (v) => v * nativeMul * eurMul;              // valeur affichée (USD/EUR)
+  const maxAbs = Math.max(...ticks.map(t => Math.abs(toDisp(t))), 1);
+  let div, u;
+  if (maxAbs >= 1e12){ div = 1e12; u = "T " + sym; }
+  else if (maxAbs >= 1e9){ div = 1e9; u = (fr ? "Md" : "B") + " " + sym; }
+  else if (maxAbs >= 1e6){ div = 1e6; u = "M " + sym; }
+  else if (maxAbs >= 1e3){ div = 1e3; u = "k " + sym; }
+  else { div = 1; u = sym; }
+  return { label: u, fmtTick: (v) => { const x = toDisp(v) / div; return x % 1 ? dec(x.toFixed(1)) : String(x); } };
 }
 
 // Graphe comparateur : superpose les trajectoires annuelles de plusieurs pays
 // sur un même indicateur. SVG à repère fixe (axes valeurs + années), une courbe
 // par pays, survol pour lire toutes les valeurs d'une année. Les colonnes
 // (année → valeurs par série) sont stockées sur le SVG pour le survol.
-function compareChart(isos, key, fmt){
+function compareChart(isos, key, fmt, vbH){
   const series = isos.slice(0, SERIES_COLORS.length).map((iso, idx) => {
     const d = macro.countries[iso].indicators[key];
     const y0 = d.hist0;
@@ -2966,20 +3301,27 @@ function compareChart(isos, key, fmt){
   if (y0 === y1){ y0 -= 1; y1 += 1; }
   const pad = (y1 - y0) * 0.08; y0 -= pad; y1 += pad;
   const zeroIn = y0 < 0 && y1 > 0;
-  const W = 1000, H = 310, mL = 66, mR = 20, mT = 16, mB = 30;
+  const W = 1000, H = Math.max(240, Math.round(vbH || 340)), mL = 66, mR = 22, mT = 30, mB = 48;
   const pw = W - mL - mR, ph = H - mT - mB;
   const sx = yr => mL + (yr - xMin) / ((xMax - xMin) || 1) * pw;
   const sy = v  => mT + (1 - (v - y0) / ((y1 - y0) || 1)) * ph;
-  const grid = niceTicks(y0, y1, 5).filter(tv => tv >= y0 && tv <= y1).map(tv => {
+  const ticks = niceTicks(y0, y1, 5).filter(tv => tv >= y0 && tv <= y1);
+  const yu = yAxisUnit(fmt, ticks);
+  const grid = ticks.map(tv => {
     const yy = sy(tv).toFixed(1);
     return `<line class="cmp-grid" x1="${mL}" y1="${yy}" x2="${W - mR}" y2="${yy}"/>`
-      + `<text class="cmp-ylab" x="${mL - 8}" y="${yy}" text-anchor="end" dominant-baseline="middle">${esc(fmtAxis(tv, fmt))}</text>`;
+      + `<text class="cmp-ylab" x="${mL - 9}" y="${yy}" text-anchor="end" dominant-baseline="middle">${esc(yu.fmtTick(tv))}</text>`;
   }).join("");
   const zeroLine = zeroIn ? `<line class="cmp-zero" x1="${mL}" y1="${sy(0).toFixed(1)}" x2="${W - mR}" y2="${sy(0).toFixed(1)}"/>` : "";
+  // Axes pleins (cadre en L) + étiquette d'unité de l'axe Y en haut à gauche.
+  const axes = `<line class="cmp-axis" x1="${mL}" y1="${mT}" x2="${mL}" y2="${H - mB}"/>`
+    + `<line class="cmp-axis" x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}"/>`;
+  const yUnit = `<text class="cmp-unit" x="${mL - 9}" y="${mT - 12}" text-anchor="end">${esc(yu.label)}</text>`;
   const years = []; for (let y = xMin; y <= xMax; y++) years.push(y);
   const step = Math.max(1, Math.round(years.length / 6));
   const xlabs = years.filter((y, i) => i % step === 0 || y === xMax).map(y =>
-    `<text class="cmp-xlab" x="${sx(y).toFixed(1)}" y="${H - 8}" text-anchor="middle">${y}</text>`).join("");
+    `<text class="cmp-xlab" x="${sx(y).toFixed(1)}" y="${H - mB + 20}" text-anchor="middle">${y}</text>`).join("");
+  const xTitle = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${lang === "fr" ? "Année" : "Year"}</text>`;
   const paths = series.map(s => {
     const d = s.pts.map(([yr, v], k) => (k ? "L" : "M") + sx(yr).toFixed(1) + "," + sy(v).toFixed(1)).join(" ");
     return `<path class="cmp-line" d="${d}" style="stroke:${s.color}"/>`;
@@ -2992,12 +3334,12 @@ function compareChart(isos, key, fmt){
       return p ? { name: s.name, color: s.color, y: +sy(p[1]).toFixed(1), v: p[1], si } : null; }).filter(Boolean)
   })).filter(c => c.vals.length);
   const hdots = series.map((s, i) => `<circle class="cmp-hdot" data-i="${i}" r="3.5" style="fill:${s.color};display:none"/>`).join("");
-  return `<svg class="compare-plot" viewBox="0 0 ${W} ${H}" data-fmt="${fmt}" data-vbw="${W}" data-cols='${esc(JSON.stringify(cols))}'>
-      ${grid}${zeroLine}
+  return `<svg class="compare-plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-fmt="${fmt}" data-vbw="${W}" data-vbh="${H}" data-cols='${esc(JSON.stringify(cols))}'>
+      ${grid}${zeroLine}${axes}
       <line class="cmp-guide" x1="0" y1="${mT}" x2="0" y2="${H - mB}" style="display:none"/>
-      ${paths}${ends}${hdots}${xlabs}
-    </svg>
-    <div class="cmp-tip" style="display:none"></div>`;
+      ${paths}${ends}${hdots}
+      ${yUnit}${xlabs}${xTitle}
+    </svg>`;
 }
 
 // Corps du mode Graphique : puces d'indicateurs, graphe des pays sélectionnés
@@ -3006,7 +3348,7 @@ function renderCompareView(h1, leadP, toggle){
   const L = lang === "fr";
   const nameOf = iso => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : (macro.countries?.[iso]?.name || iso);
   const inds = CHART_INDS.map(k =>
-    `<button class="chip${k === dbChartInd ? " on" : ""}" data-cind="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("");
+    `<button class="${k === dbChartInd ? "on" : ""}" data-cind="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("");
   // Pays tracés : sélectionnés ayant la donnée pour l'indicateur, dans l'ordre, max 10.
   const withData = [...dbPicked].filter(iso => macro.countries?.[iso]?.indicators?.[dbChartInd]?.hist);
   const plotted = withData.slice(0, SERIES_COLORS.length);
@@ -3021,9 +3363,14 @@ function renderCompareView(h1, leadP, toggle){
       <div class="cmp-block-h cmp-selhead"><span>${L ? "Sélection" : "Selection"}</span>${resetBtn}</div>
       <div class="cmp-chosen-wrap"><div class="cmp-chosen">${chips}</div></div>
     </div>`;
-  const plot = plotted.length
-    ? `<div class="cmp-wrap">${compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd])}</div>`
-    : `<div class="cmp-empty">${L ? "Sélectionne des pays dans la liste pour tracer leurs courbes." : "Select countries in the list to plot their curves."}</div>`;
+  const inner = plotted.length
+    ? `<div class="cmp-plotbox">${compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd])}</div>`
+    : `<div class="cmp-plotbox"><div class="cmp-empty">${L ? "Sélectionne des pays dans la liste pour tracer leurs courbes." : "Select countries in the list to plot their curves."}</div></div>`;
+  const plot = `<div class="cmp-wrap">
+      <div class="cmp-title">${esc(IND_LABELS[dbChartInd]?.[lang] || dbChartInd)}</div>
+      ${inner}
+      <div class="cmp-tip" style="display:none"></div>
+    </div>`;
   const noData = dbPicked.size - withData.length;
   const noteHtml = noData > 0
     ? `<div class="cmp-note">${L ? `${noData} pays sans donnée ici.` : `${noData} country(ies) without data here.`}</div>` : "";
@@ -3057,11 +3404,12 @@ function renderCompareView(h1, leadP, toggle){
     </div>`;
   return `<div class="page db-page"><div class="db-in">
     <div class="cmp-header">
-      <div class="cmp-hleft">${h1}${leadP}${toggle}<div class="cmp-inds">${inds}</div></div>
+      <div class="cmp-hleft">${h1}${leadP}${toggle}</div>
       ${selBlock}
     </div>
     <div class="cmp-scroll">
       <div class="cmp-main">
+        <div class="cmp-metrics" role="tablist" aria-label="${L ? "Indicateur" : "Indicator"}">${inds}</div>
         ${plot}
         ${side}
       </div>
@@ -3071,7 +3419,6 @@ function renderCompareView(h1, leadP, toggle){
   </div></div>`;
 }
 
-function renderBenchmark(){ return renderDatabase(); }
 // ── Jeu : trouve le pays (façon LoLdle/Worldle) ──
 // 6 indices par essai : Région, Population, PIB, Frontaliers, Densité, Fuseau.
 // Vert = exact · jaune = proche (±10 %) · flèche = le pays mystère est plus
@@ -3227,9 +3574,8 @@ function renderGames(){
   if (gScreen === "podium") return renderPodiumGame();
   return renderCountryGame();
 }
-// Le petit explorateur : il vit (respire/se balance en CSS), cligne des yeux,
-// se gratte ou regarde autour par moments. Au survol de la souris : il cligne
-// des yeux (et fait un petit coucou).
+// Le petit robot : il cligne des yeux par moments. Au survol de la souris,
+// son écran et son antenne s'allument.
 let mascotReady = false;
 function hubMascot(){
   if (!document.querySelector(".g-mascot")) return;
@@ -3914,9 +4260,38 @@ function renderPodiumGame(){
 
 async function boot(){
   renderTabs();
+  // Reflète la langue et la devise restaurées (localStorage) sur les bascules
+  // du bandeau et sur les métadonnées du document. Sans cela, l'état interne
+  // et l'interface divergeraient au premier rendu.
+  document.documentElement.lang = lang;
+  document.title = lang === "fr" ? "Atlas · Marchés" : "Atlas · Markets";
+  for (const btn of el("lang").querySelectorAll("button")){
+    const on = btn.dataset.lang === lang;
+    btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", String(on));
+  }
+  for (const btn of el("fx").querySelectorAll("button")){
+    const on = btn.dataset.cur === currency;
+    btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", String(on));
+  }
+  // Textes statiques du bandeau/légende (écrits en FR dans le HTML).
+  if (lang !== "fr"){
+    el("eyebrow").textContent = t("eyebrow");
+    if (el("lg-cov")) el("lg-cov").textContent = t("covered");
+    if (el("lg-not")) el("lg-not").textContent = t("notYet");
+  }
   // La restauration de l'onglet depuis l'URL (#view=…) se fait plus bas,
   // APRÈS le chargement des données — sinon le tableur se construit sur du vide.
-  const viewFromHash = () => (location.hash.match(/^#view=([a-z]+)$/) || [])[1] || "home";
+  // Deep-link : #view=map&c=FR&t=analysis → vue + pays sélectionné + onglet du
+  // panneau. parseHash() lit ce format (et reste compatible avec #view=… seul).
+  const parseHash = () => {
+    const p = new URLSearchParams(location.hash.slice(1));
+    return {
+      view: /^[a-z]+$/.test(p.get("view") || "") ? p.get("view") : "home",
+      c: /^[A-Z]{2}$/.test(p.get("c") || "") ? p.get("c") : null,
+      t: ["identity", "economics", "analysis"].includes(p.get("t")) ? p.get("t") : null,
+    };
+  };
+  const viewFromHash = () => parseHash().view;
   // Retour / Suivant du navigateur : on restaure la vue et l'écran de jeu
   // depuis l'entrée d'historique, sans réempiler.
   window.addEventListener("popstate", (e) => {
@@ -3924,6 +4299,12 @@ async function boot(){
     const v = st.view || viewFromHash();
     if (v === "games") gScreen = st.gScreen || "hub";
     applyView(v);
+    // Le hash de l'entrée restaurée peut porter un pays : on le resélectionne.
+    const h = parseHash();
+    if (v === "map" && h.c && window.__select && selected?.iso !== h.c){
+      if (h.t) panelTab = h.t;
+      window.__select(h.c, (macro.countries?.[h.c]?.name) || h.c);
+    }
   });
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
@@ -4039,47 +4420,47 @@ async function boot(){
   let pickErrTimer = null;   // masquage différé du message « max N pays »
   el("view-benchmark").addEventListener("click", (e) => {
     const md = e.target.closest("[data-dbmode]");
-    if (md){ dbMode = md.dataset.dbmode; el("view-benchmark").innerHTML = renderDatabase(); return; }
+    if (md){ const from = dbMode; dbMode = md.dataset.dbmode; drawDb(from); return; }
     const cin = e.target.closest("[data-cind]");
-    if (cin){ dbChartInd = cin.dataset.cind; el("view-benchmark").innerHTML = renderDatabase(); return; }
+    if (cin){ const fromInd = dbChartInd; dbChartInd = cin.dataset.cind; drawDb(null, fromInd); return; }
     const up = e.target.closest("[data-unpin]");
     if (up){
       dbPicked.delete(up.dataset.unpin);
       const list = el("view-benchmark").querySelector(".cmp-pick-list");
       const st = list ? list.scrollTop : 0;
-      el("view-benchmark").innerHTML = renderDatabase();
+      drawDb();
       const l2 = el("view-benchmark").querySelector(".cmp-pick-list");
       if (l2) l2.scrollTop = st;
       return;
     }
     const cre = e.target.closest("[data-cmpreset]");
-    if (cre){ dbPicked.clear(); dbPickQuery = ""; el("view-benchmark").innerHTML = renderDatabase(); return; }
+    if (cre){ dbPicked.clear(); dbPickQuery = ""; drawDb(); return; }
     const rst = e.target.closest("[data-dbreset]");
     if (rst){
       dbQuery = ""; dbPicked.clear(); dbSort = "name"; dbDir = 1;
       dbRegions.clear(); dbGrades.clear(); dbQInd = null; dbQuarts.clear();
       dbVisible = new Set(DB_COLS.filter(c => !c.always).map(c => c.key));
-      el("view-benchmark").innerHTML = renderDatabase();
+      drawDb();
       return;
     }
     const freg = e.target.closest("[data-freg]");
     if (freg){ const r = freg.dataset.freg; dbRegions.has(r) ? dbRegions.delete(r) : dbRegions.add(r);
-      el("view-benchmark").innerHTML = renderDatabase(); return; }
+      drawDb(); return; }
     const fgr = e.target.closest("[data-fgrade]");
     if (fgr){ const g = fgr.dataset.fgrade; dbGrades.has(g) ? dbGrades.delete(g) : dbGrades.add(g);
-      el("view-benchmark").innerHTML = renderDatabase(); return; }
+      drawDb(); return; }
     const fqi = e.target.closest("[data-fqind]");
     if (fqi){ dbQInd = dbQInd === fqi.dataset.fqind ? null : fqi.dataset.fqind;
-      el("view-benchmark").innerHTML = renderDatabase(); return; }
+      drawDb(); return; }
     const fq = e.target.closest("[data-fq]");
     if (fq){ const n = +fq.dataset.fq; dbQuarts.has(n) ? dbQuarts.delete(n) : dbQuarts.add(n);
-      el("view-benchmark").innerHTML = renderDatabase(); return; }
+      drawDb(); return; }
     const th = e.target.closest("th[data-sort]");
     if (!th) return;
     const key = th.dataset.sort;
     if (dbSort === key) dbDir = -dbDir;
     else { dbSort = key; dbDir = (DB_COLS.find(c => c.key === key)?.text) ? 1 : -1; }
-    el("view-benchmark").innerHTML = renderDatabase();
+    drawDb();
   });
   el("view-benchmark").addEventListener("input", (e) => {
     const cb = e.target.closest("input[data-col]");
@@ -4088,7 +4469,7 @@ async function boot(){
     if (ps){
       dbPickQuery = ps.value;
       const pos = ps.selectionStart;
-      el("view-benchmark").innerHTML = renderDatabase();
+      drawDb();
       const p2 = el("view-benchmark").querySelector(".cmp-pick-search");
       if (p2){ p2.focus(); p2.setSelectionRange(pos, pos); }
       return;
@@ -4097,7 +4478,7 @@ async function boot(){
     if (!s) return;
     dbQuery = s.value;
     const pos = s.selectionStart;
-    el("view-benchmark").innerHTML = renderDatabase();
+    drawDb();
     const s2 = el("view-benchmark").querySelector(".db-search");
     if (s2){ s2.focus(); s2.setSelectionRange(pos, pos); }   // le curseur ne saute pas
   });
@@ -4122,7 +4503,7 @@ async function boot(){
       if (pc.checked) dbPicked.add(iso); else dbPicked.delete(iso);
       const list = el("view-benchmark").querySelector(".cmp-pick-list");
       const st = list ? list.scrollTop : 0;
-      el("view-benchmark").innerHTML = renderDatabase();
+      drawDb();
       const l2 = el("view-benchmark").querySelector(".cmp-pick-list");
       if (l2) l2.scrollTop = st;   // la liste ne saute pas au cochage
       return;
@@ -4130,13 +4511,13 @@ async function boot(){
     const pk = e.target.closest("input[data-pick]");
     if (pk){
       if (pk.checked) dbPicked.add(pk.dataset.pick); else dbPicked.delete(pk.dataset.pick);
-      el("view-benchmark").innerHTML = renderDatabase();
+      drawDb();
       return;
     }
     const cb = e.target.closest("input[data-col]");
     if (!cb) return;
     if (cb.checked) dbVisible.add(cb.dataset.col); else dbVisible.delete(cb.dataset.col);
-    el("view-benchmark").innerHTML = renderDatabase();
+    drawDb();
   });
 
   // Survol du comparateur : guide vertical, points sur chaque courbe et
@@ -4176,36 +4557,22 @@ async function boot(){
     const gx = rect.left + best.x / vbw * rect.width - wr.left;
     const tw = tip.offsetWidth;
     let left = gx + 14; if (left + tw > wr.width - 6) left = gx - tw - 14;
-    tip.style.left = Math.max(6, left) + "px"; tip.style.top = "14px";
+    tip.style.left = Math.max(6, left) + "px";
+    tip.style.top = Math.max(6, rect.top - wr.top + 8) + "px";
   });
   el("view-benchmark").addEventListener("pointerleave", cmpHideTip);
 
-  try {
-    const r = await fetch("./macro.json");
-    if(r.ok) macro = await r.json();
-  } catch {}
-
-  // Fiches d'identité (capitale, monnaie, population…) — données locales, sans
-  // API externe. Chargement non bloquant : si absent, l'onglet Identité affiche
-  // simplement « indisponible ».
-  try {
-    const r = await fetch("./countries.json");
-    if(r.ok) ident = await r.json();
-  } catch {}
-
-  // Marchés (rendements 10 ans + spreads) — données locales OCDE/FRED. Absentes
-  // pour les pays hors OCDE : le bloc Marchés n'apparaît alors simplement pas.
-  try {
-    const r = await fetch("./yields.json");
-    if(r.ok) yields = await r.json();
-  } catch {}
-
-  // Notations souveraines (S&P/Moody's/Fitch) — données locales issues de
-  // Wikipédia. Absentes pour les pays non notés : le bloc ne s'affiche pas.
-  try {
-    const r = await fetch("./ratings.json");
-    if(r.ok) ratings = await r.json();
-  } catch {}
+  // Données locales chargées EN PARALLÈLE (elles sont indépendantes) :
+  // macro (FMI), fiches d'identité, marchés (OCDE/FRED), notations (Wikipédia).
+  // Chacune reste non bloquante : si un fichier manque, son bloc ne s'affiche pas.
+  const [rMacro, rIdent, rYields, rRatings] = await Promise.allSettled([
+    fetch("./macro.json"), fetch("./countries.json"),
+    fetch("./yields.json"), fetch("./ratings.json"),
+  ]);
+  try { if (rMacro.status === "fulfilled" && rMacro.value.ok) macro = await rMacro.value.json(); } catch {}
+  try { if (rIdent.status === "fulfilled" && rIdent.value.ok) ident = await rIdent.value.json(); } catch {}
+  try { if (rYields.status === "fulfilled" && rYields.value.ok) yields = await rYields.value.json(); } catch {}
+  try { if (rRatings.status === "fulfilled" && rRatings.value.ok) ratings = await rRatings.value.json(); } catch {}
 
   const nCountries = Object.keys(macro.countries || {}).length;
   // Les données sont chargées : on restaure l'onglet mémorisé dans l'URL en
@@ -4367,12 +4734,22 @@ async function boot(){
   function selectCountry(iso, name, feature){
     selected = { iso, name };
     if (view !== "map") setView("map");   // un clic/recherche ramène sur la carte
+    else history.replaceState({ view: "map", gScreen: "hub" }, "", hashFor("map"));
     g.selectAll("path.country").classed("on", x => !!iso && isoOf(x) === iso);
     g.selectAll("path.country.on").each(function(){ this.parentNode.appendChild(this); });
     renderPanel();
   }
   window.__select = selectCountry;
   window.__searchable = searchable;
+  // Deep-link : si l'URL portait un pays (#…&c=FR&t=analysis), on le restaure
+  // maintenant que la carte et window.__select existent.
+  {
+    const h0 = parseHash();
+    if (h0.view === "map" && h0.c && (macro.countries?.[h0.c] || ident[h0.c])){
+      if (h0.t) panelTab = h0.t;
+      selectCountry(h0.c, (macro.countries?.[h0.c]?.name) || h0.c);
+    }
+  }
 
   // Le plus gros morceau d'un pays : sert à la fois à viser (centroïde) et à
   // mesurer sa taille à l'écran, sans être faussé par des îles lointaines.
@@ -4444,6 +4821,7 @@ async function boot(){
       const b = e.target.closest("[data-cur]");
       if (!b) return;
       currency = b.dataset.cur;
+      try { localStorage.setItem("atlas-currency", currency); } catch {}
       for (const btn of el("fx").querySelectorAll("button")) {
         const on = btn.dataset.cur === currency;
         btn.classList.toggle("on", on);
@@ -4530,10 +4908,17 @@ async function boot(){
   });
 
   // ── bascule de langue ──
+  // Métadonnées du document : attribut lang (accessibilité/SEO) + titre.
+  const applyLangMeta = () => {
+    document.documentElement.lang = lang;
+    document.title = lang === "fr" ? "Atlas · Marchés" : "Atlas · Markets";
+  };
   el("lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
     if (!b) return;
     lang = b.dataset.lang;
+    try { localStorage.setItem("atlas-lang", lang); } catch {}
+    applyLangMeta();
     for (const btn of el("lang").querySelectorAll("button")){
       const on = btn.dataset.lang === lang;
       btn.classList.toggle("on", on);
@@ -4696,6 +5081,55 @@ function heroMagnet(){ /* désactivé : le déplacement des boutons n'était pas
 // ni traceurs — seulement du localStorage strictement nécessaire (préférences,
 // session, parties), exempté de consentement.
 function legalHTML(kind, L){
+  if (kind === "method"){
+    return L
+      ? '<div class="m-h">Méthodologie — Risque souverain</div><div class="m-legal">'
+        + '<p>Le score de risque souverain (0 à 100, plus élevé = plus risqué) est un indicateur composite maison, calculé à partir des seuls fondamentaux macroéconomiques du FMI (World Economic Outlook).</p>'
+        + '<h4>Les six piliers</h4>'
+        + '<p>Chaque pilier est ramené à un sous-score de risque de 0 à 100, puis pondéré :</p>'
+        + '<ul>'
+        + '<li><b>Dette publique — 25 %</b> : niveau en courbe logistique (S-curve) dont le centre dépend du revenu du pays — de 65 % du PIB pour les plus pauvres à 95 % pour les plus riches (« debt intolerance » : la dette tolérable croît avec le revenu) — combiné (75/25) à la tendance de la dette sur 5 ans.</li>'
+        + '<li><b>Solde budgétaire — 20 %</b> : moyenne des 3 dernières années ; +3 % du PIB → 0, −12 % → 100.</li>'
+        + '<li><b>Balance courante — 15 %</b> : moyenne des 3 dernières années ; +5 % du PIB → 0, −10 % → 100.</li>'
+        + '<li><b>Inflation — 15 %</b> : le pire de la surchauffe (2 % → 0 ; 25 % → 100) et de la déflation (0 % → 0 ; −4 % → 100), combiné (75/25) à la volatilité des prix sur 5 ans.</li>'
+        + '<li><b>Croissance — 15 %</b> : potentiel (moyenne 5 ans ; +5 % → 0, −5 % → 100) et instabilité (écart-type historique), pondérés 60/40.</li>'
+        + '<li><b>Capacité — 10 %</b> : percentile mondial du PIB par habitant (part des pays plus riches) — la richesse mesure l\'assiette fiscale et la capacité institutionnelle.</li>'
+        + '</ul>'
+        + '<h4>Interactions</h4>'
+        + '<p>Deux pénalités s\'ajoutent, plafonnées à +10 points au total : « boule de neige » (dette &gt; 90 % du PIB et déficit moyen &gt; 4 % — le service de la dette s\'auto-alimente) et « déficits jumeaux » (budget et balance courante simultanément négatifs).</p>'
+        + '<h4>Agrégation et bandes</h4>'
+        + '<p>Le score final est la moyenne pondérée des six piliers, plus les interactions, plafonné à 100. Bandes de lecture : faible (&lt; 25), modéré (25–45), élevé (45–65), très élevé (≥ 65).</p>'
+        + '<h4>Tout ou rien</h4>'
+        + '<p>Si l\'un des fondamentaux requis manque pour un pays, aucun score n\'est affiché — pour éviter une note trompeuse fondée sur des données partielles.</p>'
+        + '<h4>Signal de divergence</h4>'
+        + '<p>Quand le score est faible ou modéré mais que la notation d\'agence (S&amp;P, Moody\'s, Fitch) est spéculative ou pire, un avertissement s\'affiche : le score, purement macro, ne capte pas le risque politique et institutionnel (sanctions, gouvernance, convertibilité).</p>'
+        + '<h4>Portée</h4>'
+        + '<p>Score indicatif et pédagogique, indépendant des agences, fondé sur la dernière projection du FMI. Ce n\'est pas un conseil en investissement.</p>'
+        + '</div>'
+      : '<div class="m-h">Methodology — Sovereign risk</div><div class="m-legal">'
+        + '<p>The sovereign risk score (0 to 100, higher = riskier) is an in-house composite computed from IMF macroeconomic fundamentals only (World Economic Outlook).</p>'
+        + '<h4>The six pillars</h4>'
+        + '<p>Each pillar is mapped to a 0–100 risk sub-score, then weighted:</p>'
+        + '<ul>'
+        + '<li><b>Public debt — 25%</b>: level on a logistic S-curve whose midpoint depends on income — from 65% of GDP for the poorest to 95% for the richest ("debt intolerance": tolerable debt rises with income) — blended (75/25) with the 5-year debt trend.</li>'
+        + '<li><b>Budget balance — 20%</b>: 3-year average; +3% of GDP → 0, −12% → 100.</li>'
+        + '<li><b>Current account — 15%</b>: 3-year average; +5% of GDP → 0, −10% → 100.</li>'
+        + '<li><b>Inflation — 15%</b>: the worse of overheating (2% → 0; 25% → 100) and deflation (0% → 0; −4% → 100), blended (75/25) with 5-year price volatility.</li>'
+        + '<li><b>Growth — 15%</b>: potential (5-year average; +5% → 0, −5% → 100) and instability (historical standard deviation), weighted 60/40.</li>'
+        + '<li><b>Capacity — 10%</b>: world percentile of GDP per capita (share of richer countries) — wealth proxies the tax base and institutional capacity.</li>'
+        + '</ul>'
+        + '<h4>Interactions</h4>'
+        + '<p>Two penalties are added, capped at +10 points in total: "snowball" (debt &gt; 90% of GDP and average deficit &gt; 4% — debt service feeds on itself) and "twin deficits" (budget and current account simultaneously negative).</p>'
+        + '<h4>Aggregation and bands</h4>'
+        + '<p>The final score is the weighted average of the six pillars, plus interactions, capped at 100. Reading bands: low (&lt; 25), moderate (25–45), high (45–65), very high (≥ 65).</p>'
+        + '<h4>All or nothing</h4>'
+        + '<p>If any required fundamental is missing for a country, no score is shown — to avoid a misleading rating based on partial data.</p>'
+        + '<h4>Divergence signal</h4>'
+        + '<p>When the score is low or moderate but the agency rating (S&amp;P, Moody\'s, Fitch) is speculative or worse, a warning appears: the purely macro score does not capture political and institutional risk (sanctions, governance, convertibility).</p>'
+        + '<h4>Scope</h4>'
+        + '<p>Indicative, educational score, independent of agencies, based on the latest IMF projection. This is not investment advice.</p>'
+        + '</div>';
+  }
   if (kind === "mentions"){
     return L
       ? '<div class="m-h">Mentions légales</div><div class="m-legal">'
@@ -4857,16 +5291,11 @@ const Auth = (() => {
     if (busy) return; const L = lang === "fr";
     const idRaw = el("au-id") ? el("au-id").value.trim() : "";
     const password = el("au-pw") ? el("au-pw").value : "";
-    if (!idRaw || !password) return setMsg("err", L ? "Identifiant et mot de passe requis." : "Identifier and password required.");
+    if (!idRaw || !password) return setMsg("err", L ? "Email et mot de passe requis." : "Email and password required.");
+    if (!idRaw.includes("@")) return setMsg("err", L ? "Connecte-toi avec ton email." : "Log in with your email.");
     setBusy(true);
     try {
-      let email = idRaw;
-      if (!idRaw.includes("@")){                      // c'est un pseudo → on récupère l'email associé
-        const { data, error } = await supa.rpc("email_for_pseudo", { p: idRaw });
-        if (error || !data){ setBusy(false); return setMsg("err", L ? "Pseudo introuvable — essaie avec ton email." : "Unknown pseudonym — try your email."); }
-        email = data;
-      }
-      const { error } = await supa.auth.signInWithPassword({ email, password });
+      const { error } = await supa.auth.signInWithPassword({ email: idRaw, password });
       if (error) throw error;
       await ensureProfile(); paintBar(); refreshHub();
       finishAuth(L ? "Connecté." : "Logged in.");
@@ -4958,7 +5387,7 @@ const Auth = (() => {
       + '<button type="button" class="pw-eye" data-auth="toggle-pw" aria-label="Afficher / masquer">' + EYE + '</button></div></div>';
   }
   function fieldLogin(L){
-    return '<div class="m-field"><label>' + (L ? "Pseudo ou email" : "Pseudonym or email") + ' <span class="req">*</span></label><input class="m-in" id="au-id" autocomplete="username"></div>'
+    return '<div class="m-field"><label>' + (L ? "Email" : "Email") + ' <span class="req">*</span></label><input class="m-in" id="au-id" type="email" autocomplete="email"></div>'
       + pwField("au-pw", L ? "Mot de passe" : "Password", "current-password")
       + '<button class="m-go" data-auth="submit-login">' + (L ? "Se connecter" : "Log in") + '</button>'
       + '<div class="m-alt"><button data-auth="tab-signup">' + (L ? "Pas encore de compte ? S'inscrire" : "No account? Sign up") + '</button></div>';
