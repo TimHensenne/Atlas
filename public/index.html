@@ -509,10 +509,11 @@
   .sc-def-gap{margin-top:12px;}
   .sc-axis-c{stroke:var(--dim);stroke-opacity:.55;}
   .sc-med-note{margin-top:2px;padding-top:0;border-top:none;}
-  .sc-tip-name{font-size:13px;font-weight:700;}
   .scatter-plot{width:100%;height:100%;display:block;}
-  .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .12s ease;}
+  .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .15s ease;}
   .sc-dot:hover,.sc-dot.hov{opacity:1;stroke:var(--ink);stroke-width:1.6;}
+  .sc-dot.dim{opacity:.14;}
+  .sc-dot.hit{opacity:1;stroke:var(--ink);stroke-width:1.8;}
   @media (max-width:1024px){ .sc-menus{flex:1 1 100%;} }
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
@@ -2558,6 +2559,11 @@ function drawDb(fromMode, fromInd, fromAxis, fromK){
   positionScGlides(fromAxis, fromK);
   fitChart();
   fitScatter();
+  // Si on a quitté le Nuage, l'infobulle épinglée par la recherche doit disparaître.
+  const gt = el("tip");
+  if (gt && gt.dataset.pinned && !el("view-benchmark").querySelector(".scatter-plot")){
+    gt.style.display = "none"; delete gt.dataset.pinned;
+  }
 }
 // Recalcule la hauteur du viewBox du graphe d'après la place réelle de la zone
 // de traçage → le graphe remplit la hauteur disponible, à scale uniforme (le SVG
@@ -2581,11 +2587,49 @@ function fitScatter(){
   const w = box.clientWidth, h = box.clientHeight;
   if (w < 40 || h < 40) return;
   box.innerHTML = scatterChart(1000 * h / w);
+  applyScSearch();
+}
+// Recherche du Nuage : estompe les points hors requête, surligne les
+// correspondances et épingle l'infobulle (style carte) sur la meilleure.
+function applyScSearch(){
+  const root = el("view-benchmark");
+  const plot = root && root.querySelector(".scatter-plot");
+  const gtip = el("tip");
+  if (!plot) return;
+  const norm = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const q = norm(scQuery.trim());
+  const dots = [...plot.querySelectorAll(".sc-dot")];
+  if (!q){
+    for (const d of dots) d.classList.remove("dim", "hit");
+    if (gtip && gtip.dataset.pinned){ gtip.style.display = "none"; delete gtip.dataset.pinned; }
+    return;
+  }
+  let best = null;
+  for (const d of dots){
+    const hit = norm(d.dataset.name).includes(q) || norm(d.dataset.iso) === q;
+    d.classList.toggle("hit", hit);
+    d.classList.toggle("dim", !hit);
+    if (hit && !best) best = d;
+    if (hit && norm(d.dataset.name).startsWith(q)) best = best && norm(best.dataset.name).startsWith(q) ? best : d;
+  }
+  if (best && gtip){
+    const r = best.getBoundingClientRect();
+    gtip.style.display = "flex";
+    gtip.style.left = (r.left + r.width / 2) + "px";
+    gtip.style.top = r.top + "px";
+    gtip.querySelector("b").textContent = best.dataset.iso || "··";
+    gtip.querySelector("span").textContent = best.dataset.name || "";
+    gtip.dataset.pinned = "1";
+  } else if (gtip){
+    gtip.style.display = "none"; delete gtip.dataset.pinned;
+  }
 }
 // Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
 function applyView(v){
   if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
+  // L'infobulle épinglée du Nuage ne doit pas survivre à un changement de vue.
+  { const gt = el("tip"); if (gt && gt.dataset.pinned){ gt.style.display = "none"; delete gt.dataset.pinned; } }
   view = v;
   document.documentElement.dataset.view = v;   // pilote l'opacité du fond pointillé
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
@@ -3149,6 +3193,7 @@ let dbMode = "table";
 let dbChartInd = "GGXWDG_NGDP";
 // Axes du mode Nuage (scatter) : X et Y. Défaut parlant : dette × croissance.
 let scXInd = "GGXWDG_NGDP", scYInd = "NGDP_RPCH";
+let scQuery = "";   // recherche de pays dans le Nuage (surbrillance)
 const CHART_INDS = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 const CHART_FMT = { NGDPD:"moneyMd", NGDPDPC:"money", NGDP_RPCH:"pct", PCPIPCH:"pct",
   GGXWDG_NGDP:"pct", GGXCNL_NGDP:"pct", BCA_NGDPD:"pct", LUR:"pct" };
@@ -3524,9 +3569,8 @@ function scatterChart(vbH){
   const rOf = g => 2.5 + 12.5 * Math.sqrt(g / gMax);
   // Gros PIB dessinés d'abord (dessous), petits au-dessus → tous survolables.
   pts.sort((a, b) => b.g - a.g);
-  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${SC_REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
-  const data = pts.map(p => ({ iso: p.iso, name: p.name, x: p.x, y: p.y, g: p.g }));
-  return `<svg class="scatter-plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-xfmt="${CHART_FMT[scXInd]}" data-yfmt="${CHART_FMT[scYInd]}" data-pts='${esc(JSON.stringify(data))}'>
+  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" data-name="${esc(p.name)}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${SC_REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
+  return `<svg class="scatter-plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
       ${grid}${zeroX}${zeroY}${axes}${dots}${titles}
     </svg>`;
 }
@@ -3541,13 +3585,18 @@ function renderScatterView(h1, leadP, toggle){
   const plot = `<div class="cmp-wrap sc-wrap">
       <div class="cmp-title">${title}</div>
       <div class="cmp-plotbox sc-plotbox">${scatterChart()}</div>
-      <div class="cmp-tip sc-tip" style="display:none"></div>
     </div>`;
   const legend = Object.entries(SC_REG_COLORS).map(([reg, col]) => {
     const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
     return `<div class="sc-legrow"><span class="cmp-dot" style="background:${col}"></span>${name}</div>`;
   }).join("");
   const side = `<div class="cmp-side">
+      <div class="cmp-block">
+        <div class="cmp-block-h">${L ? "Recherche" : "Search"}</div>
+        <input class="cmp-pick-search sc-search" type="text" autocomplete="off" spellcheck="false"
+          value="${esc(scQuery)}" placeholder="${L ? "Trouver un pays…" : "Find a country…"}"
+          aria-label="${L ? "Trouver un pays dans le nuage" : "Find a country in the scatter"}">
+      </div>
       <div class="cmp-block">
         <div class="cmp-block-h">${L ? "Légende" : "Legend"}</div>
         ${legend}
@@ -4630,6 +4679,8 @@ async function boot(){
   el("view-benchmark").addEventListener("input", (e) => {
     const cb = e.target.closest("input[data-col]");
     if (cb) return;   // les cases passent par l'écouteur change
+    const scs = e.target.closest(".sc-search");
+    if (scs){ scQuery = scs.value; applyScSearch(); return; }   // pas de re-rendu
     const ps = e.target.closest(".cmp-pick-search");
     if (ps){
       dbPickQuery = ps.value;
@@ -4697,34 +4748,23 @@ async function boot(){
     if (tip) tip.style.display = "none";
   };
   el("view-benchmark").addEventListener("pointermove", (e) => {
-    // — Nuage : infobulle du point survolé (cercle sous le curseur).
+    // — Nuage : même infobulle que la carte (#tip suit le curseur : ISO + nom).
     const sdot = e.target.closest(".sc-dot");
-    const swrap = el("view-benchmark").querySelector(".sc-wrap");
-    if (swrap){
-      const tip = swrap.querySelector(".sc-tip");
-      const prev = swrap.querySelector(".sc-dot.hov");
+    {
+      const gtip = el("tip");
+      const prev = el("view-benchmark").querySelector(".sc-dot.hov");
       if (prev && prev !== sdot) prev.classList.remove("hov");
-      if (sdot && tip){
+      if (sdot && gtip){
         sdot.classList.add("hov");
-        const splot = swrap.querySelector(".scatter-plot");
-        const pts = JSON.parse(splot.dataset.pts);
-        const p = pts.find(q => q.iso === sdot.dataset.iso);
-        if (p){
-          const fx = yAxisUnit(splot.dataset.xfmt, [p.x]), fy = yAxisUnit(splot.dataset.yfmt, [p.y]);
-          tip.innerHTML = `<div class="ty sc-tip-name">${esc(p.name)}</div>`
-            + `<div class="tr">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}<b>${esc(fx.fmtTick(p.x))} ${esc(fx.label)}</b></div>`
-            + `<div class="tr">${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}<b>${esc(fy.fmtTick(p.y))} ${esc(fy.label)}</b></div>`
-            + `<div class="tr">PIB<b>${esc(fmtMoney(p.g, "Md"))}</b></div>`;
-          tip.style.display = "block";
-          const wr = swrap.getBoundingClientRect();
-          const dr = sdot.getBoundingClientRect();
-          let left = dr.left - wr.left + dr.width + 10;
-          if (left + tip.offsetWidth > wr.width - 6) left = dr.left - wr.left - tip.offsetWidth - 10;
-          let top = dr.top - wr.top - 8;
-          top = Math.max(6, Math.min(top, wr.height - tip.offsetHeight - 6));
-          tip.style.left = Math.max(6, left) + "px"; tip.style.top = top + "px";
-        }
-      } else if (tip){ tip.style.display = "none"; }
+        gtip.style.display = "flex";
+        gtip.style.left = e.clientX + "px";
+        gtip.style.top  = e.clientY + "px";
+        gtip.querySelector("b").textContent = sdot.dataset.iso || "··";
+        gtip.querySelector("span").textContent = sdot.dataset.name || "";
+      } else if (gtip && el("view-benchmark").querySelector(".sc-wrap")){
+        if (gtip.dataset.pinned) applyScSearch();   // ré-épingle sur le résultat
+        else gtip.style.display = "none";
+      }
     }
     const plot = e.target.closest(".compare-plot");
     if (!plot){ cmpHideTip(); return; }
@@ -4756,11 +4796,9 @@ async function boot(){
   });
   el("view-benchmark").addEventListener("pointerleave", () => {
     cmpHideTip();
-    const sw = el("view-benchmark").querySelector(".sc-wrap");
-    if (sw){
-      const t = sw.querySelector(".sc-tip"); if (t) t.style.display = "none";
-      const h = sw.querySelector(".sc-dot.hov"); if (h) h.classList.remove("hov");
-    }
+    const h = el("view-benchmark").querySelector(".sc-dot.hov"); if (h) h.classList.remove("hov");
+    const gt = el("tip");
+    if (gt && !gt.dataset.pinned && el("view-benchmark").querySelector(".sc-wrap")) gt.style.display = "none";
   });
 
   // Données locales chargées EN PARALLÈLE (elles sont indépendantes) :
