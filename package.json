@@ -9,6 +9,7 @@
     "yields": "node fetch-yields.mjs",
     "ratings": "node fetch-ratings.mjs",
     "data": "node fetch-macro.mjs && node fetch-identity.mjs && node fetch-yields.mjs && node fetch-ratings.mjs",
+    "test": "node tests.mjs",
     "start": "npx --yes serve public -l 3000"
   },
   "dependencies": {
