@@ -497,19 +497,20 @@
   .cmp-selcol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
   .cmp-chosen-wrap{flex:1 1 0;position:relative;min-height:52px;}
   .cmp-sel-empty{color:var(--dim);font-size:12.5px;}
-  /* Mode Nuage (scatter) */
-  .sc-axes{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;flex:none;}
-  .sc-axisrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .sc-axislab{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--dim);width:52px;flex:none;}
-  .sc-legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 10px;flex:none;align-items:center;}
-  .sc-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);}
-  .sc-leg .cmp-dot{width:9px;height:9px;}
-  .sc-size{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;}
-  .sc-wrap{flex:none;}
-  .scatter-plot{width:100%;height:auto;max-height:64vh;display:block;}
+  /* Mode Nuage (scatter) — même gabarit que le mode Graphique. */
+  .sc-menus{flex:0 0 250px;display:flex;flex-direction:column;gap:12px;min-height:0;}
+  .sc-menus .cmp-metrics{flex:1 1 0;min-height:0;overflow:auto;}
+  .sc-menu-cap{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);padding:6px 14px 4px;flex:none;}
+  .sc-legrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);padding:3px 0;}
+  .sc-legrow .cmp-dot{width:9px;height:9px;}
+  .sc-size-note{color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
+    margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-soft);}
+  .sc-def-gap{margin-top:12px;}
+  .scatter-plot{width:100%;height:100%;display:block;}
   .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .12s ease;}
   .sc-dot:hover{opacity:1;}
+  @media (max-width:1024px){ .sc-menus{flex:1 1 100%;} }
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
     font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 4px;border-radius:4px;}
@@ -2477,7 +2478,9 @@ window.addEventListener("resize", () => {
   positionSegGlide();
   positionMetricGlide();
   positionPanelGlide();
+  positionScGlides();
   fitChart();
+  fitScatter();
 });
 // Place (et crée au besoin) la pilule glissante d'un groupe de contrôles sous
 // son bouton actif. `instant` = sans animation (1er placement / resize).
@@ -2535,19 +2538,30 @@ function positionPanelGlide(fromTab){
   const fromBtn = (box && fromTab && fromTab !== panelTab) ? box.querySelector(`button[data-tab="${fromTab}"]`) : null;
   slideGlide(box, "ptab-glide", fromBtn);
 }
+// Pilules des deux menus d'axes du mode Nuage. `fromAxis`/`fromK` = axe modifié
+// et indicateur précédent (glissement) ; sans eux, placement instantané.
+function positionScGlides(fromAxis, fromK){
+  const root = el("view-benchmark");
+  if (!root) return;
+  const bx = root.querySelector(".sc-menu-x"), by = root.querySelector(".sc-menu-y");
+  slideGlide(bx, "mseg-glide", (fromAxis === "x" && fromK && fromK !== scXInd) ? bx?.querySelector(`button[data-k="${fromK}"]`) : null);
+  slideGlide(by, "mseg-glide", (fromAxis === "y" && fromK && fromK !== scYInd) ? by?.querySelector(`button[data-k="${fromK}"]`) : null);
+}
 // Re-rend l'onglet base de données et replace la pilule du sélecteur.
-function drawDb(fromMode, fromInd){
+function drawDb(fromMode, fromInd, fromAxis, fromK){
   el("view-benchmark").innerHTML = renderDatabase();
   positionSegGlide(fromMode);
   positionMetricGlide(fromInd);
+  positionScGlides(fromAxis, fromK);
   fitChart();
+  fitScatter();
 }
 // Recalcule la hauteur du viewBox du graphe d'après la place réelle de la zone
 // de traçage → le graphe remplit la hauteur disponible, à scale uniforme (le SVG
 // est en preserveAspectRatio="none", donc H ∝ hauteur/largeur = pas de déformation).
 function fitChart(){
   const root = el("view-benchmark");
-  const box = root && root.querySelector(".cmp-plotbox");
+  const box = root && root.querySelector(".cmp-plotbox:not(.sc-plotbox)");
   if (!box) return;
   const withData = [...dbPicked].filter(iso => macro.countries?.[iso]?.indicators?.[dbChartInd]?.hist);
   const plotted = withData.slice(0, SERIES_COLORS.length);
@@ -2555,6 +2569,15 @@ function fitChart(){
   const w = box.clientWidth, h = box.clientHeight;
   if (w < 40 || h < 40) return;
   box.innerHTML = compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd], 1000 * h / w);
+}
+// Même principe pour le Nuage : le scatter remplit la hauteur disponible.
+function fitScatter(){
+  const root = el("view-benchmark");
+  const box = root && root.querySelector(".sc-plotbox");
+  if (!box || !box.querySelector(".scatter-plot")) return;   // état vide
+  const w = box.clientWidth, h = box.clientHeight;
+  if (w < 40 || h < 40) return;
+  box.innerHTML = scatterChart(1000 * h / w);
 }
 // Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
 function applyView(v){
@@ -3442,11 +3465,11 @@ function renderCompareView(h1, leadP, toggle){
 
 // ── Mode Nuage : scatter tous-pays. X et Y = deux indicateurs au choix,
 // taille du point = PIB (échelle racine), teinte = région. Survol : infobulle.
-function scatterChart(){
-  const L = lang === "fr";
-  const REG_COLORS = { Europe:"#4F6BED", Asia:"#12A594", Africa:"#E0823D", Americas:"#C23B87", Oceania:"#7C4DBE" };
-  const pts = [];
-  let gMax = 0;
+// Même gabarit que le mode Graphique : menus verticaux à gauche, graphe
+// encadré (titre inclus) au centre, Légende + Définitions à droite.
+const SC_REG_COLORS = { Europe:"#4F6BED", Asia:"#12A594", Africa:"#E0823D", Americas:"#C23B87", Oceania:"#7C4DBE" };
+function scatterPoints(){
+  const pts = []; let gMax = 0;
   for (const [iso, c] of Object.entries(macro.countries || {})){
     const x = c.indicators?.[scXInd]?.value, y = c.indicators?.[scYInd]?.value,
           g = c.indicators?.NGDPD?.value;
@@ -3455,6 +3478,11 @@ function scatterChart(){
     pts.push({ iso, name: (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : c.name,
                x, y, g, reg: ident[iso]?.reg });
   }
+  return { pts, gMax };
+}
+function scatterChart(vbH){
+  const L = lang === "fr";
+  const { pts, gMax } = scatterPoints();
   if (pts.length < 5) return `<div class="cmp-empty">${L ? "Données insuffisantes pour ce croisement." : "Not enough data for this pair."}</div>`;
   // Domaines écrêtés aux percentiles 2-98 : sans cela, un cas extrême
   // (hyperinflation…) tasse tous les autres points dans un coin.
@@ -3465,7 +3493,7 @@ function scatterChart(){
     return [lo - pad, hi + pad];
   };
   const [x0, x1] = dom(pts.map(p => p.x)), [y0, y1] = dom(pts.map(p => p.y));
-  const W = 1000, H = 560, mL = 68, mR = 20, mT = 30, mB = 52;
+  const W = 1000, H = Math.max(240, Math.round(vbH || 420)), mL = 68, mR = 20, mT = 16, mB = 50;
   const pw = W - mL - mR, ph = H - mT - mB;
   const cl = (v, a, b) => Math.max(a, Math.min(b, v));
   const sx = v => mL + (cl(v, x0, x1) - x0) / ((x1 - x0) || 1) * pw;
@@ -3480,44 +3508,61 @@ function scatterChart(){
   const zeroY = (x0 < 0 && x1 > 0) ? `<line class="cmp-zero" x1="${sx(0).toFixed(1)}" y1="${mT}" x2="${sx(0).toFixed(1)}" y2="${H - mB}"/>` : "";
   const axes = `<line class="cmp-axis" x1="${mL}" y1="${mT}" x2="${mL}" y2="${H - mB}"/>`
     + `<line class="cmp-axis" x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}"/>`;
-  const labX = `${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}${xu.label !== "%" ? " (" + esc(xu.label) + ")" : " (%)"}`;
-  const labY = `${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}${yu.label !== "%" ? " (" + esc(yu.label) + ")" : " (%)"}`;
-  const titles = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${labX}</text>`
-    + `<text class="cmp-axtitle" x="${mL - 9}" y="${mT - 12}" text-anchor="end">${labY}</text>`;
+  const axU = (u) => u.label === "%" ? "%" : u.label;
+  const titles = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)} (${esc(axU(xu))})</text>`
+    + `<text class="cmp-yunit" x="${mL - 9}" y="${mT - 2}" text-anchor="end">${esc(axU(yu))}</text>`;
   // Taille : aire ∝ PIB (rayon en racine), bornée pour rester lisible.
   const rOf = g => 2.5 + 12.5 * Math.sqrt(g / gMax);
   // Gros PIB dessinés d'abord (dessous), petits au-dessus → tous survolables.
   pts.sort((a, b) => b.g - a.g);
-  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
-  const legend = Object.entries(REG_COLORS).map(([reg, col]) => {
-    const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
-    return `<span class="sc-leg"><span class="cmp-dot" style="background:${col}"></span>${name}</span>`;
-  }).join("");
+  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${SC_REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
   const data = pts.map(p => ({ iso: p.iso, name: p.name, x: p.x, y: p.y, g: p.g }));
-  return `<div class="sc-legend">${legend}<span class="sc-leg sc-size">${L ? "taille = PIB" : "size = GDP"}</span></div>
-    <div class="cmp-wrap sc-wrap">
-      <svg class="scatter-plot" viewBox="0 0 ${W} ${H}" data-xfmt="${CHART_FMT[scXInd]}" data-yfmt="${CHART_FMT[scYInd]}" data-pts='${esc(JSON.stringify(data))}'>
-        ${grid}${zeroX}${zeroY}${axes}${dots}${titles}
-      </svg>
-      <div class="cmp-tip sc-tip" style="display:none"></div>
-    </div>`;
+  return `<svg class="scatter-plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" data-xfmt="${CHART_FMT[scXInd]}" data-yfmt="${CHART_FMT[scYInd]}" data-pts='${esc(JSON.stringify(data))}'>
+      ${grid}${zeroX}${zeroY}${axes}${dots}${titles}
+    </svg>`;
 }
 
 function renderScatterView(h1, leadP, toggle){
   const L = lang === "fr";
-  const axisChips = (which, cur) => CHART_INDS.map(k =>
-    `<button class="chip${k === cur ? " on" : ""}" data-scaxis="${which}" data-k="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("");
+  const menu = (which, cur, cls) => `<div class="cmp-metrics sc-menu ${cls}" role="tablist" aria-label="${which === "x" ? (L ? "Axe X" : "X axis") : (L ? "Axe Y" : "Y axis")}">
+      <div class="sc-menu-cap">${which === "x" ? (L ? "Axe X" : "X axis") : (L ? "Axe Y" : "Y axis")}</div>
+      ${CHART_INDS.map(k => `<button class="${k === cur ? "on" : ""}" data-scaxis="${which}" data-k="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("")}
+    </div>`;
+  const title = `${esc(IND_LABELS[scXInd]?.[lang] || scXInd)} × ${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}`;
+  const plot = `<div class="cmp-wrap sc-wrap">
+      <div class="cmp-title">${title}</div>
+      <div class="cmp-plotbox sc-plotbox">${scatterChart()}</div>
+      <div class="cmp-tip sc-tip" style="display:none"></div>
+    </div>`;
+  const legend = Object.entries(SC_REG_COLORS).map(([reg, col]) => {
+    const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
+    return `<div class="sc-legrow"><span class="cmp-dot" style="background:${col}"></span>${name}</div>`;
+  }).join("");
+  const side = `<div class="cmp-side">
+      <div class="cmp-block">
+        <div class="cmp-block-h">${L ? "Légende" : "Legend"}</div>
+        ${legend}
+        <div class="sc-legrow sc-size-note">${L ? "Taille du point = PIB" : "Dot size = GDP"}</div>
+      </div>
+      <div class="cmp-block cmp-block-grow">
+        <div class="cmp-block-h">${L ? "Définitions" : "Definitions"}</div>
+        <div class="cmp-def-metric">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}</div>
+        <div class="cmp-def-text">${esc(MET_DEF[scXInd]?.[lang] || "")}</div>
+        <div class="cmp-def-metric sc-def-gap">${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}</div>
+        <div class="cmp-def-text">${esc(MET_DEF[scYInd]?.[lang] || "")}</div>
+      </div>
+    </div>`;
   const src = `<div class="macro-src db-src">${L ? "Source : FMI — World Economic Outlook (dernière valeur)" : "Source: IMF — World Economic Outlook (latest value)"}</div>`;
   return `<div class="page db-page"><div class="db-in">
     <div class="cmp-header">
       <div class="cmp-hleft">${h1}${leadP}${toggle}</div>
     </div>
     <div class="cmp-scroll">
-      <div class="sc-axes">
-        <div class="sc-axisrow"><span class="sc-axislab">${L ? "Axe X" : "X axis"}</span>${axisChips("x", scXInd)}</div>
-        <div class="sc-axisrow"><span class="sc-axislab">${L ? "Axe Y" : "Y axis"}</span>${axisChips("y", scYInd)}</div>
+      <div class="cmp-main">
+        <div class="sc-menus">${menu("x", scXInd, "sc-menu-x")}${menu("y", scYInd, "sc-menu-y")}</div>
+        ${plot}
+        ${side}
       </div>
-      ${scatterChart()}
       ${src}
     </div>
   </div></div>`;
@@ -4529,8 +4574,9 @@ async function boot(){
     if (cin){ const fromInd = dbChartInd; dbChartInd = cin.dataset.cind; drawDb(null, fromInd); return; }
     const sca = e.target.closest("[data-scaxis]");
     if (sca){
-      if (sca.dataset.scaxis === "x") scXInd = sca.dataset.k; else scYInd = sca.dataset.k;
-      drawDb(); return;
+      const ax = sca.dataset.scaxis, fromK = ax === "x" ? scXInd : scYInd;
+      if (ax === "x") scXInd = sca.dataset.k; else scYInd = sca.dataset.k;
+      drawDb(null, null, ax, fromK); return;
     }
     const up = e.target.closest("[data-unpin]");
     if (up){
