@@ -497,6 +497,19 @@
   .cmp-selcol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
   .cmp-chosen-wrap{flex:1 1 0;position:relative;min-height:52px;}
   .cmp-sel-empty{color:var(--dim);font-size:12.5px;}
+  /* Mode Nuage (scatter) */
+  .sc-axes{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;flex:none;}
+  .sc-axisrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .sc-axislab{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);width:52px;flex:none;}
+  .sc-legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 10px;flex:none;align-items:center;}
+  .sc-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);}
+  .sc-leg .cmp-dot{width:9px;height:9px;}
+  .sc-size{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;}
+  .sc-wrap{flex:none;}
+  .scatter-plot{width:100%;height:auto;max-height:64vh;display:block;}
+  .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .12s ease;}
+  .sc-dot:hover{opacity:1;}
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
     font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 4px;border-radius:4px;}
@@ -3108,6 +3121,8 @@ let dbMode = "table";
 // Indicateur tracé dans le comparateur (clé FMI). Dette publique par défaut :
 // comparable d'un pays à l'autre quelle que soit la taille.
 let dbChartInd = "GGXWDG_NGDP";
+// Axes du mode Nuage (scatter) : X et Y. Défaut parlant : dette × croissance.
+let scXInd = "GGXWDG_NGDP", scYInd = "NGDP_RPCH";
 const CHART_INDS = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 const CHART_FMT = { NGDPD:"moneyMd", NGDPDPC:"money", NGDP_RPCH:"pct", PCPIPCH:"pct",
   GGXWDG_NGDP:"pct", GGXCNL_NGDP:"pct", BCA_NGDPD:"pct", LUR:"pct" };
@@ -3151,19 +3166,24 @@ function renderDatabase(){
   const L = lang === "fr";
   const segIcon = {
     table: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9.5" y1="4" x2="9.5" y2="20"/></svg>`,
-    chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><polyline points="6 15 11 10 14 13 20 6"/></svg>`
+    chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><polyline points="6 15 11 10 14 13 20 6"/></svg>`,
+    scatter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><circle cx="8" cy="14" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r="1.6" fill="currentColor" stroke="none"/><circle cx="16.5" cy="12.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="6.5" r="1.6" fill="currentColor" stroke="none"/></svg>`
   };
   const modeChip = (m, label) =>
     `<button class="${dbMode === m ? "on" : ""}" data-dbmode="${m}">${segIcon[m]}${label}</button>`;
-  const toggle = `<div class="db-seg" role="tablist" aria-label="${L ? "Vue" : "View"}">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}</div>`;
+  const toggle = `<div class="db-seg" role="tablist" aria-label="${L ? "Vue" : "View"}">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}${modeChip("scatter", L ? "Nuage" : "Scatter")}</div>`;
   const lead = dbMode === "chart"
     ? (L ? "Sélectionne des pays et compare leurs trajectoires sur un indicateur."
          : "Select countries and compare their trajectories on one indicator.")
+    : dbMode === "scatter"
+    ? (L ? "Chaque point est un pays : croise deux indicateurs, la taille reflète le PIB."
+         : "Each dot is a country: cross two indicators, size reflects GDP.")
     : (L ? "Trie par en-tête, filtre, et coche un pays pour l'épingler pendant tes recherches."
          : "Sort by header, filter, and tick a country to pin it while you search.");
   const h1 = `<h1>${L ? "Base de données" : "Database"}</h1>`;
   const leadP = `<p class="lead">${lead}</p>`;
   if (dbMode === "chart") return renderCompareView(h1, leadP, toggle);
+  if (dbMode === "scatter") return renderScatterView(h1, leadP, toggle);
   return `<div class="page db-page"><div class="db-in">
     ${h1}${leadP}${toggle}
     ${renderTableBody()}
@@ -3415,6 +3435,89 @@ function renderCompareView(h1, leadP, toggle){
         ${side}
       </div>
       ${noteHtml}
+      ${src}
+    </div>
+  </div></div>`;
+}
+
+// ── Mode Nuage : scatter tous-pays. X et Y = deux indicateurs au choix,
+// taille du point = PIB (échelle racine), teinte = région. Survol : infobulle.
+function scatterChart(){
+  const L = lang === "fr";
+  const REG_COLORS = { Europe:"#4F6BED", Asia:"#12A594", Africa:"#E0823D", Americas:"#C23B87", Oceania:"#7C4DBE" };
+  const pts = [];
+  let gMax = 0;
+  for (const [iso, c] of Object.entries(macro.countries || {})){
+    const x = c.indicators?.[scXInd]?.value, y = c.indicators?.[scYInd]?.value,
+          g = c.indicators?.NGDPD?.value;
+    if ([x, y, g].some(v => v == null || !isFinite(v))) continue;   // tout ou rien
+    if (g > gMax) gMax = g;
+    pts.push({ iso, name: (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : c.name,
+               x, y, g, reg: ident[iso]?.reg });
+  }
+  if (pts.length < 5) return `<div class="cmp-empty">${L ? "Données insuffisantes pour ce croisement." : "Not enough data for this pair."}</div>`;
+  // Domaines écrêtés aux percentiles 2-98 : sans cela, un cas extrême
+  // (hyperinflation…) tasse tous les autres points dans un coin.
+  const dom = (arr) => {
+    const s = [...arr].sort((a, b) => a - b);
+    const lo = s[Math.floor(s.length * 0.02)], hi = s[Math.ceil(s.length * 0.98) - 1];
+    const pad = (hi - lo || 1) * 0.06;
+    return [lo - pad, hi + pad];
+  };
+  const [x0, x1] = dom(pts.map(p => p.x)), [y0, y1] = dom(pts.map(p => p.y));
+  const W = 1000, H = 560, mL = 68, mR = 20, mT = 30, mB = 52;
+  const pw = W - mL - mR, ph = H - mT - mB;
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  const sx = v => mL + (cl(v, x0, x1) - x0) / ((x1 - x0) || 1) * pw;
+  const sy = v => mT + (1 - (cl(v, y0, y1) - y0) / ((y1 - y0) || 1)) * ph;
+  const xt = niceTicks(x0, x1, 6).filter(v => v >= x0 && v <= x1);
+  const yt = niceTicks(y0, y1, 5).filter(v => v >= y0 && v <= y1);
+  const xu = yAxisUnit(CHART_FMT[scXInd], xt), yu = yAxisUnit(CHART_FMT[scYInd], yt);
+  const grid = yt.map(v => `<line class="cmp-grid" x1="${mL}" y1="${sy(v).toFixed(1)}" x2="${W - mR}" y2="${sy(v).toFixed(1)}"/>`
+      + `<text class="cmp-ylab" x="${mL - 9}" y="${sy(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${esc(yu.fmtTick(v))}</text>`).join("")
+    + xt.map(v => `<text class="cmp-xlab" x="${sx(v).toFixed(1)}" y="${H - mB + 20}" text-anchor="middle">${esc(xu.fmtTick(v))}</text>`).join("");
+  const zeroX = (y0 < 0 && y1 > 0) ? `<line class="cmp-zero" x1="${mL}" y1="${sy(0).toFixed(1)}" x2="${W - mR}" y2="${sy(0).toFixed(1)}"/>` : "";
+  const zeroY = (x0 < 0 && x1 > 0) ? `<line class="cmp-zero" x1="${sx(0).toFixed(1)}" y1="${mT}" x2="${sx(0).toFixed(1)}" y2="${H - mB}"/>` : "";
+  const axes = `<line class="cmp-axis" x1="${mL}" y1="${mT}" x2="${mL}" y2="${H - mB}"/>`
+    + `<line class="cmp-axis" x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}"/>`;
+  const labX = `${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}${xu.label !== "%" ? " (" + esc(xu.label) + ")" : " (%)"}`;
+  const labY = `${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}${yu.label !== "%" ? " (" + esc(yu.label) + ")" : " (%)"}`;
+  const titles = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${labX}</text>`
+    + `<text class="cmp-axtitle" x="${mL - 9}" y="${mT - 12}" text-anchor="end">${labY}</text>`;
+  // Taille : aire ∝ PIB (rayon en racine), bornée pour rester lisible.
+  const rOf = g => 2.5 + 12.5 * Math.sqrt(g / gMax);
+  // Gros PIB dessinés d'abord (dessous), petits au-dessus → tous survolables.
+  pts.sort((a, b) => b.g - a.g);
+  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
+  const legend = Object.entries(REG_COLORS).map(([reg, col]) => {
+    const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
+    return `<span class="sc-leg"><span class="cmp-dot" style="background:${col}"></span>${name}</span>`;
+  }).join("");
+  const data = pts.map(p => ({ iso: p.iso, name: p.name, x: p.x, y: p.y, g: p.g }));
+  return `<div class="sc-legend">${legend}<span class="sc-leg sc-size">${L ? "taille = PIB" : "size = GDP"}</span></div>
+    <div class="cmp-wrap sc-wrap">
+      <svg class="scatter-plot" viewBox="0 0 ${W} ${H}" data-xfmt="${CHART_FMT[scXInd]}" data-yfmt="${CHART_FMT[scYInd]}" data-pts='${esc(JSON.stringify(data))}'>
+        ${grid}${zeroX}${zeroY}${axes}${dots}${titles}
+      </svg>
+      <div class="cmp-tip sc-tip" style="display:none"></div>
+    </div>`;
+}
+
+function renderScatterView(h1, leadP, toggle){
+  const L = lang === "fr";
+  const axisChips = (which, cur) => CHART_INDS.map(k =>
+    `<button class="chip${k === cur ? " on" : ""}" data-scaxis="${which}" data-k="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("");
+  const src = `<div class="macro-src db-src">${L ? "Source : FMI — World Economic Outlook (dernière valeur)" : "Source: IMF — World Economic Outlook (latest value)"}</div>`;
+  return `<div class="page db-page"><div class="db-in">
+    <div class="cmp-header">
+      <div class="cmp-hleft">${h1}${leadP}${toggle}</div>
+    </div>
+    <div class="cmp-scroll">
+      <div class="sc-axes">
+        <div class="sc-axisrow"><span class="sc-axislab">${L ? "Axe X" : "X axis"}</span>${axisChips("x", scXInd)}</div>
+        <div class="sc-axisrow"><span class="sc-axislab">${L ? "Axe Y" : "Y axis"}</span>${axisChips("y", scYInd)}</div>
+      </div>
+      ${scatterChart()}
       ${src}
     </div>
   </div></div>`;
@@ -4424,6 +4527,11 @@ async function boot(){
     if (md){ const from = dbMode; dbMode = md.dataset.dbmode; drawDb(from); return; }
     const cin = e.target.closest("[data-cind]");
     if (cin){ const fromInd = dbChartInd; dbChartInd = cin.dataset.cind; drawDb(null, fromInd); return; }
+    const sca = e.target.closest("[data-scaxis]");
+    if (sca){
+      if (sca.dataset.scaxis === "x") scXInd = sca.dataset.k; else scYInd = sca.dataset.k;
+      drawDb(); return;
+    }
     const up = e.target.closest("[data-unpin]");
     if (up){
       dbPicked.delete(up.dataset.unpin);
@@ -4533,6 +4641,32 @@ async function boot(){
     if (tip) tip.style.display = "none";
   };
   el("view-benchmark").addEventListener("pointermove", (e) => {
+    // — Nuage : infobulle du point survolé (cercle sous le curseur).
+    const sdot = e.target.closest(".sc-dot");
+    const swrap = el("view-benchmark").querySelector(".sc-wrap");
+    if (swrap){
+      const tip = swrap.querySelector(".sc-tip");
+      if (sdot && tip){
+        const splot = swrap.querySelector(".scatter-plot");
+        const pts = JSON.parse(splot.dataset.pts);
+        const p = pts.find(q => q.iso === sdot.dataset.iso);
+        if (p){
+          const fx = yAxisUnit(splot.dataset.xfmt, [p.x]), fy = yAxisUnit(splot.dataset.yfmt, [p.y]);
+          tip.innerHTML = `<div class="ty">${esc(p.name)}</div>`
+            + `<div class="tr">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}<b>${esc(fx.fmtTick(p.x))} ${esc(fx.label)}</b></div>`
+            + `<div class="tr">${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}<b>${esc(fy.fmtTick(p.y))} ${esc(fy.label)}</b></div>`
+            + `<div class="tr">PIB<b>${esc(fmtMoney(p.g, "Md"))}</b></div>`;
+          tip.style.display = "block";
+          const wr = swrap.getBoundingClientRect();
+          const dr = sdot.getBoundingClientRect();
+          let left = dr.left - wr.left + dr.width + 10;
+          if (left + tip.offsetWidth > wr.width - 6) left = dr.left - wr.left - tip.offsetWidth - 10;
+          let top = dr.top - wr.top - 8;
+          top = Math.max(6, Math.min(top, wr.height - tip.offsetHeight - 6));
+          tip.style.left = Math.max(6, left) + "px"; tip.style.top = top + "px";
+        }
+      } else if (tip){ tip.style.display = "none"; }
+    }
     const plot = e.target.closest(".compare-plot");
     if (!plot){ cmpHideTip(); return; }
     const wrap = plot.closest(".cmp-wrap");
