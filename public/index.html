@@ -507,9 +507,12 @@
   .sc-size-note{color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
     margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-soft);}
   .sc-def-gap{margin-top:12px;}
+  .sc-axis-c{stroke:var(--dim);stroke-opacity:.55;}
+  .sc-med-note{margin-top:2px;padding-top:0;border-top:none;}
+  .sc-tip-name{font-size:13px;font-weight:700;}
   .scatter-plot{width:100%;height:100%;display:block;}
   .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .12s ease;}
-  .sc-dot:hover{opacity:1;}
+  .sc-dot:hover,.sc-dot.hov{opacity:1;stroke:var(--ink);stroke-width:1.6;}
   @media (max-width:1024px){ .sc-menus{flex:1 1 100%;} }
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
@@ -3504,10 +3507,16 @@ function scatterChart(vbH){
   const grid = yt.map(v => `<line class="cmp-grid" x1="${mL}" y1="${sy(v).toFixed(1)}" x2="${W - mR}" y2="${sy(v).toFixed(1)}"/>`
       + `<text class="cmp-ylab" x="${mL - 9}" y="${sy(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${esc(yu.fmtTick(v))}</text>`).join("")
     + xt.map(v => `<text class="cmp-xlab" x="${sx(v).toFixed(1)}" y="${H - mB + 20}" text-anchor="middle">${esc(xu.fmtTick(v))}</text>`).join("");
+  // Axes CENTRÉS : ils se croisent aux médianes mondiales des deux indicateurs
+  // (lecture en quadrants : au-dessus/en-dessous du pays « typique »). La ligne
+  // de zéro reste en pointillé quand le domaine traverse le négatif.
+  const med = (arr) => { const s = [...arr].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+  const medX = med(pts.map(p => p.x)), medY = med(pts.map(p => p.y));
+  const cx = sx(medX), cy = sy(medY);
   const zeroX = (y0 < 0 && y1 > 0) ? `<line class="cmp-zero" x1="${mL}" y1="${sy(0).toFixed(1)}" x2="${W - mR}" y2="${sy(0).toFixed(1)}"/>` : "";
   const zeroY = (x0 < 0 && x1 > 0) ? `<line class="cmp-zero" x1="${sx(0).toFixed(1)}" y1="${mT}" x2="${sx(0).toFixed(1)}" y2="${H - mB}"/>` : "";
-  const axes = `<line class="cmp-axis" x1="${mL}" y1="${mT}" x2="${mL}" y2="${H - mB}"/>`
-    + `<line class="cmp-axis" x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}"/>`;
+  const axes = `<line class="cmp-axis sc-axis-c" x1="${mL}" y1="${cy.toFixed(1)}" x2="${W - mR}" y2="${cy.toFixed(1)}"/>`
+    + `<line class="cmp-axis sc-axis-c" x1="${cx.toFixed(1)}" y1="${mT}" x2="${cx.toFixed(1)}" y2="${H - mB}"/>`;
   const axU = (u) => u.label === "%" ? "%" : u.label;
   const titles = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)} (${esc(axU(xu))})</text>`
     + `<text class="cmp-yunit" x="${mL - 9}" y="${mT - 2}" text-anchor="end">${esc(axU(yu))}</text>`;
@@ -3543,6 +3552,7 @@ function renderScatterView(h1, leadP, toggle){
         <div class="cmp-block-h">${L ? "Légende" : "Legend"}</div>
         ${legend}
         <div class="sc-legrow sc-size-note">${L ? "Taille du point = PIB" : "Dot size = GDP"}</div>
+        <div class="sc-legrow sc-size-note sc-med-note">${L ? "Axes croisés aux médianes mondiales" : "Axes cross at world medians"}</div>
       </div>
       <div class="cmp-block cmp-block-grow">
         <div class="cmp-block-h">${L ? "Définitions" : "Definitions"}</div>
@@ -4692,13 +4702,16 @@ async function boot(){
     const swrap = el("view-benchmark").querySelector(".sc-wrap");
     if (swrap){
       const tip = swrap.querySelector(".sc-tip");
+      const prev = swrap.querySelector(".sc-dot.hov");
+      if (prev && prev !== sdot) prev.classList.remove("hov");
       if (sdot && tip){
+        sdot.classList.add("hov");
         const splot = swrap.querySelector(".scatter-plot");
         const pts = JSON.parse(splot.dataset.pts);
         const p = pts.find(q => q.iso === sdot.dataset.iso);
         if (p){
           const fx = yAxisUnit(splot.dataset.xfmt, [p.x]), fy = yAxisUnit(splot.dataset.yfmt, [p.y]);
-          tip.innerHTML = `<div class="ty">${esc(p.name)}</div>`
+          tip.innerHTML = `<div class="ty sc-tip-name">${esc(p.name)}</div>`
             + `<div class="tr">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}<b>${esc(fx.fmtTick(p.x))} ${esc(fx.label)}</b></div>`
             + `<div class="tr">${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}<b>${esc(fy.fmtTick(p.y))} ${esc(fy.label)}</b></div>`
             + `<div class="tr">PIB<b>${esc(fmtMoney(p.g, "Md"))}</b></div>`;
@@ -4741,7 +4754,14 @@ async function boot(){
     tip.style.left = Math.max(6, left) + "px";
     tip.style.top = Math.max(6, rect.top - wr.top + 8) + "px";
   });
-  el("view-benchmark").addEventListener("pointerleave", cmpHideTip);
+  el("view-benchmark").addEventListener("pointerleave", () => {
+    cmpHideTip();
+    const sw = el("view-benchmark").querySelector(".sc-wrap");
+    if (sw){
+      const t = sw.querySelector(".sc-tip"); if (t) t.style.display = "none";
+      const h = sw.querySelector(".sc-dot.hov"); if (h) h.classList.remove("hov");
+    }
+  });
 
   // Données locales chargées EN PARALLÈLE (elles sont indépendantes) :
   // macro (FMI), fiches d'identité, marchés (OCDE/FRED), notations (Wikipédia).
