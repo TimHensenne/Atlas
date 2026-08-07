@@ -19,9 +19,12 @@ permissions:
   pages: write
   id-token: write
 
+# Un seul déploiement à la fois. cancel-in-progress: true → si un nouveau push
+# arrive pendant qu'un déploiement tourne, l'ancien est ANNULÉ plutôt que mis en
+# file d'attente. Fini les embouteillages qui finissent en "Timeout reached".
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:

@@ -507,6 +507,9 @@
   .sc-size-note{color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
     margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-soft);}
   .sc-def-gap{margin-top:12px;}
+  .sc-search-wrap{margin-left:auto;align-self:flex-end;flex:0 1 260px;min-width:180px;}
+  .sc-search-wrap .sc-search{margin:0;}
+  @media (max-width:1024px){ .sc-search-wrap{margin-left:0;flex:1 1 100%;align-self:stretch;} }
   .sc-axis-c{stroke:var(--dim);stroke-opacity:.55;}
   .sc-med-note{margin-top:2px;padding-top:0;border-top:none;}
   .scatter-plot{width:100%;height:100%;display:block;}
@@ -3590,13 +3593,12 @@ function renderScatterView(h1, leadP, toggle){
     const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
     return `<div class="sc-legrow"><span class="cmp-dot" style="background:${col}"></span>${name}</div>`;
   }).join("");
+  const searchBox = `<div class="sc-search-wrap">
+      <input class="cmp-pick-search sc-search" type="text" autocomplete="off" spellcheck="false"
+        value="${esc(scQuery)}" placeholder="${L ? "Trouver un pays…" : "Find a country…"}"
+        aria-label="${L ? "Trouver un pays dans le nuage" : "Find a country in the scatter"}">
+    </div>`;
   const side = `<div class="cmp-side">
-      <div class="cmp-block">
-        <div class="cmp-block-h">${L ? "Recherche" : "Search"}</div>
-        <input class="cmp-pick-search sc-search" type="text" autocomplete="off" spellcheck="false"
-          value="${esc(scQuery)}" placeholder="${L ? "Trouver un pays…" : "Find a country…"}"
-          aria-label="${L ? "Trouver un pays dans le nuage" : "Find a country in the scatter"}">
-      </div>
       <div class="cmp-block">
         <div class="cmp-block-h">${L ? "Légende" : "Legend"}</div>
         ${legend}
@@ -3615,6 +3617,7 @@ function renderScatterView(h1, leadP, toggle){
   return `<div class="page db-page"><div class="db-in">
     <div class="cmp-header">
       <div class="cmp-hleft">${h1}${leadP}${toggle}</div>
+      ${searchBox}
     </div>
     <div class="cmp-scroll">
       <div class="cmp-main">
