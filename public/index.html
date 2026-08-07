@@ -2318,7 +2318,7 @@ function renderPanel(){
     const ex = ["US", "CN", "DE", "JP"].map(iso =>
       `<button class="pg-ex" type="button" data-pick="${iso}">
         <img src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${iso.toLowerCase()}.svg" alt="" loading="lazy" onerror="this.style.display='none'">
-        ${esc((macro.countries?.[iso]?.name) || exN[iso])}
+        ${esc(exN[iso])}
       </button>`).join("");
     p.innerHTML = `
       <div class="cname">${t("choose")}</div>
@@ -2337,7 +2337,9 @@ function renderPanel(){
       </div>`;
     return;
   }
-  const name = macro.countries?.[selected.iso]?.name || selected.name;
+  const name = (lang === "en" && NAME_EN[selected.iso])
+    ? NAME_EN[selected.iso]
+    : (macro.countries?.[selected.iso]?.name || selected.name);
   const flag = selected.iso
     ? `<img class="flag" src="https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${selected.iso.toLowerCase()}.svg" alt="" loading="lazy" onerror="this.style.display='none'">`
     : "";
@@ -2734,7 +2736,7 @@ function renderHome(){
   const nf = new Intl.NumberFormat(L ? "fr-BE" : "en-GB", { maximumFractionDigits: 0 });
   const gdpAll = loaded
     ? Object.keys(macro.countries)
-        .map(iso => ({ iso, n: macro.countries[iso].name, v: macro.countries[iso].indicators?.NGDPD?.value }))
+        .map(iso => ({ iso, n: (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries[iso].name, v: macro.countries[iso].indicators?.NGDPD?.value }))
         .filter(x => x.v != null).sort((a, b) => b.v - a.v)
     : [];
   const top5 = gdpAll.slice(0, 8);
