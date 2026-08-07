@@ -383,6 +383,8 @@
     flex:0 0 auto;border:1px solid var(--rule);box-shadow:var(--elev1);}
   .about-id{min-width:0;}
   .about-id h2{margin:0 0 5px;}
+  .about-h1{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.015em;
+    color:var(--ink);margin:0 0 5px;}
   .about-role{color:var(--dim);font-size:13px;line-height:1.5;margin-bottom:8px;}
   .about-link{display:inline-flex;align-items:center;line-height:0;border-radius:6px;
     transition:opacity .15s ease,transform .15s ease;opacity:.92;}
@@ -425,7 +427,19 @@
     text-align:center;padding:40px;gap:12px;}
   .soon .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--indigo);border:1px solid var(--rule);border-radius:2px;padding:4px 10px;}
-  .soon h1{font-family:var(--display);font-weight:800;font-size:26px;color:var(--ink);margin:0;letter-spacing:-.02em;}
+  .soon .soon-load{font-family:var(--display);font-weight:800;font-size:26px;color:var(--ink);margin:0;letter-spacing:-.02em;}
+  /* Bandeau d'erreur de chargement des données (non bloquant). */
+  #data-warn{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;max-width:min(680px,calc(100vw - 24px));}
+  #data-warn[hidden]{display:none;}
+  .dw-in{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    background:var(--panel);border:1px solid color-mix(in srgb,#D2732E 45%,var(--rule));
+    box-shadow:var(--elev2);font-size:12.5px;color:var(--ink);}
+  .dw-ico{width:18px;height:18px;color:#D2732E;flex:none;}
+  .dw-msg{flex:1 1 auto;line-height:1.4;}
+  .dw-reload{flex:none;font-family:var(--body);font-size:12px;font-weight:600;color:#fff;cursor:pointer;
+    background:var(--grad);border:0;border-radius:8px;padding:6px 12px;}
+  .dw-close{flex:none;background:none;border:0;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px;}
+  .dw-close:hover{color:var(--ink);}
   .soon p{color:var(--dim);font-size:14px;line-height:1.65;max-width:460px;margin:0;}
   /* Base de données : tableur */
   .db-page{display:flex;flex-direction:column;overflow:hidden;padding:14px 22px 12px;}
@@ -1661,6 +1675,7 @@
 <section id="view-games"    class="view" hidden></section>
 <section id="view-purpose"  class="view" hidden></section>
 
+<div id="data-warn" role="alert" hidden></div>
 <footer class="foot" id="foot"></footer>
 
 <div id="tip"><b></b><span></span></div>
@@ -2555,6 +2570,30 @@ function positionScGlides(fromAxis, fromK){
   slideGlide(by, "mseg-glide", (fromAxis === "y" && fromK && fromK !== scYInd) ? by?.querySelector(`button[data-k="${fromK}"]`) : null);
 }
 // Re-rend l'onglet base de données et replace la pilule du sélecteur.
+// Prévient l'utilisateur qu'un ou plusieurs jeux de données n'ont pas pu être
+// chargés (échec réseau/HTTP), au lieu d'afficher silencieusement des blocs
+// vides. Non bloquant : bandeau avec « Recharger » et fermeture.
+function showDataWarning(failed){
+  const host = el("data-warn"); if (!host) return;
+  const L = lang === "fr";
+  const critical = failed.some(f => f.key === "macro");
+  const names = failed.map(f => L ? f.fr : f.en).join(", ");
+  const msg = critical
+    ? (L ? "Impossible de charger les données principales. Vérifie ta connexion, puis recharge."
+         : "Could not load the main data. Check your connection, then reload.")
+    : (L ? `Certaines données n'ont pas pu être chargées (${names}) — ces sections peuvent manquer.`
+         : `Some data could not be loaded (${names}) — those sections may be missing.`);
+  host.innerHTML = `<div class="dw-in">
+      <svg class="dw-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="dw-msg">${msg}</span>
+      <button class="dw-reload" type="button">${L ? "Recharger" : "Reload"}</button>
+      <button class="dw-close" type="button" aria-label="${L ? "Fermer" : "Dismiss"}">✕</button>
+    </div>`;
+  host.hidden = false;
+  host.querySelector(".dw-reload").addEventListener("click", () => location.reload());
+  host.querySelector(".dw-close").addEventListener("click", () => { host.hidden = true; });
+}
+
 function drawDb(fromMode, fromInd, fromAxis, fromK){
   el("view-benchmark").innerHTML = renderDatabase();
   positionSegGlide(fromMode);
@@ -3121,7 +3160,7 @@ function renderPurpose(){
       <div class="about-head">
         <img class="about-photo" src="tim.jpg" alt="Tim Hensenne" loading="lazy">
         <div class="about-id">
-          <h2>${L === "fr" ? "À propos" : "About"}</h2>
+          <h1 class="about-h1">${L === "fr" ? "À propos" : "About"}</h1>
           <div class="about-role">${esc(PROFILE.role[L])}</div>
           <a class="about-link" href="${PROFILE.linkedin}" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="#0A66C2" d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .78 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .78 23.2 0 22.22 0z"/></svg></a>
         </div>
@@ -4007,7 +4046,7 @@ function renderGameHub(){
 }
 function renderCountryGame(){
   if (!gTarget) gNew();
-  if (!gTarget) return `<div class="soon"><h1>…</h1></div>`;   // données pas prêtes
+  if (!gTarget) return `<div class="soon"><div class="soon-load" role="status" aria-label="Chargement">…</div></div>`;   // données pas prêtes
   const L = lang === "fr";
   const t = gTarget, td = ident[t];
   const heads = [L?"Pays":"Country", L?"Région":"Region", L?"Population":"Population",
@@ -4168,7 +4207,7 @@ function gMask(iso){
 }
 function renderFlagGame(){
   if (!fTarget) fNew(fDaily);
-  if (!fTarget) return `<div class="soon"><h1>…</h1></div>`;   // données pas prêtes
+  if (!fTarget) return `<div class="soon"><div class="soon-load" role="status" aria-label="Chargement">…</div></div>`;   // données pas prêtes
   const L = lang === "fr";
   const t = fTarget, fails = fGuesses.length;
   const flagUrl = `https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3/${t.toLowerCase()}.svg`;
@@ -4319,7 +4358,7 @@ function dPick(iso){
 function renderDuelGame(){
   const L = lang === "fr";
   if (!dQ.length) dNew(dDaily);
-  if (!dQ.length) return `<div class="soon"><h1>…</h1></div>`;
+  if (!dQ.length) return `<div class="soon"><div class="soon-load" role="status" aria-label="Chargement">…</div></div>`;
   const head = (mode) => `
     <button class="g-back" data-ghub>← ${L ? "Sélection de jeux" : "Game selection"}</button>
     <div class="g-eyebrow">${dDaily
@@ -4422,7 +4461,7 @@ function pGuess(iso){
 function renderPodiumGame(){
   const L = lang === "fr";
   if (!pMetric) pNew(pDaily);
-  if (!pTop.length) return `<div class="soon"><h1>…</h1></div>`;
+  if (!pTop.length) return `<div class="soon"><div class="soon-load" role="status" aria-label="Chargement">…</div></div>`;
   const ranked = pRank(pMetric.k);
   const rankOf = (iso) => ranked.findIndex(x => x.iso === iso);
   const medals = ["🥇", "🥈", "🥉"];
@@ -4811,10 +4850,19 @@ async function boot(){
     fetch("./macro.json"), fetch("./countries.json"),
     fetch("./yields.json"), fetch("./ratings.json"),
   ]);
-  try { if (rMacro.status === "fulfilled" && rMacro.value.ok) macro = await rMacro.value.json(); } catch {}
-  try { if (rIdent.status === "fulfilled" && rIdent.value.ok) ident = await rIdent.value.json(); } catch {}
-  try { if (rYields.status === "fulfilled" && rYields.value.ok) yields = await rYields.value.json(); } catch {}
-  try { if (rRatings.status === "fulfilled" && rRatings.value.ok) ratings = await rRatings.value.json(); } catch {}
+  const readJson = async (settled) => {
+    try { if (settled.status === "fulfilled" && settled.value.ok) return await settled.value.json(); }
+    catch {}
+    return null;
+  };
+  const dMacro = await readJson(rMacro), dIdent = await readJson(rIdent),
+        dYields = await readJson(rYields), dRatings = await readJson(rRatings);
+  const failed = [];
+  if (dMacro) macro = dMacro; else failed.push({ key:"macro", fr:"données économiques", en:"economic data" });
+  if (dIdent) ident = dIdent; else failed.push({ key:"ident", fr:"fiches pays", en:"country profiles" });
+  if (dYields) yields = dYields; else failed.push({ key:"yields", fr:"marchés", en:"markets" });
+  if (dRatings) ratings = dRatings; else failed.push({ key:"ratings", fr:"notations", en:"ratings" });
+  if (failed.length) showDataWarning(failed);
 
   const nCountries = Object.keys(macro.countries || {}).length;
   // Les données sont chargées : on restaure l'onglet mémorisé dans l'URL en
