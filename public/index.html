@@ -133,24 +133,25 @@
   /* En-tête mobile : le hamburger ouvre les onglets en menu ; les contrôles
      (devise, langue, thème, connexion) tiennent sur une seule ligne. */
   @media(max-width:899px){
-    .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;}
+    .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;padding:12px 12px;}
     .brand{order:1;flex:1 1 auto;}
     .nav-burger{order:2;display:flex;}
-    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:6px;flex-wrap:nowrap;
+    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:5px;flex-wrap:nowrap;
       overflow-x:auto;scrollbar-width:none;}
     .tools::-webkit-scrollbar{display:none;}
-    .fx,.lang,.theme{padding:3px;flex:none;}
-    .fx button,.lang button{font-size:11px;padding:5px 9px;}
-    .theme button{font-size:12px;padding:4px 8px;}
-    .authbar{flex:none;}
-    /* Onglets → menu déroulant sous l'en-tête, ouvert par le hamburger. */
-    .tabs{order:4;position:absolute;top:100%;right:12px;margin-top:6px;z-index:40;
-      display:none;width:min(240px,calc(100vw - 24px));padding:0;background:transparent;border:0;overflow:visible;}
+    .fx,.lang,.theme,.authbar{padding:3px;flex:none;}
+    .fx button,.lang button{font-size:11px;padding:5px 8px;}
+    .theme button{font-size:12px;padding:4px 7px;}
+    .authbar button{font-size:10.5px;padding:5px 9px;}
+    /* Onglets → menu déroulant fixe sous l'en-tête (top réglé en JS). */
+    .tabs{position:fixed;right:12px;top:110px;z-index:60;display:none;
+      width:min(260px,calc(100vw - 24px));padding:0;background:transparent;border:0;overflow:visible;
+      justify-content:flex-end;}
     .topbar.nav-open .tabs{display:block;}
     .tabs .tab-cap{flex-direction:column;align-items:stretch;gap:2px;padding:6px;
       background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--elev2);}
     .tabs .tab-glide{display:none;}
-    .tabs .tab-cap button{width:100%;text-align:left;padding:11px 14px;border-radius:9px;border-bottom:0;}
+    .tabs .tab-cap button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;border-bottom:0;}
     .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
     .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
   }
@@ -4614,6 +4615,12 @@ async function boot(){
       const tb = document.querySelector(".topbar");
       const open = tb.classList.toggle("nav-open");
       burger.setAttribute("aria-expanded", String(open));
+      // Place le menu juste sous l'en-tête (hauteur variable selon le retour à
+      // la ligne des contrôles). Fixe → coordonnées viewport, robuste.
+      if (open){
+        const menu = el("tabs");
+        if (menu) menu.style.top = (tb.getBoundingClientRect().bottom + 6) + "px";
+      }
     });
   }
   // Clic hors du menu ou des onglets → on referme.
