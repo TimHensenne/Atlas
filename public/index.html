@@ -158,10 +158,12 @@
     .authbar button{font-size:10px;padding:5px 8px;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
-    /* Vue carte : on borne la hauteur de la carte pour que le panneau pays
-       (empilé dessous) soit visible/atteignable sans énorme défilement. */
-    .mapcol{flex:none;}
-    .mapwrap{flex:none;height:56vh;min-height:300px;}
+    /* Vue carte : hauteur déterministe via aspect-ratio (le SVG en flex+auto
+       s'effondrait et laissait le panneau se superposer). La carte remplit ce
+       bloc en absolu ; le panneau pays s'empile nettement dessous. */
+    .mapcol{flex:none;height:auto;min-height:0;display:block;}
+    .mapwrap{flex:none;display:block;position:relative;height:auto;aspect-ratio:900 / 440;min-height:0;}
+    #map{position:absolute;inset:0;width:100%;height:100%;}
     /* Sur mobile, la capsule d'onglets desktop est masquée : la navigation passe
        par #navMenu (élément dédié, sans conflit de cascade). */
     .topbar .tabs{display:none;}
