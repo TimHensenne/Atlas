@@ -76,6 +76,15 @@
   /* Sur grand écran, la page ne défile jamais : seul le panneau défile.
      Sur mobile le panneau passe sous la carte, donc la page redevient scrollable. */
   @media(min-width:900px){ body{overflow:hidden;} }
+  /* Mobile : on lève le plafond de hauteur (html,body{height:100%}) qui enfermait
+     tout dans un écran. Sans ça, .view{flex:1} cappait la vue, le panneau débordait,
+     et #mobile-note + le footer — placés après la vue dans le DOM — étaient projetés
+     au milieu du contenu. Ici la page grandit avec son contenu et défile normalement. */
+  @media(max-width:899px){
+    html,body{height:auto;}
+    body{min-height:100vh;}
+    .view{flex:none;}
+  }
 
   /* Barres de défilement assorties au thème (jour/nuit) */
   *{scrollbar-width:thin;scrollbar-color:var(--scroll) transparent;}
@@ -103,10 +112,13 @@
   /* Bandeau « version mobile en développement » — n'existe que sous 900px. */
   #mobile-note{display:none;}
   @media(max-width:899px){
-    #mobile-note:not([hidden]){display:block;position:sticky;top:0;z-index:70;}
+    /* Épinglé en bas de l'écran, hors flux : reste visible quel que soit le
+       défilement et ne se retrouve plus au milieu du panneau. */
+    #mobile-note:not([hidden]){display:block;position:fixed;left:0;right:0;bottom:0;z-index:70;}
     .mn-in{display:flex;align-items:center;gap:9px;padding:9px 12px;
       background:color-mix(in srgb,var(--indigo) 16%,var(--panel));
-      border-bottom:1px solid color-mix(in srgb,var(--indigo) 40%,var(--rule));
+      border-top:1px solid color-mix(in srgb,var(--indigo) 40%,var(--rule));
+      box-shadow:0 -2px 10px rgba(19,26,46,.14);
       font-size:12px;line-height:1.35;color:var(--ink);}
     .mn-ico{width:16px;height:16px;color:var(--indigo);flex:none;}
     .mn-msg{flex:1 1 auto;}
