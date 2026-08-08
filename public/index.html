@@ -5030,6 +5030,15 @@ async function boot(){
     g.selectAll("path.country").classed("on", x => !!iso && isoOf(x) === iso);
     g.selectAll("path.country.on").each(function(){ this.parentNode.appendChild(this); });
     renderPanel();
+    // Mobile (mise en page empilée, < 900px) : le panneau est SOUS la carte.
+    // Sans ça, taper un pays affiche sa fiche hors écran et semble ne rien faire.
+    // On l'amène à l'écran en douceur.
+    if (window.matchMedia("(max-width: 899px)").matches){
+      requestAnimationFrame(() => {
+        const p = el("panel");
+        if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
   }
   window.__select = selectCountry;
   window.__searchable = searchable;
