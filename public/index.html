@@ -5128,20 +5128,9 @@ async function boot(){
       .attr("tabindex", 0)
       .attr("role","button")
       .attr("aria-label", d => mapName(d))
-      // Sélection par TAP (et non plus par "click") : sur tactile, d3-zoom
-      // capture le geste et le click synthétique est peu fiable (surtout au
-      // premier contact). On détecte un tap franc = pointerdown puis pointerup
-      // quasi au même endroit. Couvre aussi la souris (le clic est un tap sans
-      // déplacement). Le pointerdown est posé sur le pays lui-même : il se
-      // déclenche à la phase cible, avant que d3-zoom ne stoppe la propagation.
-      .on("pointerdown", (e) => { tapDown = { x:e.clientX, y:e.clientY, t:Date.now() }; })
-      .on("pointerup", (e,d) => {
-        if(!tapDown) return;
-        const moved = Math.hypot(e.clientX - tapDown.x, e.clientY - tapDown.y);
-        const dt = Date.now() - tapDown.t;
-        tapDown = null;
-        if(moved < 10 && dt < 700) selectCountry(isoOf(d), mapName(d), d);
-      })
+      // La sélection au tap/clic est gérée au niveau du SVG (voir plus bas) :
+      // d3-zoom capture le pointer sur le SVG, donc pointerup/click n'arrivent
+      // jamais jusqu'ici sur tactile. On ne garde ici que le clavier (a11y).
       .on("keydown", function(e,d){
         if(e.key === "Enter" || e.key === " "){ e.preventDefault(); selectCountry(isoOf(d), mapName(d), d); }
       })
@@ -5189,6 +5178,31 @@ async function boot(){
     .on("end", () => { panning = false; svg.classed("dragging", false); });
 
   svg.call(zoom).call(zoom.transform, initT());
+
+  // Sélection au tap/clic — gérée ICI, au niveau du SVG, et non sur chaque pays.
+  // Raison : d3-zoom fait setPointerCapture sur le <svg> au pointerdown ; dès
+  // lors tous les événements pointer (pointerup, click) sont redirigés vers le
+  // SVG et n'atteignent jamais le <path> du pays. On enregistre donc le début du
+  // geste (phase capture, avant que d3-zoom ne coupe la propagation) puis, au
+  // relâchement, si le doigt/curseur a peu bougé (= tap, pas un pan), on retrouve
+  // le pays réellement sous le point via elementFromPoint. Marche souris + tactile.
+  {
+    const mapNode = svg.node();
+    mapNode.addEventListener("pointerdown", (e) => {
+      tapDown = { x: e.clientX, y: e.clientY, t: Date.now() };
+    }, true);   // capture : passe avant le handler bubble de d3-zoom
+    mapNode.addEventListener("pointerup", (e) => {
+      if (!tapDown) return;
+      const moved = Math.hypot(e.clientX - tapDown.x, e.clientY - tapDown.y);
+      const dt = Date.now() - tapDown.t;
+      tapDown = null;
+      if (moved >= 10 || dt >= 700) return;               // pan ou appui long : on ignore
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const pathEl = hit && hit.closest ? hit.closest("path.country") : null;
+      const d = pathEl && pathEl.__data__;
+      if (d) selectCountry(isoOf(d), mapName(d), d);
+    });
+  }
 
   // Sélection d'un pays — partagée par le clic ET la recherche. Indépendante du
   // déplacement : cliquer surligne sans bouger la carte.
