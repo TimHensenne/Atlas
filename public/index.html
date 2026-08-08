@@ -100,7 +100,19 @@
   .tools{display:flex;align-items:center;gap:8px;flex:1 1 0;
     flex-wrap:nowrap;justify-content:flex-end;}
   .stamp{display:none;}
-  /* Hamburger : masqué sur desktop, révélé en mobile (voir media query). */
+  /* Bandeau « version mobile en développement » — n'existe que sous 900px. */
+  #mobile-note{display:none;}
+  @media(max-width:899px){
+    #mobile-note:not([hidden]){display:block;position:sticky;top:0;z-index:70;}
+    .mn-in{display:flex;align-items:center;gap:9px;padding:9px 12px;
+      background:color-mix(in srgb,var(--indigo) 16%,var(--panel));
+      border-bottom:1px solid color-mix(in srgb,var(--indigo) 40%,var(--rule));
+      font-size:12px;line-height:1.35;color:var(--ink);}
+    .mn-ico{width:16px;height:16px;color:var(--indigo);flex:none;}
+    .mn-msg{flex:1 1 auto;}
+    .mn-close{flex:none;background:none;border:0;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px;}
+    .mn-close:hover{color:var(--ink);}
+  }
   .nav-burger{display:none;width:40px;height:36px;flex:none;flex-direction:column;
     justify-content:center;align-items:center;gap:5px;padding:0;cursor:pointer;
     background:var(--panel);border:1px solid var(--rule);border-radius:10px;}
@@ -145,14 +157,18 @@
     .authbar button{font-size:10px;padding:5px 8px;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
-    .topbar .tabs{position:fixed;right:12px;left:auto;top:110px;z-index:60;display:none;
-      width:min(260px,calc(100vw - 24px));box-sizing:border-box;padding:0;background:transparent;border:0;overflow:visible;}
+    /* Menu déroulant : bandeau pleine largeur, opaque, descendant sous l'en-tête.
+       Le fond est porté par le conteneur .tabs (taille garantie), pas par
+       .tab-cap — ainsi aucun risque de fond qui ne couvre pas les items. */
+    .topbar .tabs{position:fixed;left:0;right:0;top:110px;z-index:60;display:none;
+      box-sizing:border-box;padding:8px 12px;overflow:visible;
+      background:var(--panel);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+      box-shadow:var(--elev2);}
     .topbar.nav-open .tabs{display:block;}
     .topbar .tabs .tab-cap{display:flex;flex-direction:column;align-items:stretch;width:100%;
-      box-sizing:border-box;gap:2px;padding:6px;border-radius:14px;
-      background:var(--panel);border:1px solid var(--rule);box-shadow:var(--elev2);}
+      box-sizing:border-box;gap:2px;padding:0;background:none;border:0;box-shadow:none;border-radius:0;}
     .topbar .tabs .tab-glide{display:none;}
-    .topbar .tabs .tab-cap button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;border-bottom:0;}
+    .topbar .tabs .tab-cap button{width:100%;text-align:left;padding:13px 12px;border-radius:9px;border-bottom:0;}
     .topbar .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
     .topbar .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
   }
@@ -1482,6 +1498,9 @@
   .topbar{background:var(--topbar-bg);backdrop-filter:blur(16px) saturate(1.25);
     -webkit-backdrop-filter:blur(16px) saturate(1.25);}
   .wordmark{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  /* Style desktop des onglets (capsule + pilule) — borné au desktop pour ne
+     jamais interférer avec le menu déroulant mobile. */
+  @media(min-width:900px){
   .tabs{background:transparent;border-bottom:0;padding:0;gap:0;flex:0 0 auto;
     display:flex;justify-content:center;overflow:visible;}
   .tab-cap{position:relative;display:inline-flex;gap:2px;padding:4px;border-radius:999px;
@@ -1497,6 +1516,7 @@
   .tabs button:hover:not(.on){color:var(--ink);}
   .tabs button.on{color:#FFF;background:transparent;box-shadow:none;}
   :root[data-theme="light"] .tabs button.on{color:#FFF;}
+  }
   /* Entrée de vue : fondu + légère montée à chaque changement d'onglet. */
   @keyframes vEnter{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
   .view.v-enter{animation:vEnter .34s cubic-bezier(.22,.8,.3,1) both;}
@@ -1718,6 +1738,7 @@
 <section id="view-games"    class="view" hidden></section>
 <section id="view-purpose"  class="view" hidden></section>
 
+<div id="mobile-note" hidden></div>
 <div id="data-warn" role="alert" hidden></div>
 <footer class="foot" id="foot"></footer>
 
@@ -2615,6 +2636,29 @@ function positionScGlides(fromAxis, fromK){
   slideGlide(by, "mseg-glide", (fromAxis === "y" && fromK && fromK !== scYInd) ? by?.querySelector(`button[data-k="${fromK}"]`) : null);
 }
 // Re-rend l'onglet base de données et replace la pilule du sélecteur.
+// Bandeau temporaire signalant que la version mobile est en cours d'optimisation.
+// N'apparaît que sur petit écran (< 900px), une seule fois (mémorisé), fermable.
+// À retirer quand le responsive sera finalisé (supprimer l'appel dans boot).
+function maybeShowMobileNote(){
+  const host = el("mobile-note"); if (!host) return;
+  if (!window.matchMedia("(max-width: 899px)").matches) return;      // desktop : rien
+  try { if (localStorage.getItem("atlas-mobile-note") === "off") return; } catch {}
+  const L = lang === "fr";
+  const msg = L
+    ? "Version mobile en cours d'optimisation. Pour une expérience optimale, ouvre Atlas sur ordinateur."
+    : "The mobile version is being optimised. For the best experience, open Atlas on desktop.";
+  host.innerHTML = `<div class="mn-in">
+      <svg class="mn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+      <span class="mn-msg">${msg}</span>
+      <button class="mn-close" type="button" aria-label="${L ? "Fermer" : "Dismiss"}">✕</button>
+    </div>`;
+  host.hidden = false;
+  host.querySelector(".mn-close").addEventListener("click", () => {
+    host.hidden = true;
+    try { localStorage.setItem("atlas-mobile-note", "off"); } catch {}
+  });
+}
+
 // Prévient l'utilisateur qu'un ou plusieurs jeux de données n'ont pas pu être
 // chargés (échec réseau/HTTP), au lieu d'afficher silencieusement des blocs
 // vides. Non bloquant : bandeau avec « Recharger » et fermeture.
@@ -4555,6 +4599,7 @@ function renderPodiumGame(){
 
 async function boot(){
   renderTabs();
+  maybeShowMobileNote();
   // Reflète la langue et la devise restaurées (localStorage) sur les bascules
   // du bandeau et sur les métadonnées du document. Sans cela, l'état interne
   // et l'interface divergeraient au premier rendu.
