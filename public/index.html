@@ -1055,6 +1055,12 @@
   #heroGlobe{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);z-index:-1;
     opacity:.5;cursor:grab;touch-action:none;}
   #heroGlobe:active{cursor:grabbing;}
+  /* Sur appareil tactile, le globe décoratif ne doit PAS capter les gestes :
+     sinon le doigt fait pivoter le globe au lieu de faire défiler la page.
+     On le laisse visible mais inerte (le scroll passe à travers). */
+  @media (hover: none){
+    #heroGlobe{ pointer-events:none; touch-action:auto; }
+  }
   :root[data-theme="dark"] #heroGlobe{opacity:.62;}
   .hero-inner{position:relative;display:flex;flex-direction:column;align-items:center;
     pointer-events:none;}
