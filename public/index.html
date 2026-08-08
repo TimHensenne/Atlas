@@ -5107,6 +5107,7 @@ async function boot(){
 
   const tip = el("tip");
   let currentK = 1, panning = false;
+  let tapDown = null;   // position/instant du pointerdown, pour distinguer tap vs pan
 
   // Fond océan plein cadre, fixe, derrière tout (remplit au-dessus et en dessous
   // du monde quand on défile verticalement).
@@ -5127,9 +5128,22 @@ async function boot(){
       .attr("tabindex", 0)
       .attr("role","button")
       .attr("aria-label", d => mapName(d))
-      .on("click", (e,d) => selectCountry(isoOf(d), mapName(d), d))
-      .on("keydown", function(e){
-        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); this.dispatchEvent(new Event("click")); }
+      // Sélection par TAP (et non plus par "click") : sur tactile, d3-zoom
+      // capture le geste et le click synthétique est peu fiable (surtout au
+      // premier contact). On détecte un tap franc = pointerdown puis pointerup
+      // quasi au même endroit. Couvre aussi la souris (le clic est un tap sans
+      // déplacement). Le pointerdown est posé sur le pays lui-même : il se
+      // déclenche à la phase cible, avant que d3-zoom ne stoppe la propagation.
+      .on("pointerdown", (e) => { tapDown = { x:e.clientX, y:e.clientY, t:Date.now() }; })
+      .on("pointerup", (e,d) => {
+        if(!tapDown) return;
+        const moved = Math.hypot(e.clientX - tapDown.x, e.clientY - tapDown.y);
+        const dt = Date.now() - tapDown.t;
+        tapDown = null;
+        if(moved < 10 && dt < 700) selectCountry(isoOf(d), mapName(d), d);
+      })
+      .on("keydown", function(e,d){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); selectCountry(isoOf(d), mapName(d), d); }
       })
       .on("mousemove", (e,d) => {
         if (panning) return;
@@ -5202,8 +5216,14 @@ async function boot(){
   {
     const h0 = parseHash();
     if (h0.view === "map" && h0.c && (macro.countries?.[h0.c] || ident[h0.c])){
-      if (h0.t) panelTab = h0.t;
-      selectCountry(h0.c, (macro.countries?.[h0.c]?.name) || h0.c);
+      if (window.matchMedia("(max-width: 899px)").matches){
+        // Mobile : on repart d'une carte vierge à chaque chargement (pas de pays
+        // restauré). On retire aussi le pays de l'URL pour rester cohérent.
+        history.replaceState({ view:"map", gScreen:"hub" }, "", hashFor("map"));
+      } else {
+        if (h0.t) panelTab = h0.t;
+        selectCountry(h0.c, (macro.countries?.[h0.c]?.name) || h0.c);
+      }
     }
   }
 
