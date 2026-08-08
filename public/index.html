@@ -113,6 +113,7 @@
     .mn-close{flex:none;background:none;border:0;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px;}
     .mn-close:hover{color:var(--ink);}
   }
+  .nav-sheet{display:none;}
   .nav-burger{display:none;width:40px;height:36px;flex:none;flex-direction:column;
     justify-content:center;align-items:center;gap:5px;padding:0;cursor:pointer;
     background:var(--panel);border:1px solid var(--rule);border-radius:10px;}
@@ -157,20 +158,17 @@
     .authbar button{font-size:10px;padding:5px 8px;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
-    /* Menu déroulant : bandeau pleine largeur, opaque, descendant sous l'en-tête.
-       Le fond est porté par le conteneur .tabs (taille garantie), pas par
-       .tab-cap — ainsi aucun risque de fond qui ne couvre pas les items. */
-    .topbar .tabs{position:fixed;left:0;right:0;top:110px;z-index:60;display:none;
-      box-sizing:border-box;padding:8px 12px;overflow:visible;
-      background:var(--panel);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
-      box-shadow:var(--elev2);}
-    .topbar.nav-open .tabs{display:block;}
-    .topbar .tabs .tab-cap{display:flex;flex-direction:column;align-items:stretch;width:100%;
-      box-sizing:border-box;gap:2px;padding:0;background:none;border:0;box-shadow:none;border-radius:0;}
-    .topbar .tabs .tab-glide{display:none;}
-    .topbar .tabs .tab-cap button{width:100%;text-align:left;padding:13px 12px;border-radius:9px;border-bottom:0;}
-    .topbar .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
-    .topbar .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
+    /* Sur mobile, la capsule d'onglets desktop est masquée : la navigation passe
+       par #navMenu (élément dédié, sans conflit de cascade). */
+    .topbar .tabs{display:none;}
+    #navMenu.nav-sheet{position:fixed;left:0;right:0;top:110px;z-index:60;display:none;
+      box-sizing:border-box;padding:8px 12px;flex-direction:column;gap:2px;
+      background:var(--panel);border-bottom:1px solid var(--rule);box-shadow:var(--elev2);}
+    #navMenu.nav-sheet.open{display:flex;}
+    #navMenu.nav-sheet button{width:100%;text-align:left;padding:13px 14px;border:0;border-radius:9px;
+      background:none;color:var(--ink);font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;}
+    #navMenu.nav-sheet button.on{background:var(--grad);color:#fff;}
+    #navMenu.nav-sheet button:active{filter:brightness(.97);}
   }
 
   .search{position:relative;}
@@ -1704,6 +1702,7 @@
     <span></span><span></span><span></span>
   </button>
 </header>
+<nav id="navMenu" class="nav-sheet" aria-label="Menu" hidden></nav>
 
 <section id="view-home" class="view"></section>
 <section id="view-map" class="view" hidden>
@@ -4646,33 +4645,51 @@ async function boot(){
       window.__select(h.c, (macro.countries?.[h.c]?.name) || h.c);
     }
   });
+  // Remplit le menu mobile dédié (#navMenu) avec les mêmes entrées que la
+  // capsule desktop. Rappelé au changement de langue.
+  const renderNavMenu = () => {
+    const nm = el("navMenu"); if (!nm) return;
+    nm.innerHTML = VIEW_ORDER.map(v =>
+      `<button data-view="${v}"${v === view ? ' class="on"' : ""}>${esc(NAV_LABELS[v][lang])}</button>`).join("");
+  };
+  renderNavMenu();
   const closeNav = () => {
-    const tb = document.querySelector(".topbar");
-    if (tb) tb.classList.remove("nav-open");
-    const bg = el("navBurger"); if (bg) bg.setAttribute("aria-expanded", "false");
+    const nm = el("navMenu"); if (nm){ nm.classList.remove("open"); nm.hidden = true; }
+    const bg = el("navBurger");
+    if (bg){ bg.setAttribute("aria-expanded", "false"); bg.classList.remove("is-open"); }
+    document.querySelector(".topbar")?.classList.remove("nav-open");
   };
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (b){ setView(b.dataset.view); closeNav(); }
   });
+  el("navMenu").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-view]");
+    if (b){ setView(b.dataset.view); closeNav(); }
+  });
   const burger = el("navBurger");
   if (burger){
-    burger.addEventListener("click", () => {
-      const tb = document.querySelector(".topbar");
-      const open = tb.classList.toggle("nav-open");
-      burger.setAttribute("aria-expanded", String(open));
-      // Place le menu juste sous l'en-tête (hauteur variable selon le retour à
-      // la ligne des contrôles). Fixe → coordonnées viewport, robuste.
-      if (open){
-        const menu = el("tabs");
-        if (menu) menu.style.top = (tb.getBoundingClientRect().bottom + 6) + "px";
+    burger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const nm = el("navMenu");
+      const willOpen = !nm.classList.contains("open");
+      if (willOpen){
+        renderNavMenu();   // reflète l'onglet actif courant
+        nm.hidden = false;
+        nm.style.top = (document.querySelector(".topbar").getBoundingClientRect().bottom) + "px";
+        nm.classList.add("open");
+      } else {
+        nm.classList.remove("open"); nm.hidden = true;
       }
+      burger.setAttribute("aria-expanded", String(willOpen));
+      burger.classList.toggle("is-open", willOpen);
+      document.querySelector(".topbar").classList.toggle("nav-open", willOpen);
     });
   }
-  // Clic hors du menu ou des onglets → on referme.
+  // Clic hors du menu ou du bouton → on referme.
   document.addEventListener("click", (e) => {
-    const tb = document.querySelector(".topbar");
-    if (tb && tb.classList.contains("nav-open") && !e.target.closest("#tabs") && !e.target.closest("#navBurger"))
+    const nm = el("navMenu");
+    if (nm && nm.classList.contains("open") && !e.target.closest("#navMenu") && !e.target.closest("#navBurger"))
       closeNav();
   });
   // Le logo ramène à l'accueil ; les CTA de la landing ouvrent leur onglet.
@@ -5347,6 +5364,7 @@ async function boot(){
     renderStamp();
     renderPanel();  // le panneau se retraduit intégralement
     renderTabs();
+    renderNavMenu();
     paintFoot();
     renderView(view);  // retraduit la vue active (lexique, données, but…)
     g.selectAll("path.country").attr("aria-label", d => mapName(d)); // lecteurs d'écran
