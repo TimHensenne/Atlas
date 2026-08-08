@@ -100,6 +100,15 @@
   .tools{display:flex;align-items:center;gap:8px;flex:1 1 0;
     flex-wrap:nowrap;justify-content:flex-end;}
   .stamp{display:none;}
+  /* Hamburger : masqué sur desktop, révélé en mobile (voir media query). */
+  .nav-burger{display:none;width:40px;height:36px;flex:none;flex-direction:column;
+    justify-content:center;align-items:center;gap:5px;padding:0;cursor:pointer;
+    background:var(--panel);border:1px solid var(--rule);border-radius:10px;}
+  .nav-burger span{display:block;width:18px;height:2px;border-radius:2px;background:var(--ink);
+    transition:transform .2s ease,opacity .2s ease;}
+  .topbar.nav-open .nav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .topbar.nav-open .nav-burger span:nth-child(2){opacity:0;}
+  .topbar.nav-open .nav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
   /* Devise et langue partagent exactement le même gabarit de bouton. */
   .fx,.lang,.theme{display:inline-flex;gap:2px;padding:4px;position:relative;}
   /* Pilule unique qui glisse vers le bouton actif (même effet que les onglets). */
@@ -118,9 +127,32 @@
      s'étire pour occuper la place. La barre ne se disloque plus. */
   @media(max-width:640px){
     .topbar{flex-wrap:wrap;}
-    .tools{width:100%;margin-left:0;justify-content:flex-start;flex-wrap:wrap;}
     .map-search{right:12px;}
     .map-search input{width:100%;}
+  }
+  /* En-tête mobile : le hamburger ouvre les onglets en menu ; les contrôles
+     (devise, langue, thème, connexion) tiennent sur une seule ligne. */
+  @media(max-width:899px){
+    .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;}
+    .brand{order:1;flex:1 1 auto;}
+    .nav-burger{order:2;display:flex;}
+    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:6px;flex-wrap:nowrap;
+      overflow-x:auto;scrollbar-width:none;}
+    .tools::-webkit-scrollbar{display:none;}
+    .fx,.lang,.theme{padding:3px;flex:none;}
+    .fx button,.lang button{font-size:11px;padding:5px 9px;}
+    .theme button{font-size:12px;padding:4px 8px;}
+    .authbar{flex:none;}
+    /* Onglets → menu déroulant sous l'en-tête, ouvert par le hamburger. */
+    .tabs{order:4;position:absolute;top:100%;right:12px;margin-top:6px;z-index:40;
+      display:none;width:min(240px,calc(100vw - 24px));padding:0;background:transparent;border:0;overflow:visible;}
+    .topbar.nav-open .tabs{display:block;}
+    .tabs .tab-cap{flex-direction:column;align-items:stretch;gap:2px;padding:6px;
+      background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--elev2);}
+    .tabs .tab-glide{display:none;}
+    .tabs .tab-cap button{width:100%;text-align:left;padding:11px 14px;border-radius:9px;border-bottom:0;}
+    .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
+    .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
   }
 
   .search{position:relative;}
@@ -1646,6 +1678,9 @@
     </div>
     <div class="authbar" id="authbar" hidden></div>
   </div>
+  <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="tabs">
+    <span></span><span></span><span></span>
+  </button>
 </header>
 
 <section id="view-home" class="view"></section>
@@ -4564,9 +4599,28 @@ async function boot(){
       window.__select(h.c, (macro.countries?.[h.c]?.name) || h.c);
     }
   });
+  const closeNav = () => {
+    const tb = document.querySelector(".topbar");
+    if (tb) tb.classList.remove("nav-open");
+    const bg = el("navBurger"); if (bg) bg.setAttribute("aria-expanded", "false");
+  };
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
-    if (b) setView(b.dataset.view);
+    if (b){ setView(b.dataset.view); closeNav(); }
+  });
+  const burger = el("navBurger");
+  if (burger){
+    burger.addEventListener("click", () => {
+      const tb = document.querySelector(".topbar");
+      const open = tb.classList.toggle("nav-open");
+      burger.setAttribute("aria-expanded", String(open));
+    });
+  }
+  // Clic hors du menu ou des onglets → on referme.
+  document.addEventListener("click", (e) => {
+    const tb = document.querySelector(".topbar");
+    if (tb && tb.classList.contains("nav-open") && !e.target.closest("#tabs") && !e.target.closest("#navBurger"))
+      closeNav();
   });
   // Le logo ramène à l'accueil ; les CTA de la landing ouvrent leur onglet.
   document.querySelector(".wordmark").style.cursor = "pointer";
