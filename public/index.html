@@ -136,21 +136,21 @@
     .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;padding:12px 12px;}
     .brand{order:1;flex:1 1 auto;}
     .nav-burger{order:2;display:flex;}
-    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:5px;flex-wrap:nowrap;
+    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:4px;flex-wrap:nowrap;
       overflow-x:auto;scrollbar-width:none;}
     .tools::-webkit-scrollbar{display:none;}
     .fx,.lang,.theme,.authbar{padding:3px;flex:none;}
     .fx button,.lang button{font-size:11px;padding:5px 8px;}
     .theme button{font-size:12px;padding:4px 7px;}
-    .authbar button{font-size:10.5px;padding:5px 9px;}
+    .authbar button{font-size:10px;padding:5px 8px;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
-    .topbar .tabs{position:fixed;right:12px;top:110px;z-index:60;display:none;
-      width:min(260px,calc(100vw - 24px));padding:0;background:transparent;border:0;overflow:visible;
-      flex:none;justify-content:flex-end;}
+    .topbar .tabs{position:fixed;right:12px;left:auto;top:110px;z-index:60;display:none;
+      width:min(260px,calc(100vw - 24px));box-sizing:border-box;padding:0;background:transparent;border:0;overflow:visible;}
     .topbar.nav-open .tabs{display:block;}
-    .topbar .tabs .tab-cap{flex-direction:column;align-items:stretch;gap:2px;padding:6px;
-      background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--elev2);}
+    .topbar .tabs .tab-cap{display:flex;flex-direction:column;align-items:stretch;width:100%;
+      box-sizing:border-box;gap:2px;padding:6px;border-radius:14px;
+      background:var(--panel);border:1px solid var(--rule);box-shadow:var(--elev2);}
     .topbar .tabs .tab-glide{display:none;}
     .topbar .tabs .tab-cap button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;border-bottom:0;}
     .topbar .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
