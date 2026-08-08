@@ -143,17 +143,18 @@
     .fx button,.lang button{font-size:11px;padding:5px 8px;}
     .theme button{font-size:12px;padding:4px 7px;}
     .authbar button{font-size:10.5px;padding:5px 9px;}
-    /* Onglets → menu déroulant fixe sous l'en-tête (top réglé en JS). */
-    .tabs{position:fixed;right:12px;top:110px;z-index:60;display:none;
+    /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
+       règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
+    .topbar .tabs{position:fixed;right:12px;top:110px;z-index:60;display:none;
       width:min(260px,calc(100vw - 24px));padding:0;background:transparent;border:0;overflow:visible;
-      justify-content:flex-end;}
+      flex:none;justify-content:flex-end;}
     .topbar.nav-open .tabs{display:block;}
-    .tabs .tab-cap{flex-direction:column;align-items:stretch;gap:2px;padding:6px;
+    .topbar .tabs .tab-cap{flex-direction:column;align-items:stretch;gap:2px;padding:6px;
       background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--elev2);}
-    .tabs .tab-glide{display:none;}
-    .tabs .tab-cap button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;border-bottom:0;}
-    .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
-    .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
+    .topbar .tabs .tab-glide{display:none;}
+    .topbar .tabs .tab-cap button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;border-bottom:0;}
+    .topbar .tabs .tab-cap button.on{background:var(--grad);color:#fff;}
+    .topbar .tabs .tab-cap button:hover:not(.on){background:var(--rule-soft);color:var(--ink);}
   }
 
   .search{position:relative;}
