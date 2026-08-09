@@ -862,13 +862,7 @@
   .hero-cue{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:var(--dim);
     font-size:18px;animation:hcue 1.6s ease-in-out infinite;}
   @keyframes hcue{0%,100%{transform:translate(-50%,0);opacity:.5;}50%{transform:translate(-50%,8px);opacity:1;}}
-  /* Moment de clôture : le bouton flottait seul dans le vide, sans cadre ni
-     transition depuis la grille — un simple trait + une étiquette (même
-     traitement que .hero-eyebrow) lui donnent un vrai point d'arrivée. */
-  .home-foot{text-align:center;padding:56px 0 44px;margin-top:14px;
-    border-top:1px solid var(--rule);max-width:1020px;margin-left:auto;margin-right:auto;}
-  .hf-tag{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
-    color:var(--indigo);margin:0 0 16px;}
+  .home-foot{text-align:center;padding:40px 0 20px;}
   /* Apparition au scroll */
   .reveal{opacity:0;transform:translateY(30px);filter:blur(6px);
     transition:opacity .8s cubic-bezier(.22,.8,.3,1),transform .8s cubic-bezier(.22,.8,.3,1),filter .8s ease;}
@@ -1186,7 +1180,7 @@
   @media (hover: none){
     #heroGlobe{ pointer-events:none; touch-action:auto; }
   }
-  :root[data-theme="dark"] #heroGlobe{opacity:.88;}
+  :root[data-theme="dark"] #heroGlobe{opacity:.62;}
   .hero-inner{position:relative;display:flex;flex-direction:column;align-items:center;
     pointer-events:none;}
   .hero-inner .hero-ctas,.hero-inner button{pointer-events:auto;}
@@ -1221,16 +1215,11 @@
   @media(prefers-reduced-motion:reduce){ .serie-glow::before{animation:none;} .serie-glow{border-color:var(--indigo);} }
   /* Landing : kickers de sections + sections un peu plus denses */
   /* ── Bento : la vitrine des sections, en aperçus réels ─────────────── */
-  /* Un seul bandeau (au lieu de 3 boîtes séparées) : les puces partagent un
-     même cadre, séparées par un simple trait — lecture d'un bloc de preuve
-     unique plutôt que trois éléments flottants sans lien visuel. */
-  .hero-stats{display:flex;flex-wrap:wrap;justify-content:center;margin-top:30px;
-    animation:heroUp .7s ease both .48s;pointer-events:none;
-    border:1px solid var(--rule);border-radius:var(--r-m);
-    background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .hero-stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:30px;
+    animation:heroUp .7s ease both .48s;pointer-events:none;}
   .hchip{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:120px;
-    padding:14px 22px;}
-  .hchip:not(:first-child){border-left:1px solid var(--rule);}
+    padding:12px 18px;border:1px solid var(--rule);border-radius:var(--r-m);
+    background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
   .hchip b{font-family:var(--display);font-weight:800;font-size:20px;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .hchip span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
@@ -1254,6 +1243,8 @@
      « sauteraient » sans transition au lieu de s'animer. */
   .bento-card.tiltable.reveal{transition:box-shadow .25s ease,border-color .25s ease,transform .15s ease;}
   .bc-head{display:flex;align-items:center;gap:8px;}
+  .bc-n{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--rule);
+    border-radius:999px;padding:3px 8px;}
   .bc-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .bc-t{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.02em;margin:0;}
@@ -1265,11 +1256,7 @@
   .bento-card:hover .bc-go{opacity:1;transform:none;}
   .bento-card:hover .bc-go i{transform:translateX(4px);}
   /* Aperçus */
-  /* flex:1, comme .b-db .bdb / .b-refs .brefs / .b-but .bwhy plus bas : la carte
-     "Carte" occupait moins de hauteur que sa rangée de grille (imposée par la
-     colonne "Base de données", plus longue) — l'aperçu s'étirait mal, laissant
-     un vide sous la mini-carte. Il remplit maintenant tout l'espace alloué. */
-  .bm-wrap{position:relative;width:100%;border-radius:var(--r-s);overflow:hidden;flex:1;
+  .bm-wrap{position:relative;width:100%;border-radius:var(--r-s);overflow:hidden;
     background:var(--ocean);border:1px solid var(--rule);margin-top:4px;}
   .bm-canvas{display:block;width:100%;}
   .bm-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--accent);
@@ -1289,7 +1276,7 @@
   .bdb-row.skel .v{width:52px;height:10px;background:var(--rule-soft);border-radius:3px;}
   .bdb-more{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
     color:var(--dim);padding:6px 0 2px;}
-  .bfx{width:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;margin-top:6px;flex:1;}
+  .bfx{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
   .bfx-pair{display:flex;justify-content:space-between;align-items:center;background:var(--paper);
     border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:8px 12px;font-size:12.5px;}
   .bfx-pair .p{font-family:var(--mono);font-size:11px;color:var(--dim);}
@@ -1313,7 +1300,7 @@
   .bref span{font-family:var(--mono);font-size:11px;color:var(--ink);border:1px solid var(--rule);
     border-radius:999px;padding:6px 13px;background:var(--paper);}
   /* Carte jeux : grille 2×2, une tuile illustrée par jeu. */
-  .bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:6px;flex:1;align-content:center;}
+  .bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:6px;}
   .bg-tile{display:flex;align-items:center;gap:9px;background:var(--paper);
     border:1px solid var(--rule-soft);border-radius:var(--r-s);padding:9px 11px;
     transition:border-color .2s ease,background .2s ease;}
@@ -1349,11 +1336,7 @@
   }
   @media(max-width:560px){
     .bento{grid-template-columns:1fr;grid-template-areas:"map" "db" "fx" "games" "refs" "but";}
-    /* Le bandeau reste sur une seule ligne (les séparateurs internes n'ont
-       de sens que si les puces ne passent pas à la ligne) : on rétrécit
-       plutôt que d'espacer. */
-    .hero-stats{flex-wrap:nowrap;}
-    .hchip{min-width:0;flex:1;padding:10px 8px;}
+    .hero-stats{gap:8px;} .hchip{min-width:100px;padding:10px 14px;}
   }
   /* Super Série + classement côte à côte */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
@@ -1761,6 +1744,7 @@
   .eyebrow,.hero-eyebrow,.g-eyebrow,.bc-k,.dl-metric,.pd-cat,.fxv-h{
     font-family:var(--body);font-weight:600;letter-spacing:.09em;}
   .fxv-h{text-transform:none;letter-spacing:-.01em;font-size:16.5px;}
+  .bc-n{font-family:var(--body);font-weight:600;}
   /* Compteurs, chips, tuiles, pied de page : sans, casse normale. */
   .g-count{font-family:var(--body);font-weight:500;font-size:12.5px;letter-spacing:0;text-transform:none;}
   .hchip span{font-family:var(--body);font-weight:500;font-size:10.5px;letter-spacing:.06em;}
@@ -2961,12 +2945,9 @@ function renderHome(){
     <div class="bg-tile"><div class="bt-ico bt-podium"><i class="p2"></i><i class="p1"></i><i class="p3"></i></div><span>Podium</span></div>
   </div>`;
   // Une carte bento : tout est cliquable, le CTA se révèle au survol.
-  // Pas de numérotation (01/02/03…) : Carte/Base/FX/Jeux/Références/But sont
-  // des fonctionnalités parallèles, pas les étapes d'un parcours — un badge
-  // séquentiel suggérerait un ordre à suivre qui n'existe pas.
-  const card = (cls, id, kicker, title, desc, media) => `
+  const card = (cls, id, n, kicker, title, desc, media) => `
     <button class="bento-card tiltable ${cls} reveal" data-goto="${id}">
-      <div class="bc-head"><span class="bc-k">${kicker}</span></div>
+      <div class="bc-head"><span class="bc-n">${n}</span><span class="bc-k">${kicker}</span></div>
       <h2 class="bc-t">${title}</h2>
       <p class="bc-d">${desc}</p>
       ${media || ""}
@@ -2994,23 +2975,23 @@ function renderHome(){
       <div class="hero-cue" aria-hidden="true">▾</div>
     </div>
     <div class="bento">
-      ${card("b-map", "map", L ? "Explorer" : "Explore", L ? "La carte" : "The map",
+      ${card("b-map", "map", "01", L ? "Explorer" : "Explore", L ? "La carte" : "The map",
         L ? "180+ économies cliquables : PIB, inflation, dette, rendement 10 ans, spread et notations — la fiche complète en un clic."
           : "180+ clickable economies: GDP, inflation, debt, 10-year yield, spread and ratings — the full profile in one click.",
         `<div class="bm-wrap"><canvas class="bm-canvas" width="0" height="0"></canvas>
           <span class="bm-dot"></span><span class="bm-dot d2"></span><span class="bm-dot d3"></span></div>`)}
-      ${card("b-db", "benchmark", L ? "Comparer" : "Compare", L ? "La base de données" : "The database",
+      ${card("b-db", "benchmark", "02", L ? "Comparer" : "Compare", L ? "La base de données" : "The database",
         L ? "Trie, filtre, épingle — le monde entier dans un tableur. Ci-dessous : les plus grandes économies mondiales par PIB, en direct des données."
           : "Sort, filter, pin — the whole world in a spreadsheet. Below: the world's largest economies by GDP, straight from the data.",
         `<div class="bdb">${dbRows}</div>`)}
-      ${card("b-fx", "fx", L ? "Convertir" : "Convert", "FX / " + (L ? "Devises" : "Currency"),
+      ${card("b-fx", "fx", "03", L ? "Convertir" : "Convert", "FX / " + (L ? "Devises" : "Currency"),
         L ? "200+ devises, taux du jour, conversion dans les deux sens." : "200+ currencies, daily rates, two-way conversion.",
         `<div class="bfx">${fxPairs}</div>`)}
-      ${card("b-games", "games", L ? "Jouer" : "Play", L ? "Les jeux" : "The games",
+      ${card("b-games", "games", "04", L ? "Jouer" : "Play", L ? "Les jeux" : "The games",
         L ? "Pays mystère, drapeaux, duels, podiums — et la Super Série quotidienne : un défi, un classement, une tentative."
           : "Mystery countries, flags, duels, podiums — and the daily Super Series: one challenge, one leaderboard, one attempt.",
         gamesGrid)}
-      ${card("b-refs", "refs", L ? "Comprendre" : "Understand", L ? "Références" : "Reference",
+      ${card("b-refs", "refs", "05", L ? "Comprendre" : "Understand", L ? "Références" : "Reference",
         L ? "Chaque terme défini en une phrase, chaque chiffre tracé jusqu'à sa source." : "Every term defined in one sentence, every figure traced to its source.",
         `<div class="brefs">
           <div class="bref-ex">
@@ -3020,7 +3001,7 @@ function renderHome(){
           <div class="bref-srclab">${L ? "Sources des données" : "Data sources"}</div>
           <div class="bref">${["FMI","OCDE","BM","Wiki"].map(x => `<span>${x}</span>`).join("")}</div>
         </div>`)}
-      ${card("b-but", "purpose", L ? "Pourquoi" : "Why", L ? "La démarche" : "The purpose",
+      ${card("b-but", "purpose", "06", L ? "Pourquoi" : "Why", L ? "La démarche" : "The purpose",
         L ? "Un projet d'étudiant en Financial Economics : montrer ce que des données publiques bien assemblées peuvent raconter — et dire honnêtement ce qu'elles ne peuvent pas."
           : "A Financial Economics student project: showing what well-assembled public data can tell — and being honest about what it can't.",
         `<div class="bwhy">
@@ -3032,7 +3013,6 @@ function renderHome(){
         </div>`)}
     </div>
     <div class="home-foot reveal">
-      <div class="hf-tag">${L ? "Prêt ?" : "Ready?"}</div>
       <button class="hs-cta big" data-goto="map">${L ? "Entrer dans Atlas" : "Enter Atlas"} →</button>
     </div>
   </div>`;
@@ -3069,9 +3049,7 @@ function homeBento(){
       if (!GLOBE_LAND) return false;
       cv.dataset.on = "1";
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      // H = hauteur réelle du panneau (flex:1, dépend de la rangée de grille),
-      // pas une valeur fixe : la mini-carte remplit tout son cadre.
-      const W = cv.parentElement.clientWidth || 380, H = cv.parentElement.clientHeight || 150;
+      const W = cv.parentElement.clientWidth || 380, H = 150;
       cv.width = W * dpr; cv.height = H * dpr;
       cv.style.width = W + "px"; cv.style.height = H + "px";
       const ctx = cv.getContext("2d");
@@ -5661,7 +5639,7 @@ function initGlobe(){
     // sphère + halo (pas de graticule : c'était le poste de coût par frame)
     ctx.beginPath(); path(sphere);
     ctx.fillStyle = cols.ocean; ctx.fill();
-    ctx.strokeStyle = cols.glow; ctx.globalAlpha = .75; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.strokeStyle = cols.glow; ctx.globalAlpha = .5; ctx.lineWidth = 1.2; ctx.stroke();
     ctx.globalAlpha = 1;
     // terres (trait de côte 110m : une poignée de polygones)
     ctx.beginPath();
