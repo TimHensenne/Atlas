@@ -1550,6 +1550,10 @@
     box-shadow:0 4px 12px color-mix(in srgb, var(--indigo) 20%, transparent);}
   .hint{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);
     text-transform:uppercase;margin:auto;display:inline-flex;align-items:center;gap:6px;}
+  /* display explicite ci-dessus, donc plus fort que le display:none implicite
+     de [hidden] : sans ce correctif, la carte reste bloquée visible après le
+     chargement du fond de carte. */
+  .hint[hidden]{display:none;}
   .hint .ldots i{width:4px;height:4px;background:var(--dim);}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
   /* ═══════════════════════════════════════════════════════════════════
