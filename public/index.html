@@ -161,13 +161,18 @@
     .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;padding:12px 12px;}
     .brand{order:1;flex:1 1 auto;}
     .nav-burger{order:2;display:flex;}
-    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:4px;flex-wrap:nowrap;
+    .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:3px;flex-wrap:nowrap;
       overflow-x:auto;scrollbar-width:none;}
     .tools::-webkit-scrollbar{display:none;}
     .fx,.lang,.theme,.authbar{padding:3px;flex:none;}
-    .fx button,.lang button{font-size:11px;padding:5px 8px;}
-    .theme button{font-size:12px;padding:4px 7px;}
-    .authbar button{font-size:10px;padding:5px 8px;}
+    /* Contrôles utilitaires : hauteur tactile confortable (~30px) sur mobile,
+       padding horizontal serré pour que la rangée tienne à 375px. */
+    .fx button,.lang button{font-size:11px;padding:7px 7px;}
+    .theme button{font-size:13px;padding:6px 7px;}
+    /* Scopé sous .topbar : la règle desktop .authbar button est placée plus loin
+       dans le CSS (même spécificité) et l'emporterait sinon. */
+    .topbar .authbar{gap:1px;}
+    .topbar .authbar button{font-size:10.5px;padding:8px 9px;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
     /* Vue carte : hauteur déterministe via aspect-ratio (le SVG en flex+auto
@@ -354,8 +359,8 @@
     transform:translateX(-50%);pointer-events:none;display:none;}
   .chart-x{display:flex;justify-content:space-between;margin-top:3px;
     font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;color:var(--dim);}
-  .macro-src{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--dim);
-    text-transform:uppercase;opacity:.8;margin-top:16px;}
+  .macro-src{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);
+    text-transform:uppercase;opacity:.85;margin-top:16px;}
   .mkt-sub{font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:var(--dim);margin-top:8px;}
   .mkt-sub b{color:var(--ink);font-weight:600;}
   /* Notation souveraine : trois agences côte à côte, couleur selon investment
@@ -560,6 +565,11 @@
   .db-seg button:not(.on):hover{color:var(--ink);}
   .db-seg button.on{color:#fff;}
   .db-seg svg{width:15px;height:15px;flex:0 0 auto;}
+  /* Très petits écrans : segments resserrés pour que « Nuage » ne soit plus rogné. */
+  @media(max-width:400px){
+    .db-seg{gap:2px;}
+    .db-seg button{padding:7px 10px;gap:5px;font-size:12.5px;}
+  }
   /* Pilule unique qui glisse vers le segment actif (même effet que le bandeau). */
   .seg-glide{position:absolute;top:0;left:0;width:0;height:0;border-radius:7px;background:var(--grad);
     box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);z-index:0;pointer-events:none;}
@@ -890,10 +900,26 @@
     .page.fx-page{overflow-y:auto;}
     .fxv-grid{flex-direction:column;flex:none;}
     .fxv-left{position:static;flex:1 1 auto;width:100%;align-self:auto;}
-    .fxv-rightwrap{align-self:auto;display:block;}
-    .fxv-right{overflow:visible;}
+    /* En colonne, .fxv-grid n'étire pas ses enfants (align-items:flex-start) :
+       on force la pleine largeur pour que le défilement interne prenne le relais. */
+    .fxv-rightwrap{align-self:stretch;display:block;width:100%;}
+    /* La liste des taux garde son propre défilement horizontal : la dernière
+       colonne (1 $ =) n'est plus rognée sur les petits écrans. */
+    .fxv-right{width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;}
+    /* Cellules resserrées pour tenir sans défiler dès ~360px. */
+    .fxv-table th,.fxv-table td{padding-left:9px;padding-right:9px;}
+    .fxv-table{font-size:13px;}
     .fxv-cue{display:none;}
+    /* Affordance de défilement horizontal : un fondu sur le bord droit signale
+       qu'il reste une colonne à voir. Masqué dès qu'on atteint la fin (classe .hx
+       posée par le JS selon scrollLeft). */
+    .fxv-rightwrap .fxv-fade{display:block;position:absolute;top:0;right:0;bottom:0;width:38px;
+      pointer-events:none;z-index:2;opacity:0;transition:opacity .2s ease;
+      background:linear-gradient(to right, transparent, var(--panel) 82%);}
+    .fxv-rightwrap.hx .fxv-fade{opacity:1;}
   }
+  /* Le fondu n'existe que sur mobile (défilement horizontal) : masqué ailleurs. */
+  .fxv-fade{display:none;}
   .fxv-table{width:100%;max-width:640px;margin:0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);font-weight:400;text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--rule);}
@@ -1642,6 +1668,12 @@
   .foot button:hover{color:var(--indigo);}
   .foot .f-sep{opacity:.6;}
   @media(max-width:720px){ .foot .f-m{display:none;} }
+  /* Sur écran tactile : zones de tap plus généreuses pour les petits contrôles
+     (liens de pied de page, croix du bandeau notice). */
+  @media(hover:none){
+    .foot button{padding:6px 2px;}
+    .mn-close{padding:8px 8px;font-size:16px;}
+  }
   /* Mouvement réduit : tout redevient sage. */
   @media(prefers-reduced-motion:reduce){
     .view.v-enter,.modal:not([hidden]) .modal-card,
@@ -3108,6 +3140,7 @@ function renderFxView(){
           <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
             <tbody>${rows}</tbody></table>
         </div>
+        <div class="fxv-fade" aria-hidden="true"></div>
         <div class="fxv-cue" aria-hidden="true">▾</div>
       </div>
     </div>
@@ -3115,10 +3148,21 @@ function renderFxView(){
   // Flèche de défilement : visible tant qu'il reste du contenu en dessous.
   { const sc = el("view-fx").querySelector(".fxv-right");
     const cue = el("view-fx").querySelector(".fxv-cue");
+    const wrap = el("view-fx").querySelector(".fxv-rightwrap");
     if (sc && cue){
       const upd = () => cue.classList.toggle("hide", sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 12);
       sc.addEventListener("scroll", upd);
       requestAnimationFrame(upd);
+    }
+    // Fondu de bord droit (mobile) : signale une colonne masquée par le défilement
+    // horizontal, s'efface une fois arrivé au bout. Un ResizeObserver relance la
+    // détection quand la table s'élargit (police mono chargée après coup).
+    if (sc && wrap){
+      const updX = () => wrap.classList.toggle("hx", sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2);
+      sc.addEventListener("scroll", updX, { passive: true });
+      window.addEventListener("resize", updX);
+      if (window.ResizeObserver){ const ro = new ResizeObserver(updX); ro.observe(sc); }
+      requestAnimationFrame(updX);
     } }
   // Charge ce qui manque puis re-render (si on est toujours sur l'onglet FX).
   const need = [fxvFrom, "EUR", "USD"].filter(c => !fxvBase[c]);
