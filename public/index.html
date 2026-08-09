@@ -164,15 +164,13 @@
     .tools{order:3;flex:1 1 100%;justify-content:flex-start;gap:3px;flex-wrap:nowrap;
       overflow-x:auto;scrollbar-width:none;}
     .tools::-webkit-scrollbar{display:none;}
-    .fx,.lang,.theme,.authbar{padding:3px;flex:none;}
-    /* Contrôles utilitaires : hauteur tactile confortable (~30px) sur mobile,
-       padding horizontal serré pour que la rangée tienne à 375px. */
+    .fx,.lang,.theme{padding:3px;flex:none;}
+    /* Contrôles utilitaires : hauteur tactile confortable (~30px) sur mobile. */
     .fx button,.lang button{font-size:11px;padding:7px 7px;}
     .theme button{font-size:13px;padding:6px 7px;}
-    /* Scopé sous .topbar : la règle desktop .authbar button est placée plus loin
-       dans le CSS (même spécificité) et l'emporterait sinon. */
-    .topbar .authbar{gap:1px;}
-    .topbar .authbar button{font-size:10.5px;padding:8px 9px;}
+    /* Auth déplacée dans le menu burger sur mobile : la barre d'outils ne garde
+       que devise / langue / thème, bien plus aérée. */
+    .topbar .authbar{display:none;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
     /* Vue carte : hauteur déterministe via aspect-ratio (le SVG en flex+auto
@@ -189,12 +187,25 @@
     .topbar .tabs{display:none;}
     #navMenu.nav-sheet{position:fixed;left:0;right:0;top:110px;z-index:60;display:none;
       box-sizing:border-box;padding:8px 12px;flex-direction:column;gap:2px;
+      /* Écrans courts (paysage) : le menu défile plutôt que de déborder. */
+      max-height:calc(100vh - 120px);overflow-y:auto;
       background:var(--panel);border-bottom:1px solid var(--rule);box-shadow:var(--elev2);}
     #navMenu.nav-sheet.open{display:flex;}
     #navMenu.nav-sheet button{width:100%;text-align:left;padding:13px 14px;border:0;border-radius:9px;
       background:none;color:var(--ink);font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;}
     #navMenu.nav-sheet button.on{background:var(--grad);color:#fff;}
     #navMenu.nav-sheet button:active{filter:brightness(.97);}
+    /* Section compte, en bas du menu, séparée des onglets. */
+    #navMenu .nav-auth{display:flex;flex-direction:column;gap:6px;margin-top:8px;
+      padding-top:10px;border-top:1px solid var(--rule);}
+    #navMenu .nav-auth button{width:100%;text-align:left;padding:13px 14px;border:0;
+      border-radius:9px;font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;}
+    #navMenu .nav-auth .nav-auth-signup{background:var(--grad);color:#fff;}
+    #navMenu .nav-auth .nav-auth-login,
+    #navMenu .nav-auth .nav-auth-logout{background:var(--rule-soft);color:var(--ink);}
+    #navMenu .nav-who{display:flex;align-items:center;gap:8px;padding:6px 14px 2px;
+      font-size:13px;color:var(--dim);}
+    #navMenu .nav-who b{color:var(--indigo);font-weight:600;font-size:15px;}
   }
 
   .search{position:relative;}
@@ -4716,10 +4727,28 @@ async function boot(){
   });
   // Remplit le menu mobile dédié (#navMenu) avec les mêmes entrées que la
   // capsule desktop. Rappelé au changement de langue.
+  // Section « compte » du menu mobile. Lit l'état via l'API publique du module
+  // Auth (isLoggedIn/configured/displayName), qui vit dans une IIFE séparée.
+  // try/catch : renderNavMenu est appelé au boot, avant l'init d'Auth (const
+  // déclarée plus bas → zone morte temporelle) ; on rend alors une section vide.
+  const navAuthHTML = () => {
+    try {
+      if (!Auth.configured()) return "";
+      const L = lang === "fr";
+      if (Auth.isLoggedIn()){
+        return '<div class="nav-auth"><div class="nav-who">👤 <b>' + esc(Auth.displayName()) + '</b></div>'
+          + '<button type="button" class="nav-auth-logout" data-auth="logout">' + (L ? "Déconnexion" : "Log out") + '</button></div>';
+      }
+      return '<div class="nav-auth">'
+        + '<button type="button" class="nav-auth-login" data-auth="login-open">' + (L ? "Se connecter" : "Log in") + '</button>'
+        + '<button type="button" class="nav-auth-signup" data-auth="signup-open">' + (L ? "S'inscrire" : "Sign up") + '</button></div>';
+    } catch { return ""; }
+  };
   const renderNavMenu = () => {
     const nm = el("navMenu"); if (!nm) return;
     nm.innerHTML = VIEW_ORDER.map(v =>
-      `<button data-view="${v}"${v === view ? ' class="on"' : ""}>${esc(NAV_LABELS[v][lang])}</button>`).join("");
+      `<button data-view="${v}"${v === view ? ' class="on"' : ""}>${esc(NAV_LABELS[v][lang])}</button>`).join("")
+      + navAuthHTML();
   };
   renderNavMenu();
   const closeNav = () => {
@@ -4734,7 +4763,11 @@ async function boot(){
   });
   el("navMenu").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
-    if (b){ setView(b.dataset.view); closeNav(); }
+    if (b){ setView(b.dataset.view); closeNav(); return; }
+    // Actions compte (login/signup/logout) : l'ouverture de modale / la
+    // déconnexion sont gérées par le délégué global sur [data-auth] ; ici on se
+    // contente de refermer le menu.
+    if (e.target.closest("[data-auth]")) closeNav();
   });
   const burger = el("navBurger");
   if (burger){
@@ -6041,7 +6074,11 @@ const Auth = (() => {
     } catch { return null; }
   }
 
-  return { init, isLoggedIn, configured: cfgOK, onSeriesComplete, fillLeaderboard, promptSeries, myRankToday };
+  // Nom affiché du compte (pseudo, sinon partie locale de l'email) — pour la
+  // section « compte » du menu mobile, qui vit hors du module Auth.
+  const displayName = () => profile && profile.pseudo ? profile.pseudo : (user && user.email ? user.email.split("@")[0] : "");
+
+  return { init, isLoggedIn, configured: cfgOK, displayName, onSeriesComplete, fillLeaderboard, promptSeries, myRankToday };
 })();
 
 // L'accueil est statique : on le peint tout de suite (avant les données),
