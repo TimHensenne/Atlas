@@ -910,7 +910,16 @@
     .fxv-table th,.fxv-table td{padding-left:9px;padding-right:9px;}
     .fxv-table{font-size:13px;}
     .fxv-cue{display:none;}
+    /* Affordance de défilement horizontal : un fondu sur le bord droit signale
+       qu'il reste une colonne à voir. Masqué dès qu'on atteint la fin (classe .hx
+       posée par le JS selon scrollLeft). */
+    .fxv-rightwrap .fxv-fade{display:block;position:absolute;top:0;right:0;bottom:0;width:38px;
+      pointer-events:none;z-index:2;opacity:0;transition:opacity .2s ease;
+      background:linear-gradient(to right, transparent, var(--panel) 82%);}
+    .fxv-rightwrap.hx .fxv-fade{opacity:1;}
   }
+  /* Le fondu n'existe que sur mobile (défilement horizontal) : masqué ailleurs. */
+  .fxv-fade{display:none;}
   .fxv-table{width:100%;max-width:640px;margin:0;border-collapse:collapse;font-size:13.5px;}
   .fxv-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--dim);font-weight:400;text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--rule);}
@@ -3131,6 +3140,7 @@ function renderFxView(){
           <table class="fxv-table"><thead><tr><th>Code</th><th>${L ? "Devise" : "Currency"}</th><th class="num">1 € =</th><th class="num">1 $ =</th></tr></thead>
             <tbody>${rows}</tbody></table>
         </div>
+        <div class="fxv-fade" aria-hidden="true"></div>
         <div class="fxv-cue" aria-hidden="true">▾</div>
       </div>
     </div>
@@ -3138,10 +3148,21 @@ function renderFxView(){
   // Flèche de défilement : visible tant qu'il reste du contenu en dessous.
   { const sc = el("view-fx").querySelector(".fxv-right");
     const cue = el("view-fx").querySelector(".fxv-cue");
+    const wrap = el("view-fx").querySelector(".fxv-rightwrap");
     if (sc && cue){
       const upd = () => cue.classList.toggle("hide", sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 12);
       sc.addEventListener("scroll", upd);
       requestAnimationFrame(upd);
+    }
+    // Fondu de bord droit (mobile) : signale une colonne masquée par le défilement
+    // horizontal, s'efface une fois arrivé au bout. Un ResizeObserver relance la
+    // détection quand la table s'élargit (police mono chargée après coup).
+    if (sc && wrap){
+      const updX = () => wrap.classList.toggle("hx", sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2);
+      sc.addEventListener("scroll", updX, { passive: true });
+      window.addEventListener("resize", updX);
+      if (window.ResizeObserver){ const ro = new ResizeObserver(updX); ro.observe(sc); }
+      requestAnimationFrame(updX);
     } }
   // Charge ce qui manque puis re-render (si on est toujours sur l'onglet FX).
   const need = [fxvFrom, "EUR", "USD"].filter(c => !fxvBase[c]);
