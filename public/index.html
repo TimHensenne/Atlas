@@ -5100,17 +5100,21 @@ async function boot(){
     const nameFr = (iso && macro.countries?.[iso]?.name) || nameEn;
     return { iso, nameEn, nameFr, covered: hasContent(iso), feature: f };
   }).filter(x => x.nameEn || x.nameFr);
-  for (const x of searchable) if (x.iso && x.nameEn) NAME_EN[x.iso] = x.nameEn;
 
   // Mémorise la géométrie de chaque pays (on retient la plus grande empreinte
   // quand plusieurs entités partagent un ISO) pour dessiner sa silhouette dans
-  // le jeu « Devine le drapeau ».
+  // le jeu « Devine le drapeau ». Le nom anglais suit la même règle : sinon une
+  // entité secondaire (ex. FR ← « Fr. S. Antarctic Lands ») écraserait le pays
+  // principal, car plusieurs features partagent un même ISO.
   { const areaOf = (f) => { try { return d3.geoArea(f); } catch { return 0; } };
     const best = {};
     for (const x of searchable){
       if (!x.iso) continue;
       const a = areaOf(x.feature);
-      if (best[x.iso] == null || a > best[x.iso]){ best[x.iso] = a; GEO[x.iso] = x.feature; }
+      if (best[x.iso] == null || a > best[x.iso]){
+        best[x.iso] = a; GEO[x.iso] = x.feature;
+        if (x.nameEn) NAME_EN[x.iso] = x.nameEn;
+      }
     }
     // Géométries à disposition du globe du héro et des vignettes de jeux.
     GLOBE_FEATS = searchable.map(x => x.feature);
