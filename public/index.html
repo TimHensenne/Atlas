@@ -71,14 +71,14 @@
     -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
     text-rendering:optimizeLegibility;font-feature-settings:"cv01","ss01";letter-spacing:-.006em;}
   /* Chiffres tabulaires partout : décimales alignées (données financières). */
-  .mono,[class*="num"],.g-count,.fxv-table,.db,.lb,.hchip b,.sp-total b{font-variant-numeric:tabular-nums;}
+  .mono,[class*="num"],.g-count,.fxv-table,.db,.hchip b,.sp-total b{font-variant-numeric:tabular-nums;}
 
   /* Sur grand écran, la page ne défile jamais : seul le panneau défile.
      Sur mobile le panneau passe sous la carte, donc la page redevient scrollable. */
   @media(min-width:900px){ body{overflow:hidden;} }
   /* Mobile : on lève le plafond de hauteur (html,body{height:100%}) qui enfermait
      tout dans un écran. Sans ça, .view{flex:1} cappait la vue, le panneau débordait,
-     et #mobile-note + le footer — placés après la vue dans le DOM — étaient projetés
+     et le footer — placé après la vue dans le DOM — était projeté
      au milieu du contenu. Ici la page grandit avec son contenu et défile normalement. */
   @media(max-width:899px){
     html,body{height:auto;}
@@ -109,22 +109,6 @@
   .tools{display:flex;align-items:center;gap:8px;flex:1 1 0;
     flex-wrap:nowrap;justify-content:flex-end;}
   .stamp{display:none;}
-  /* Bandeau « version mobile en développement » — n'existe que sous 900px. */
-  #mobile-note{display:none;}
-  @media(max-width:899px){
-    /* Épinglé en bas de l'écran, hors flux : reste visible quel que soit le
-       défilement et ne se retrouve plus au milieu du panneau. */
-    #mobile-note:not([hidden]){display:block;position:fixed;left:0;right:0;bottom:0;z-index:70;}
-    .mn-in{display:flex;align-items:center;gap:9px;padding:9px 12px;
-      background:color-mix(in srgb,var(--indigo) 16%,var(--panel));
-      border-top:1px solid color-mix(in srgb,var(--indigo) 40%,var(--rule));
-      box-shadow:0 -2px 10px rgba(19,26,46,.14);
-      font-size:12px;line-height:1.35;color:var(--ink);}
-    .mn-ico{width:16px;height:16px;color:var(--indigo);flex:none;}
-    .mn-msg{flex:1 1 auto;}
-    .mn-close{flex:none;background:none;border:0;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px;}
-    .mn-close:hover{color:var(--ink);}
-  }
   .nav-sheet{display:none;}
   .nav-burger{display:none;width:40px;height:36px;flex:none;flex-direction:column;
     justify-content:center;align-items:center;gap:5px;padding:0;cursor:pointer;
@@ -156,7 +140,7 @@
     .map-search input{width:100%;}
   }
   /* En-tête mobile : le hamburger ouvre les onglets en menu ; les contrôles
-     (devise, langue, thème, connexion) tiennent sur une seule ligne. */
+     (devise, langue, thème) tiennent sur une seule ligne. */
   @media(max-width:899px){
     .topbar{flex-wrap:wrap;gap:8px;row-gap:8px;align-items:center;padding:12px 12px;}
     .brand{order:1;flex:1 1 auto;}
@@ -168,9 +152,6 @@
     /* Contrôles utilitaires : hauteur tactile confortable (~30px) sur mobile. */
     .fx button,.lang button{font-size:11px;padding:7px 7px;}
     .theme button{font-size:13px;padding:6px 7px;}
-    /* Auth déplacée dans le menu burger sur mobile : la barre d'outils ne garde
-       que devise / langue / thème, bien plus aérée. */
-    .topbar .authbar{display:none;}
     /* Onglets → menu déroulant fixe. Scopé sous .topbar pour l'emporter sur la
        règle .tabs desktop (même spécificité mais placée plus loin dans le CSS). */
     /* Vue carte : hauteur déterministe via aspect-ratio (le SVG en flex+auto
@@ -195,17 +176,6 @@
       background:none;color:var(--ink);font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;}
     #navMenu.nav-sheet button.on{background:var(--grad);color:#fff;}
     #navMenu.nav-sheet button:active{filter:brightness(.97);}
-    /* Section compte, en bas du menu, séparée des onglets. */
-    #navMenu .nav-auth{display:flex;flex-direction:column;gap:6px;margin-top:8px;
-      padding-top:10px;border-top:1px solid var(--rule);}
-    #navMenu .nav-auth button{width:100%;text-align:left;padding:13px 14px;border:0;
-      border-radius:9px;font-family:var(--body);font-size:15px;font-weight:600;cursor:pointer;}
-    #navMenu .nav-auth .nav-auth-signup{background:var(--grad);color:#fff;}
-    #navMenu .nav-auth .nav-auth-login,
-    #navMenu .nav-auth .nav-auth-logout{background:var(--rule-soft);color:var(--ink);}
-    #navMenu .nav-who{display:flex;align-items:center;gap:8px;padding:6px 14px 2px;
-      font-size:13px;color:var(--dim);}
-    #navMenu .nav-who b{color:var(--indigo);font-weight:600;font-size:15px;}
   }
 
   .search{position:relative;}
@@ -280,8 +250,14 @@
 
   .panel{border-top:1px solid var(--rule);background:var(--panel);
     padding:22px 24px 32px;display:flex;flex-direction:column;gap:18px;}
+  /* scrollbar-gutter : l'espace de la barre de défilement est réservé en
+     permanence. Sans cela, un onglet au contenu long (Économie) fait apparaître
+     la barre et rétrécit la zone de texte d'une quinzaine de pixels — assez
+     pour faire passer un nom long sur deux lignes et décaler toute la fiche
+     au changement d'onglet. */
   @media(min-width:900px){.panel{width:390px;flex:none;border-top:none;
-    border-left:1px solid var(--rule);overflow-y:auto;overscroll-behavior:contain;}}
+    border-left:1px solid var(--rule);overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-gutter:stable;}}
   .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
   .phead > div{min-width:0;}
   /* Drapeau : cadre 4:3 uniforme pour tous (flag-icons normalise Suisse, Vatican
@@ -341,6 +317,12 @@
   .risk-click:active{transform:scale(.99);}
   .risk-click:hover{border-color:var(--dim);}
   .risk-click:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;}
+  /* Bloc « Trajectoire du score » (onglet Analyse, sous la carte de risque). */
+  .rt-card{margin-top:14px;cursor:default;}
+  .rt-delta{font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .rt-sub{font-size:11.5px;color:var(--dim);margin:2px 0 10px;}
+  .rt-note{font-family:var(--mono);font-size:9.5px;line-height:1.45;color:var(--dim);
+    margin-top:10px;opacity:.9;}
   .risk-more{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--indigo);
     margin-top:14px;padding-top:12px;border-top:1px solid var(--rule-soft);}
   .risk-ag{margin-top:10px;}
@@ -614,27 +596,6 @@
   .cmp-selcol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
   .cmp-chosen-wrap{flex:1 1 0;position:relative;min-height:52px;}
   .cmp-sel-empty{color:var(--dim);font-size:12.5px;}
-  /* Mode Nuage (scatter) — même gabarit que le mode Graphique. */
-  .sc-menus{flex:0 0 250px;display:flex;flex-direction:column;gap:12px;min-height:0;}
-  .sc-menus .cmp-metrics{flex:1 1 0;min-height:0;overflow:auto;}
-  .sc-menu-cap{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--dim);padding:6px 14px 4px;flex:none;}
-  .sc-legrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);padding:3px 0;}
-  .sc-legrow .cmp-dot{width:9px;height:9px;}
-  .sc-size-note{color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
-    margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-soft);}
-  .sc-def-gap{margin-top:12px;}
-  .sc-search-wrap{margin-left:auto;align-self:flex-end;flex:0 1 260px;min-width:180px;}
-  .sc-search-wrap .sc-search{margin:0;}
-  @media (max-width:1024px){ .sc-search-wrap{margin-left:0;flex:1 1 100%;align-self:stretch;} }
-  .sc-axis-c{stroke:var(--dim);stroke-opacity:.55;}
-  .sc-med-note{margin-top:2px;padding-top:0;border-top:none;}
-  .scatter-plot{width:100%;height:100%;display:block;}
-  .sc-dot{opacity:.78;stroke:var(--paper);stroke-width:1;cursor:pointer;transition:opacity .15s ease;}
-  .sc-dot:hover,.sc-dot.hov{opacity:1;stroke:var(--ink);stroke-width:1.6;}
-  .sc-dot.dim{opacity:.14;}
-  .sc-dot.hit{opacity:1;stroke:var(--ink);stroke-width:1.8;}
-  @media (max-width:1024px){ .sc-menus{flex:1 1 100%;} }
   .cmp-selhead{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .cmp-reset{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--mono);
     font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 4px;border-radius:4px;}
@@ -828,7 +789,7 @@
   @keyframes snext{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
   @media(max-width:680px){ .serie-cont.next{right:14px;bottom:52px;} }
   @media(prefers-reduced-motion:reduce){ .serie-nextbtn{animation:none;opacity:1;} }
-  /* Pop-up de fin de série : récap du score + classement du jour. */
+  /* Pop-up de fin de série : récap du score + rang local. */
   .sp-emoji{font-size:38px;text-align:center;margin:2px 0 6px;}
   .sp-lines{display:flex;flex-direction:column;gap:7px;margin:16px 0 0;}
   .sp-line{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--dim);
@@ -1338,41 +1299,13 @@
     .bento{grid-template-columns:1fr;grid-template-areas:"map" "db" "fx" "games" "refs" "but";}
     .hero-stats{gap:8px;} .hchip{min-width:100px;padding:10px 14px;}
   }
-  /* Super Série + classement côte à côte */
+  /* Bandeau Super Série (seul depuis le retrait du classement). */
   .serie-row{display:flex;gap:16px;align-items:stretch;margin:6px 0 18px;}
   .serie-row .serie-card{flex:1 1 auto;margin:0;}
-  .lb-card{flex:0 0 264px;max-width:300px;border:1px solid var(--rule);border-radius:4px;
-    background:var(--panel);padding:16px 16px 13px;display:flex;flex-direction:column;text-align:left;}
-  .lb-h{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);margin-bottom:2px;}
-  .lb-sub{font-size:11.5px;color:var(--dim);line-height:1.4;margin-bottom:12px;}
-  .lb{width:100%;border-collapse:collapse;font-size:13px;}
-  .lb th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
-    text-align:left;font-weight:400;padding:0 0 6px;border-bottom:1px solid var(--rule);}
-  .lb th:last-child,.lb td:last-child{text-align:right;}
-  .lb td{padding:7px 0;border-bottom:1px solid var(--rule-soft);}
-  .lb tbody tr:last-child td{border-bottom:0;}
-  .lb-rk{font-family:var(--mono);color:var(--dim);width:22px;}
-  .lb tbody tr:first-child .lb-rk{color:#C9921E;font-weight:600;}
-  .lb-dt{color:var(--ink);}
-  .lb-sc{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);}
-  .lb tbody tr:first-child .lb-sc{color:#1E7A46;}
-  .lb-empty{color:var(--dim);font-size:12px;padding:16px 0;text-align:center!important;}
-  .lb-note{font-size:10px;color:var(--dim);line-height:1.4;margin-top:auto;padding-top:12px;opacity:.85;}
   @media(max-width:760px){
     .serie-row{flex-direction:column;}
-    .lb-card{flex:1 1 auto;max-width:none;}
   }
-  /* Comptes : boutons barre + modale */
-  .authbar{display:inline-flex;gap:2px;padding:4px;}
-  .authbar button{background:transparent;border:0;cursor:pointer;border-radius:999px;
-    font-family:var(--mono);font-size:11px;padding:6px 12px;line-height:1;color:var(--dim);white-space:nowrap;
-    transition:background .15s ease,color .15s ease,box-shadow .15s ease;}
-  .authbar button.pri{background:var(--grad);color:#FFF;
-    box-shadow:0 3px 12px color-mix(in srgb, var(--indigo) 35%, transparent);}
-  .authbar button:hover:not(.pri){color:var(--ink);background:var(--rule-soft);}
-  .authbar .who{display:flex;align-items:center;gap:6px;padding:6px 12px;color:var(--ink);
-    font-family:var(--mono);font-size:11px;}
-  .authbar .who b{color:var(--indigo);font-weight:600;}
+  /* Modale commune (pages légales, fin de série) */
   .modal{position:fixed;inset:0;z-index:200;background:rgba(8,12,20,.55);
     display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px 16px;overflow:auto;}
   .modal[hidden]{display:none;}
@@ -1381,50 +1314,26 @@
   .m-close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);
     font-size:20px;line-height:1;cursor:pointer;}
   .m-close:hover{color:var(--ink);}
-  .m-tabs{display:flex;gap:2px;margin:0 0 16px;border-bottom:1px solid var(--rule);}
-  .m-tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--dim);padding:8px 4px;}
-  .m-tabs button.on{color:var(--indigo);border-bottom-color:var(--indigo);}
   .m-h{font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);margin:0 0 4px;}
-  .m-sub{font-size:12.5px;color:var(--dim);line-height:1.5;margin:0 0 16px;}
-  .m-field{margin:0 0 11px;}
-  .m-field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
-    text-transform:uppercase;color:var(--dim);margin:0 0 5px;}
-  .m-field .req{color:var(--accent);}
+  .modal-card.wide{max-width:660px;}
+  /* Nuage de validation (score vs notation), dans la modale Méthodologie. */
+  .mv-wrap{margin:10px 0 12px;background:var(--paper);border:1px solid var(--rule-soft);
+    border-radius:4px;padding:6px 8px 2px;}
+  .mv-plot{width:100%;height:auto;display:block;}
+  .mv-grid{stroke:var(--rule-soft);stroke-width:1;}
+  .mv-axis{stroke:var(--rule);stroke-width:1;}
+  .mv-ig{stroke:var(--indigo);stroke-width:1;stroke-dasharray:3 3;opacity:.7;}
+  .mv-iglab{font-family:var(--mono);font-size:8.5px;fill:var(--indigo);opacity:.85;}
+  .mv-lab{font-family:var(--mono);font-size:9px;fill:var(--dim);}
+  .mv-ax{font-family:var(--mono);font-size:9px;fill:var(--dim);letter-spacing:.04em;}
+  .mv-dot{opacity:.72;stroke:var(--paper);stroke-width:.8;}
+  /* Champs de saisie du convertisseur FX (classes historiquement partagées
+     avec les anciens formulaires de compte). Sans cette règle, le navigateur
+     applique son style natif : champs blancs, illisibles en thème sombre. */
   .m-in,.m-sel{width:100%;box-sizing:border-box;font-family:var(--body);font-size:13.5px;
     padding:9px 11px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
     color:var(--ink);outline:none;}
   .m-in:focus,.m-sel:focus{border-color:var(--indigo);}
-  .m-row{display:flex;gap:10px;}
-  .m-row .m-field{flex:1;}
-  .m-opt{margin:14px 0 0;border-top:1px solid var(--rule-soft);padding-top:12px;}
-  .m-opth{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--dim);border-top:1px solid var(--rule-soft);margin:16px 0 12px;padding-top:12px;}
-  .pw-wrap{position:relative;}
-  .pw-wrap .m-in{padding-right:38px;}
-  .pw-eye{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:0;
-    cursor:pointer;color:var(--dim);padding:5px;display:flex;align-items:center;border-radius:3px;}
-  .pw-eye:hover{color:var(--ink);}
-  .m-opt>summary{cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
-    text-transform:uppercase;color:var(--dim);list-style:none;}
-  .m-opt>summary::-webkit-details-marker{display:none;}
-  .m-opt>summary::before{content:"▸ ";}
-  .m-opt[open]>summary::before{content:"▾ ";}
-  .m-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--dim);
-    line-height:1.45;margin:12px 0 2px;}
-  .m-consent input{margin-top:2px;flex:none;}
-  .m-consent a{color:var(--indigo);}
-  .m-go{width:100%;background:var(--indigo);color:#FFF;border:0;border-radius:3px;cursor:pointer;
-    font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px;margin:16px 0 0;}
-  .m-go:hover{background:var(--indigo-hi);}
-  .m-go:disabled{opacity:.5;cursor:default;}
-  .m-alt{text-align:center;margin:12px 0 0;}
-  .m-alt button{background:none;border:0;color:var(--dim);font-size:11.5px;cursor:pointer;text-decoration:underline;}
-  .m-alt button:hover{color:var(--indigo);}
-  .m-msg{font-size:12.5px;line-height:1.45;margin:12px 0 0;padding:9px 11px;border-radius:3px;}
-  .m-msg.err{background:rgba(226,58,46,.12);color:var(--accent);}
-  .m-msg.ok{background:rgba(30,122,70,.14);color:#1E7A46;}
   .m-legal{font-size:11px;color:var(--dim);line-height:1.6;max-height:52vh;overflow:auto;}
   .m-legal h4{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
     color:var(--ink);margin:14px 0 4px;}
@@ -1432,9 +1341,6 @@
   .m-legal ul{margin:0 0 8px;padding-left:18px;}
   .m-legal li{margin:0 0 4px;}
   .m-legal li b{color:var(--ink);font-weight:600;}
-  .lb-you{color:var(--indigo);}
-  .lb tbody tr.me{background:var(--rule-soft);}
-  .lb-load{color:var(--dim);font-size:12.5px;padding:14px 0;text-align:center;}
   /* Jeu : devine le drapeau */
   .fg-main{display:flex;gap:22px;align-items:flex-start;justify-content:center;margin:2px 0 20px;}
   .fg-left{flex:0 0 auto;width:300px;max-width:100%;}
@@ -1602,7 +1508,7 @@
   @keyframes vEnter{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
   .view.v-enter{animation:vEnter .34s cubic-bezier(.22,.8,.3,1) both;}
   /* Boutons & contrôles : rayons, élévation au survol, appui tactile. */
-  .fx,.lang,.theme,.authbar{border-radius:999px;background:var(--panel);
+  .fx,.lang,.theme{border-radius:999px;background:var(--panel);
     border:1px solid var(--rule);box-shadow:var(--elev1);}
   .hs-cta,.m-go,.db-all,.g-back,.serie-play{border-radius:999px;
     transition:box-shadow .18s ease,background .18s ease,color .18s ease,filter .18s ease;}
@@ -1616,9 +1522,9 @@
     border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb, var(--indigo) 22%, transparent);outline:none;}
   :focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:4px;}
   /* Cartes & panneaux : verre, rayons larges, ombres douces, hover vivant. */
-  .serie-card,.lb-card,.g-card,.fg-cell,.modal-card,
+  .serie-card,.g-card,.fg-cell,.modal-card,
   .macro,.results,.reports a{border-radius:var(--r-m);}
-  .serie-card,.lb-card,.modal-card{background:var(--glass);backdrop-filter:blur(14px);
+  .serie-card,.modal-card{background:var(--glass);backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);box-shadow:var(--elev1);}
   .modal-card{box-shadow:var(--elev2);border-radius:var(--r-l);}
   .modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
@@ -1663,11 +1569,9 @@
     border-collapse:separate;border-spacing:0;overflow:hidden;}
   .fxv-table th{padding-top:10px;}
   .fxv-table th,.fxv-table td{padding-left:14px;padding-right:14px;}
-  .lb-card{background:var(--panel);}
-  :root[data-theme="dark"] .lb-card{background:var(--panel);}
   .lex,.src{background:var(--panel);}
-  .fxv-table tbody tr,.lb tbody tr{transition:background .15s ease;}
-  .fxv-table tbody tr:hover td,.lb tbody tr:hover td{background:var(--rule-soft);}
+  .fxv-table tbody tr{transition:background .15s ease;}
+  .fxv-table tbody tr:hover td{background:var(--rule-soft);}
   /* Landing : héro cinétique (dégradé animé sur le titre) + orbes flottants. */
   .hero{isolation:isolate;}
   .hero-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
@@ -1680,7 +1584,6 @@
   .g-title{letter-spacing:-.02em;}
   .serie-t{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .fxv-code{color:var(--teal);}
-  .authbar button.pri{background:var(--grad);}
   /* Tooltip carte : verre + pop. */
   #tip{border-radius:var(--r-s);background:var(--glass);backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:var(--elev2);}
@@ -1711,7 +1614,6 @@
      (liens de pied de page, croix du bandeau notice). */
   @media(hover:none){
     .foot button{padding:6px 2px;}
-    .mn-close{padding:8px 8px;font-size:16px;}
   }
   /* Mouvement réduit : tout redevient sage. */
   @media(prefers-reduced-motion:reduce){
@@ -1735,7 +1637,7 @@
   .tabs button{font-family:var(--body);font-size:13.5px;font-weight:500;
     letter-spacing:0;text-transform:none;}
   /* Boutons : sans semi-gras, casse normale. */
-  .hs-cta,.m-go,.db-all,.g-back,.serie-play,.serie-nextbtn,.authbar button{
+  .hs-cta,.m-go,.db-all,.g-back,.serie-play,.serie-nextbtn{
     font-family:var(--body);font-weight:600;letter-spacing:0;text-transform:none;}
   .hs-cta{font-size:13.5px;}
   .hs-cta.big,.serie-nextbtn{font-size:14.5px;}
@@ -1792,7 +1694,6 @@
       <button type="button" data-theme-set="light" aria-label="Mode jour" title="Jour">☀</button>
       <button type="button" data-theme-set="dark" aria-label="Mode nuit" title="Nuit">☾</button>
     </div>
-    <div class="authbar" id="authbar" hidden></div>
   </div>
   <button class="nav-burger" id="navBurger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="tabs">
     <span></span><span></span><span></span>
@@ -1833,16 +1734,14 @@
 <section id="view-games"    class="view" hidden></section>
 <section id="view-purpose"  class="view" hidden></section>
 
-<div id="mobile-note" hidden></div>
 <div id="data-warn" role="alert" hidden></div>
 <footer class="foot" id="foot"></footer>
 
 <div id="tip"><b></b><span></span></div>
 
-<!-- Modale comptes / confidentialité (remplie par le script, cachée par défaut) -->
-<div id="authModal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true"></div></div>
+<!-- Modale commune : pages légales et fin de Super Série (cachée par défaut) -->
+<div id="authModal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" tabindex="-1"></div></div>
 
-<script src="atlas-config.js"></script>
 <script type="module">
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
@@ -2233,14 +2132,48 @@ function indRank(iso, key){
 // Ordinal court, sans genre marqué : 1ᵉʳ, 2ᵉ, 3ᵉ…
 const ordFr = (n) => n === 1 ? "1ᵉʳ" : n + "ᵉ";
 
+// Valeur d'un indicateur pour une année donnée. `year === null` = dernière
+// valeur connue (comportement d'origine), sinon on lit dans l'historique.
+const valAt = (d, year) => {
+  if (!d) return null;
+  if (year == null) return d.value;
+  if (!Array.isArray(d.hist) || d.hist0 == null) return null;
+  const i = year - d.hist0;
+  return (i >= 0 && i < d.hist.length) ? d.hist[i] : null;
+};
+// Historique tronqué à l'année évaluée : les fenêtres glissantes (moyennes 3 ans,
+// tendance 5 ans, volatilité) doivent se terminer à cette année, pas à aujourd'hui.
+const histUpTo = (d, year) => {
+  if (!d || !Array.isArray(d.hist)) return [];
+  if (year == null) return d.hist;
+  const i = year - (d.hist0 ?? 0);
+  return i >= 0 ? d.hist.slice(0, i + 1) : [];
+};
+// PIB/habitant de tous les pays pour une année : sert au percentile de capacité.
+// Mémorisé, car une trajectoire sur 10 ans le redemande à chaque point.
+const gpcYearCache = {};
+function allGpcAt(year){
+  const key = year == null ? "now" : String(year);
+  if (gpcYearCache[key]) return gpcYearCache[key];
+  const out = [];
+  for (const c of Object.values(macro.countries || {})){
+    const v = valAt(c.indicators?.NGDPDPC, year);
+    if (v != null && isFinite(v)) out.push(v);
+  }
+  return (gpcYearCache[key] = out);
+}
+
 // Score de risque souverain v2 (0-100, plus haut = plus risqué). Composite de
 // 6 piliers, avec non-linéarités et dynamique — voir la modale « Méthodologie »
 // (le texte doit rester fidèle à ce code). « Tout ou rien » : null si un
 // fondamental manque. Plus haut = plus risqué.
-function sovereignRisk(iso){
+// `year` : année évaluée (null = dernière valeur connue). Les formules sont
+// strictement les mêmes quelle que soit l'année ; seules les sources de données
+// changent — d'où la trajectoire historique, calculée avec le même modèle.
+function sovereignRisk(iso, year = null){
   const ind = macro.countries?.[iso]?.indicators;
   if (!ind) return null;
-  const g = k => ind[k], val = k => g(k)?.value;
+  const g = k => ind[k], val = k => valAt(g(k), year);
   const debt = val("GGXWDG_NGDP"), bal = val("GGXCNL_NGDP"), ca = val("BCA_NGDPD"),
         infl = val("PCPIPCH"), grow = val("NGDP_RPCH"), gpc = val("NGDPDPC");
   if ([debt, bal, ca, infl, grow, gpc].some(x => x == null || !isFinite(x))) return null;
@@ -2252,8 +2185,8 @@ function sovereignRisk(iso){
   // 6. Capacité (10 %) — calculée d'abord car elle sert aussi au pilier dette :
   //    percentile mondial du PIB/habitant (part des pays plus riches). Richesse
   //    = assiette fiscale et capacité institutionnelle.
-  const allGpc = Object.values(macro.countries).map(c => c.indicators?.NGDPDPC?.value)
-    .filter(v => v != null && isFinite(v));
+  const allGpc = allGpcAt(year);
+  if (!allGpc.length) return null;
   const pCap = allGpc.filter(v => v > gpc).length / allGpc.length * 100;
   // 1. Dette (25 %) : niveau en S-curve logistique dont le CENTRE dépend du
   //    revenu (« debt intolerance » : un pays riche porte plus de dette qu'un
@@ -2262,26 +2195,29 @@ function sovereignRisk(iso){
   //    qui baisse), 75/25.
   const mid = 65 + 30 * (1 - pCap / 100);
   const dLevel = 100 / (1 + Math.exp(-0.045 * (debt - mid)));
-  const d5 = tail(g("GGXWDG_NGDP").hist, 6);
+  const d5 = tail(histUpTo(g("GGXWDG_NGDP"), year), 6);
   const dTrend = d5.length >= 2 ? lin(d5[d5.length - 1] - d5[0], -15, 30) : 33;
   const pDebt = 0.75 * dLevel + 0.25 * dTrend;
   // 2. Budget (20 %) : solde moyen des 3 dernières années (persistance, lisse
   //    les à-coups) ; +3 % → 0, −12 % → 100.
-  const b3 = mean(tail(g("GGXCNL_NGDP").hist, 3).length ? tail(g("GGXCNL_NGDP").hist, 3) : [bal]);
+  const bH = histUpTo(g("GGXCNL_NGDP"), year);
+  const b3 = mean(tail(bH, 3).length ? tail(bH, 3) : [bal]);
   const pBud = lin(-b3, -3, 12);
   // 3. Balance (15 %) : balance courante moyenne 3 ans ; +5 % → 0, −10 % → 100.
-  const c3 = mean(tail(g("BCA_NGDPD").hist, 3).length ? tail(g("BCA_NGDPD").hist, 3) : [ca]);
+  const cH = histUpTo(g("BCA_NGDPD"), year);
+  const c3 = mean(tail(cH, 3).length ? tail(cH, 3) : [ca]);
   const pExt = lin(-c3, -5, 10);
   // 4. Prix (15 %) : le pire de la surchauffe (2 % → 0, 25 % → 100) et de la
   //    déflation (0 % → 0, −4 % → 100), + volatilité 5 ans (1 pt → 0,
   //    10 pts → 100), 75/25 — l'instabilité des prix est un risque en soi.
   const pPrixLvl = Math.max(lin(infl, 2, 25), lin(-infl, 0, 4));
-  const iv = tail(g("PCPIPCH").hist, 5);
+  const iv = tail(histUpTo(g("PCPIPCH"), year), 5);
   const pPrixVol = iv.length >= 3 ? lin(sdev(iv), 1, 10) : 50;
   const pPrix = 0.75 * pPrixLvl + 0.25 * pPrixVol;
   // 5. Croissance (15 %) : potentiel (moyenne 5 ans ; +5 % → 0, −5 % → 100)
   //    et instabilité (écart-type historique ; 1 pt → 0, 8 pts → 100), 60/40.
-  const gh = (g("NGDP_RPCH").hist || [grow]).filter(v => isFinite(v));
+  const ghRaw = histUpTo(g("NGDP_RPCH"), year);
+  const gh = (ghRaw.length ? ghRaw : [grow]).filter(v => isFinite(v));
   const g5 = mean(tail(gh, 5).length ? tail(gh, 5) : [grow]);
   const vol = gh.length >= 6 ? sdev(gh) : 3;
   const pCro = 0.6 * lin(-g5, -5, 5) + 0.4 * lin(vol, 1, 8);
@@ -2376,7 +2312,47 @@ function renderRiskCard(iso){
 }
 
 // Onglet Analyse : la carte de risque souverain.
-function renderAnalysis(iso){ return renderRiskCard(iso); }
+// Trajectoire du score : le MÊME modèle réappliqué à chaque année de
+// l'historique FMI. On démarre 5 ans après le début des séries pour que les
+// fenêtres glissantes (tendance dette, moyennes 3 ans, volatilité) aient de
+// quoi se calculer — sinon les premiers points seraient des artefacts.
+function riskSeries(iso){
+  const d = macro.countries?.[iso]?.indicators?.GGXWDG_NGDP;
+  if (!d || d.hist0 == null || !Array.isArray(d.hist)) return null;
+  const last = d.hist0 + d.hist.length - 1;
+  const years = [], scores = [];
+  for (let y = d.hist0 + 5; y <= last; y++){
+    const r = sovereignRisk(iso, y);
+    if (!r) continue;
+    years.push(y); scores.push(r.score);
+  }
+  return scores.length >= 3 ? { years, scores } : null;
+}
+// Bloc « Trajectoire » sous la carte de risque : courbe du score et variation
+// depuis le premier point. Hausse du score = dégradation, donc en rouge.
+function renderRiskTrend(iso){
+  const L = lang === "fr";
+  const s = riskSeries(iso);
+  if (!s) return "";
+  const first = s.scores[0], last = s.scores[s.scores.length - 1];
+  const delta = last - first;
+  const cls = delta > 0 ? " trend-down" : delta < 0 ? " trend-up" : "";
+  const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "=";
+  const word = delta > 0 ? (L ? "dégradation" : "deterioration")
+    : delta < 0 ? (L ? "amélioration" : "improvement") : (L ? "stable" : "flat");
+  return `<div class="risk-card rt-card">
+    <div class="risk-head">
+      <div class="risk-title">${L ? "Trajectoire du score" : "Score trajectory"}</div>
+      <div class="rt-delta${cls}">${arrow} ${Math.abs(delta)} ${L ? "pts" : "pts"}</div>
+    </div>
+    <div class="rt-sub">${s.years[0]} → ${s.years[s.years.length - 1]} · ${word}</div>
+    ${sparkChart(s.scores, s.years, "num")}
+    <div class="rt-note">${L
+      ? "Même modèle appliqué à chaque année du World Economic Outlook. Les dernières années sont des projections du FMI."
+      : "Same model applied to each World Economic Outlook year. The final years are IMF projections."}</div>
+  </div>`;
+}
+function renderAnalysis(iso){ return renderRiskCard(iso) + renderRiskTrend(iso); }
 
 function renderMacro(iso){
   const m = macro.countries?.[iso];
@@ -2666,9 +2642,7 @@ window.addEventListener("resize", () => {
   positionSegGlide();
   positionMetricGlide();
   positionPanelGlide();
-  positionScGlides();
   fitChart();
-  fitScatter();
 });
 // Place (et crée au besoin) la pilule glissante d'un groupe de contrôles sous
 // son bouton actif. `instant` = sans animation (1er placement / resize).
@@ -2726,38 +2700,7 @@ function positionPanelGlide(fromTab){
   const fromBtn = (box && fromTab && fromTab !== panelTab) ? box.querySelector(`button[data-tab="${fromTab}"]`) : null;
   slideGlide(box, "ptab-glide", fromBtn);
 }
-// Pilules des deux menus d'axes du mode Nuage. `fromAxis`/`fromK` = axe modifié
-// et indicateur précédent (glissement) ; sans eux, placement instantané.
-function positionScGlides(fromAxis, fromK){
-  const root = el("view-benchmark");
-  if (!root) return;
-  const bx = root.querySelector(".sc-menu-x"), by = root.querySelector(".sc-menu-y");
-  slideGlide(bx, "mseg-glide", (fromAxis === "x" && fromK && fromK !== scXInd) ? bx?.querySelector(`button[data-k="${fromK}"]`) : null);
-  slideGlide(by, "mseg-glide", (fromAxis === "y" && fromK && fromK !== scYInd) ? by?.querySelector(`button[data-k="${fromK}"]`) : null);
-}
 // Re-rend l'onglet base de données et replace la pilule du sélecteur.
-// Bandeau temporaire signalant que la version mobile est en cours d'optimisation.
-// N'apparaît que sur petit écran (< 900px), une seule fois (mémorisé), fermable.
-// À retirer quand le responsive sera finalisé (supprimer l'appel dans boot).
-function maybeShowMobileNote(){
-  const host = el("mobile-note"); if (!host) return;
-  if (!window.matchMedia("(max-width: 899px)").matches) return;      // desktop : rien
-  try { if (localStorage.getItem("atlas-mobile-note") === "off") return; } catch {}
-  const L = lang === "fr";
-  const msg = L
-    ? "Version mobile en cours d'optimisation. Pour une expérience optimale, ouvre Atlas sur ordinateur."
-    : "The mobile version is being optimised. For the best experience, open Atlas on desktop.";
-  host.innerHTML = `<div class="mn-in">
-      <svg class="mn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-      <span class="mn-msg">${msg}</span>
-      <button class="mn-close" type="button" aria-label="${L ? "Fermer" : "Dismiss"}">✕</button>
-    </div>`;
-  host.hidden = false;
-  host.querySelector(".mn-close").addEventListener("click", () => {
-    host.hidden = true;
-    try { localStorage.setItem("atlas-mobile-note", "off"); } catch {}
-  });
-}
 
 // Prévient l'utilisateur qu'un ou plusieurs jeux de données n'ont pas pu être
 // chargés (échec réseau/HTTP), au lieu d'afficher silencieusement des blocs
@@ -2783,25 +2726,21 @@ function showDataWarning(failed){
   host.querySelector(".dw-close").addEventListener("click", () => { host.hidden = true; });
 }
 
-function drawDb(fromMode, fromInd, fromAxis, fromK){
+function drawDb(fromMode, fromInd){
   el("view-benchmark").innerHTML = renderDatabase();
   positionSegGlide(fromMode);
   positionMetricGlide(fromInd);
-  positionScGlides(fromAxis, fromK);
   fitChart();
-  fitScatter();
-  // Si on a quitté le Nuage, l'infobulle épinglée par la recherche doit disparaître.
-  const gt = el("tip");
-  if (gt && gt.dataset.pinned && !el("view-benchmark").querySelector(".scatter-plot")){
-    gt.style.display = "none"; delete gt.dataset.pinned;
-  }
+  // L'URL suit l'état du comparateur : la barre d'adresse est toujours
+  // copiable-collable telle quelle (mode, indicateur, pays comparés).
+  if (view === "benchmark") history.replaceState({ view: "benchmark", gScreen: "hub" }, "", hashFor("benchmark"));
 }
 // Recalcule la hauteur du viewBox du graphe d'après la place réelle de la zone
 // de traçage → le graphe remplit la hauteur disponible, à scale uniforme (le SVG
 // est en preserveAspectRatio="none", donc H ∝ hauteur/largeur = pas de déformation).
 function fitChart(){
   const root = el("view-benchmark");
-  const box = root && root.querySelector(".cmp-plotbox:not(.sc-plotbox)");
+  const box = root && root.querySelector(".cmp-plotbox");
   if (!box) return;
   const withData = [...dbPicked].filter(iso => macro.countries?.[iso]?.indicators?.[dbChartInd]?.hist);
   const plotted = withData.slice(0, SERIES_COLORS.length);
@@ -2810,57 +2749,10 @@ function fitChart(){
   if (w < 40 || h < 40) return;
   box.innerHTML = compareChart(plotted, dbChartInd, CHART_FMT[dbChartInd], 1000 * h / w);
 }
-// Même principe pour le Nuage : le scatter remplit la hauteur disponible.
-function fitScatter(){
-  const root = el("view-benchmark");
-  const box = root && root.querySelector(".sc-plotbox");
-  if (!box || !box.querySelector(".scatter-plot")) return;   // état vide
-  const w = box.clientWidth, h = box.clientHeight;
-  if (w < 40 || h < 40) return;
-  box.innerHTML = scatterChart(1000 * h / w);
-  applyScSearch();
-}
-// Recherche du Nuage : estompe les points hors requête, surligne les
-// correspondances et épingle l'infobulle (style carte) sur la meilleure.
-function applyScSearch(){
-  const root = el("view-benchmark");
-  const plot = root && root.querySelector(".scatter-plot");
-  const gtip = el("tip");
-  if (!plot) return;
-  const norm = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const q = norm(scQuery.trim());
-  const dots = [...plot.querySelectorAll(".sc-dot")];
-  if (!q){
-    for (const d of dots) d.classList.remove("dim", "hit");
-    if (gtip && gtip.dataset.pinned){ gtip.style.display = "none"; delete gtip.dataset.pinned; }
-    return;
-  }
-  let best = null;
-  for (const d of dots){
-    const hit = norm(d.dataset.name).includes(q) || norm(d.dataset.iso) === q;
-    d.classList.toggle("hit", hit);
-    d.classList.toggle("dim", !hit);
-    if (hit && !best) best = d;
-    if (hit && norm(d.dataset.name).startsWith(q)) best = best && norm(best.dataset.name).startsWith(q) ? best : d;
-  }
-  if (best && gtip){
-    const r = best.getBoundingClientRect();
-    gtip.style.display = "flex";
-    gtip.style.left = (r.left + r.width / 2) + "px";
-    gtip.style.top = r.top + "px";
-    gtip.querySelector("b").textContent = best.dataset.iso || "··";
-    gtip.querySelector("span").textContent = best.dataset.name || "";
-    gtip.dataset.pinned = "1";
-  } else if (gtip){
-    gtip.style.display = "none"; delete gtip.dataset.pinned;
-  }
-}
 // Applique une vue SANS toucher à l'historique (utilisé au boot et sur popstate).
 function applyView(v){
   if (v === "lexicon" || v === "data") v = "refs";
   if (v !== "home" && !VIEW_ORDER.includes(v)) v = "home";
-  // L'infobulle épinglée du Nuage ne doit pas survivre à un changement de vue.
-  { const gt = el("tip"); if (gt && gt.dataset.pinned){ gt.style.display = "none"; delete gt.dataset.pinned; } }
   view = v;
   document.documentElement.dataset.view = v;   // pilote l'opacité du fond pointillé
   for (const s of document.querySelectorAll(".view")) s.hidden = (s.id !== "view-" + v);
@@ -2880,6 +2772,15 @@ function hashFor(v){
   if (v === "map" && selected?.iso){
     h += "&c=" + selected.iso;
     if (panelTab !== "identity") h += "&t=" + panelTab;
+  }
+  // Base de données : le mode Graphique est partageable (indicateur + pays
+  // comparés), comme l'est déjà une fiche pays sur la carte.
+  if (v === "benchmark"){
+    if (dbMode !== "table") h += "&m=" + dbMode;
+    if (dbMode === "chart"){
+      if (dbChartInd !== "GGXWDG_NGDP") h += "&i=" + dbChartInd;
+      if (dbPicked.size) h += "&p=" + [...dbPicked].join(",");
+    }
   }
   return h;
 }
@@ -2988,8 +2889,8 @@ function renderHome(){
         L ? "200+ devises, taux du jour, conversion dans les deux sens." : "200+ currencies, daily rates, two-way conversion.",
         `<div class="bfx">${fxPairs}</div>`)}
       ${card("b-games", "games", "04", L ? "Jouer" : "Play", L ? "Les jeux" : "The games",
-        L ? "Pays mystère, drapeaux, duels, podiums — et la Super Série quotidienne : un défi, un classement, une tentative."
-          : "Mystery countries, flags, duels, podiums — and the daily Super Series: one challenge, one leaderboard, one attempt.",
+        L ? "Pays mystère, drapeaux, duels, podiums — et la Super Série quotidienne : un défi, quatre manches, une tentative."
+          : "Mystery countries, flags, duels, podiums — and the daily Super Series: one challenge, four rounds, one attempt.",
         gamesGrid)}
       ${card("b-refs", "refs", "05", L ? "Comprendre" : "Understand", L ? "Références" : "Reference",
         L ? "Chaque terme défini en une phrase, chaque chiffre tracé jusqu'à sa source." : "Every term defined in one sentence, every figure traced to its source.",
@@ -3349,7 +3250,7 @@ function renderPurpose(){
   const stack = [
     { c: L === "fr" ? "Interface" : "Frontend", items: ["JavaScript (ES modules)", "D3.js", "Canvas / SVG"] },
     { c: L === "fr" ? "Données" : "Data", items: ["API FMI (DataMapper)", "exchange-api (FX)", "world-atlas (TopoJSON)"] },
-    { c: L === "fr" ? "Backend" : "Backend", items: ["Supabase (auth + classement)"] },
+    { c: L === "fr" ? "Stockage" : "Storage", items: [L === "fr" ? "localStorage (préférences, scores)" : "localStorage (preferences, scores)"] },
     { c: L === "fr" ? "Automatisation" : "Automation", items: ["Node.js", "GitHub Actions (mensuel)"] },
     { c: L === "fr" ? "Hébergement" : "Hosting", items: ["GitHub Pages"] },
   ].map(r => `<div class="pstack-row">
@@ -3434,9 +3335,6 @@ let dbMode = "table";
 // Indicateur tracé dans le comparateur (clé FMI). Dette publique par défaut :
 // comparable d'un pays à l'autre quelle que soit la taille.
 let dbChartInd = "GGXWDG_NGDP";
-// Axes du mode Nuage (scatter) : X et Y. Défaut parlant : dette × croissance.
-let scXInd = "GGXWDG_NGDP", scYInd = "NGDP_RPCH";
-let scQuery = "";   // recherche de pays dans le Nuage (surbrillance)
 const CHART_INDS = ["NGDPD","NGDPDPC","NGDP_RPCH","PCPIPCH","GGXWDG_NGDP","GGXCNL_NGDP","BCA_NGDPD","LUR"];
 const CHART_FMT = { NGDPD:"moneyMd", NGDPDPC:"money", NGDP_RPCH:"pct", PCPIPCH:"pct",
   GGXWDG_NGDP:"pct", GGXCNL_NGDP:"pct", BCA_NGDPD:"pct", LUR:"pct" };
@@ -3444,6 +3342,7 @@ const CHART_FMT = { NGDPD:"moneyMd", NGDPDPC:"money", NGDP_RPCH:"pct", PCPIPCH:"
 const SERIES_COLORS = ["#4F6BED","#12A594","#E0823D","#B4462A","#7C4DBE","#2A8C5A","#C23B87","#8A6D3B","#2FA8C4","#B5892B"];
 const MAX_PICK = SERIES_COLORS.length;   // nb max de pays comparés
 let dbPickQuery = "";   // recherche du sélecteur de pays (panneau du mode Graphique)
+let dbShown = [], dbShownCols = [];   // dernier rendu du tableau, pour l'export CSV
 // Définition courte de chaque métrique, affichée sous le graphe.
 const MET_DEF = {
   NGDPD:       { fr:"Produit intérieur brut : valeur de tous les biens et services produits en un an, en milliards de dollars courants.", en:"Gross domestic product: value of all goods and services produced in a year, in current-USD billions." },
@@ -3480,34 +3379,55 @@ function renderDatabase(){
   const L = lang === "fr";
   const segIcon = {
     table: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9.5" y1="4" x2="9.5" y2="20"/></svg>`,
-    chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><polyline points="6 15 11 10 14 13 20 6"/></svg>`,
-    scatter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><circle cx="8" cy="14" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r="1.6" fill="currentColor" stroke="none"/><circle cx="16.5" cy="12.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="6.5" r="1.6" fill="currentColor" stroke="none"/></svg>`
+    chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 3 20 21 20" opacity=".55"/><polyline points="6 15 11 10 14 13 20 6"/></svg>`
   };
   const modeChip = (m, label) =>
     `<button class="${dbMode === m ? "on" : ""}" data-dbmode="${m}">${segIcon[m]}${label}</button>`;
-  const toggle = `<div class="db-seg" role="tablist" aria-label="${L ? "Vue" : "View"}">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}${modeChip("scatter", L ? "Nuage" : "Scatter")}</div>`;
+  const toggle = `<div class="db-seg" role="tablist" aria-label="${L ? "Vue" : "View"}">${modeChip("table", L ? "Tableau" : "Table")}${modeChip("chart", L ? "Graphique" : "Chart")}</div>`;
   const lead = dbMode === "chart"
     ? (L ? "Sélectionne des pays et compare leurs trajectoires sur un indicateur."
          : "Select countries and compare their trajectories on one indicator.")
-    : dbMode === "scatter"
-    ? (L ? "Chaque point est un pays : croise deux indicateurs, la taille reflète le PIB."
-         : "Each dot is a country: cross two indicators, size reflects GDP.")
     : (L ? "Trie par en-tête, filtre, et coche un pays pour l'épingler pendant tes recherches."
          : "Sort by header, filter, and tick a country to pin it while you search.");
   const h1 = `<h1>${L ? "Base de données" : "Database"}</h1>`;
   const leadP = `<p class="lead">${lead}</p>`;
   if (dbMode === "chart") return renderCompareView(h1, leadP, toggle);
-  if (dbMode === "scatter") return renderScatterView(h1, leadP, toggle);
   return `<div class="page db-page"><div class="db-in">
     ${h1}${leadP}${toggle}
     ${renderTableBody()}
   </div></div>`;
 }
 
+// Export CSV du tableau tel qu'affiché. Valeurs BRUTES (non formatées) : un
+// tableur doit recevoir des nombres, pas « 32,38 T $ ». Séparateur virgule,
+// décimales en point (CSV standard), BOM UTF-8 pour qu'Excel lise les accents.
+function exportDbCsv(){
+  const L = lang === "fr";
+  const cols = dbShownCols.length ? dbShownCols : DB_COLS;
+  const head = ["ISO", ...cols.map(c => c.t[lang])];
+  const cell = (v) => {
+    if (v == null || v === "") return "";
+    const str = String(v);
+    return /[",;\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+  };
+  const lines = [head.map(cell).join(",")];
+  for (const iso of dbShown){
+    lines.push([iso, ...cols.map(c => cell(c.get(iso)))].join(","));
+  }
+  const stamp = new Date().toISOString().slice(0, 10);
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `atlas-${L ? "base-de-donnees" : "database"}-${stamp}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 function renderTableBody(){
   const cols = DB_COLS.filter(c => c.always || dbVisible.has(c.key));
   const toggleable = DB_COLS.filter(c => !c.always);
-  const allBtn = `<button class="db-all" data-dbreset title="${lang === "fr" ? "Tout réafficher, vider recherche et épingles" : "Show all, clear search and pins"}">⟳ ${lang === "fr" ? "Réinitialiser" : "Reset"}</button>`;
+  const allBtn = `<button class="db-all" data-dbreset title="${lang === "fr" ? "Tout réafficher, vider recherche et épingles" : "Show all, clear search and pins"}">⟳ ${lang === "fr" ? "Réinitialiser" : "Reset"}</button>`
+    + `<button class="db-all" data-dbcsv title="${lang === "fr" ? "Télécharger le tableau affiché au format CSV" : "Download the table as shown, in CSV"}">↓ CSV</button>`;
   const toggles = toggleable.map(c =>
     `<label class="db-chk"><input type="checkbox" data-col="${c.key}"${dbVisible.has(c.key) ? " checked" : ""}>${esc(c.t[lang])}</label>`
   ).join("");
@@ -3543,6 +3463,9 @@ function renderTableBody(){
   const shown = isos.filter(iso => dbPicked.has(iso)
     || ((!q || fold(nameCol.get(iso)).includes(q) || iso.toLowerCase() === q)
         && passRegion(iso) && passGrade(iso) && passQuart(iso)));
+  // Mémorisé pour l'export CSV : il doit livrer exactement le tableau à l'écran
+  // (mêmes filtres, même tri, mêmes colonnes cochées), pas la base entière.
+  dbShown = shown; dbShownCols = cols;
   // Puces de filtres
   const chip = (attr, val, on, label, dis) =>
     `<button class="chip${on ? " on" : ""}" ${attr}="${val}"${dis ? " disabled" : ""}>${label}</button>`;
@@ -3754,122 +3677,6 @@ function renderCompareView(h1, leadP, toggle){
   </div></div>`;
 }
 
-// ── Mode Nuage : scatter tous-pays. X et Y = deux indicateurs au choix,
-// taille du point = PIB (échelle racine), teinte = région. Survol : infobulle.
-// Même gabarit que le mode Graphique : menus verticaux à gauche, graphe
-// encadré (titre inclus) au centre, Légende + Définitions à droite.
-const SC_REG_COLORS = { Europe:"#4F6BED", Asia:"#12A594", Africa:"#E0823D", Americas:"#C23B87", Oceania:"#7C4DBE" };
-function scatterPoints(){
-  const pts = []; let gMax = 0;
-  for (const [iso, c] of Object.entries(macro.countries || {})){
-    const x = c.indicators?.[scXInd]?.value, y = c.indicators?.[scYInd]?.value,
-          g = c.indicators?.NGDPD?.value;
-    if ([x, y, g].some(v => v == null || !isFinite(v))) continue;   // tout ou rien
-    if (g > gMax) gMax = g;
-    pts.push({ iso, name: (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : c.name,
-               x, y, g, reg: ident[iso]?.reg });
-  }
-  return { pts, gMax };
-}
-function scatterChart(vbH){
-  const L = lang === "fr";
-  const { pts, gMax } = scatterPoints();
-  if (pts.length < 5) return `<div class="cmp-empty">${L ? "Données insuffisantes pour ce croisement." : "Not enough data for this pair."}</div>`;
-  // Domaines écrêtés aux percentiles 2-98 : sans cela, un cas extrême
-  // (hyperinflation…) tasse tous les autres points dans un coin.
-  const dom = (arr) => {
-    const s = [...arr].sort((a, b) => a - b);
-    const lo = s[Math.floor(s.length * 0.02)], hi = s[Math.ceil(s.length * 0.98) - 1];
-    const pad = (hi - lo || 1) * 0.06;
-    return [lo - pad, hi + pad];
-  };
-  const [x0, x1] = dom(pts.map(p => p.x)), [y0, y1] = dom(pts.map(p => p.y));
-  const W = 1000, H = Math.max(240, Math.round(vbH || 420)), mL = 68, mR = 20, mT = 16, mB = 50;
-  const pw = W - mL - mR, ph = H - mT - mB;
-  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
-  const sx = v => mL + (cl(v, x0, x1) - x0) / ((x1 - x0) || 1) * pw;
-  const sy = v => mT + (1 - (cl(v, y0, y1) - y0) / ((y1 - y0) || 1)) * ph;
-  const xt = niceTicks(x0, x1, 6).filter(v => v >= x0 && v <= x1);
-  const yt = niceTicks(y0, y1, 5).filter(v => v >= y0 && v <= y1);
-  const xu = yAxisUnit(CHART_FMT[scXInd], xt), yu = yAxisUnit(CHART_FMT[scYInd], yt);
-  const grid = yt.map(v => `<line class="cmp-grid" x1="${mL}" y1="${sy(v).toFixed(1)}" x2="${W - mR}" y2="${sy(v).toFixed(1)}"/>`
-      + `<text class="cmp-ylab" x="${mL - 9}" y="${sy(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${esc(yu.fmtTick(v))}</text>`).join("")
-    + xt.map(v => `<text class="cmp-xlab" x="${sx(v).toFixed(1)}" y="${H - mB + 20}" text-anchor="middle">${esc(xu.fmtTick(v))}</text>`).join("");
-  // Axes CENTRÉS : ils se croisent aux médianes mondiales des deux indicateurs
-  // (lecture en quadrants : au-dessus/en-dessous du pays « typique »). La ligne
-  // de zéro reste en pointillé quand le domaine traverse le négatif.
-  const med = (arr) => { const s = [...arr].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
-  const medX = med(pts.map(p => p.x)), medY = med(pts.map(p => p.y));
-  const cx = sx(medX), cy = sy(medY);
-  const zeroX = (y0 < 0 && y1 > 0) ? `<line class="cmp-zero" x1="${mL}" y1="${sy(0).toFixed(1)}" x2="${W - mR}" y2="${sy(0).toFixed(1)}"/>` : "";
-  const zeroY = (x0 < 0 && x1 > 0) ? `<line class="cmp-zero" x1="${sx(0).toFixed(1)}" y1="${mT}" x2="${sx(0).toFixed(1)}" y2="${H - mB}"/>` : "";
-  const axes = `<line class="cmp-axis sc-axis-c" x1="${mL}" y1="${cy.toFixed(1)}" x2="${W - mR}" y2="${cy.toFixed(1)}"/>`
-    + `<line class="cmp-axis sc-axis-c" x1="${cx.toFixed(1)}" y1="${mT}" x2="${cx.toFixed(1)}" y2="${H - mB}"/>`;
-  const axU = (u) => u.label === "%" ? "%" : u.label;
-  const titles = `<text class="cmp-axtitle" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)} (${esc(axU(xu))})</text>`
-    + `<text class="cmp-yunit" x="${mL - 9}" y="${mT - 2}" text-anchor="end">${esc(axU(yu))}</text>`;
-  // Taille : aire ∝ PIB (rayon en racine), bornée pour rester lisible.
-  const rOf = g => 2.5 + 12.5 * Math.sqrt(g / gMax);
-  // Gros PIB dessinés d'abord (dessous), petits au-dessus → tous survolables.
-  pts.sort((a, b) => b.g - a.g);
-  const dots = pts.map(p => `<circle class="sc-dot" data-iso="${p.iso}" data-name="${esc(p.name)}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${rOf(p.g).toFixed(1)}" style="fill:${SC_REG_COLORS[p.reg] || "#8A93A8"}"/>`).join("");
-  return `<svg class="scatter-plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-      ${grid}${zeroX}${zeroY}${axes}${dots}${titles}
-    </svg>`;
-}
-
-function renderScatterView(h1, leadP, toggle){
-  const L = lang === "fr";
-  const menu = (which, cur, cls) => `<div class="cmp-metrics sc-menu ${cls}" role="tablist" aria-label="${which === "x" ? (L ? "Axe X" : "X axis") : (L ? "Axe Y" : "Y axis")}">
-      <div class="sc-menu-cap">${which === "x" ? (L ? "Axe X" : "X axis") : (L ? "Axe Y" : "Y axis")}</div>
-      ${CHART_INDS.map(k => `<button class="${k === cur ? "on" : ""}" data-scaxis="${which}" data-k="${k}">${esc(IND_LABELS[k]?.[lang] || k)}</button>`).join("")}
-    </div>`;
-  const title = `${esc(IND_LABELS[scXInd]?.[lang] || scXInd)} × ${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}`;
-  const plot = `<div class="cmp-wrap sc-wrap">
-      <div class="cmp-title">${title}</div>
-      <div class="cmp-plotbox sc-plotbox">${scatterChart()}</div>
-    </div>`;
-  const legend = Object.entries(SC_REG_COLORS).map(([reg, col]) => {
-    const name = lang === "fr" ? ({ Europe:"Europe", Asia:"Asie", Africa:"Afrique", Americas:"Amériques", Oceania:"Océanie" })[reg] : reg;
-    return `<div class="sc-legrow"><span class="cmp-dot" style="background:${col}"></span>${name}</div>`;
-  }).join("");
-  const searchBox = `<div class="sc-search-wrap">
-      <input class="cmp-pick-search sc-search" type="text" autocomplete="off" spellcheck="false"
-        value="${esc(scQuery)}" placeholder="${L ? "Trouver un pays…" : "Find a country…"}"
-        aria-label="${L ? "Trouver un pays dans le nuage" : "Find a country in the scatter"}">
-    </div>`;
-  const side = `<div class="cmp-side">
-      <div class="cmp-block">
-        <div class="cmp-block-h">${L ? "Légende" : "Legend"}</div>
-        ${legend}
-        <div class="sc-legrow sc-size-note">${L ? "Taille du point = PIB" : "Dot size = GDP"}</div>
-        <div class="sc-legrow sc-size-note sc-med-note">${L ? "Axes croisés aux médianes mondiales" : "Axes cross at world medians"}</div>
-      </div>
-      <div class="cmp-block cmp-block-grow">
-        <div class="cmp-block-h">${L ? "Définitions" : "Definitions"}</div>
-        <div class="cmp-def-metric">${esc(IND_LABELS[scXInd]?.[lang] || scXInd)}</div>
-        <div class="cmp-def-text">${esc(MET_DEF[scXInd]?.[lang] || "")}</div>
-        <div class="cmp-def-metric sc-def-gap">${esc(IND_LABELS[scYInd]?.[lang] || scYInd)}</div>
-        <div class="cmp-def-text">${esc(MET_DEF[scYInd]?.[lang] || "")}</div>
-      </div>
-    </div>`;
-  const src = `<div class="macro-src db-src">${L ? "Source : FMI — World Economic Outlook (dernière valeur)" : "Source: IMF — World Economic Outlook (latest value)"}</div>`;
-  return `<div class="page db-page"><div class="db-in">
-    <div class="cmp-header">
-      <div class="cmp-hleft">${h1}${leadP}${toggle}</div>
-      ${searchBox}
-    </div>
-    <div class="cmp-scroll">
-      <div class="cmp-main">
-        <div class="sc-menus">${menu("x", scXInd, "sc-menu-x")}${menu("y", scYInd, "sc-menu-y")}</div>
-        ${plot}
-        ${side}
-      </div>
-      ${src}
-    </div>
-  </div></div>`;
-}
-
 // ── Jeu : trouve le pays (façon LoLdle/Worldle) ──
 // 6 indices par essai : Région, Population, PIB, Frontaliers, Densité, Fuseau.
 // Vert = exact · jaune = proche (±10 %) · flèche = le pays mystère est plus
@@ -3913,7 +3720,7 @@ function serieContHTML(L){
     : (L ? "Revenir au menu" : "Back to menu")} →</button></div>`;
 }
 // Fin de la 4e manche : petit délai, puis pop-up récapitulatif (score du jour
-// + classement du joueur), fermable à la croix.
+// + rang parmi les séries locales), fermable à la croix.
 function serieMaybeCelebrate(){
   if (serieNext()) return;                 // il reste des manches
   setTimeout(showSeriePop, 700);
@@ -3934,20 +3741,26 @@ function showSeriePop(){
     + '<div class="m-h" style="text-align:center">' + (L ? "Série du jour terminée !" : "Daily series complete!") + '</div>'
     + '<div class="sp-lines">' + SERIE.map(line).join("") + '</div>'
     + '<div class="sp-total"><span>Total</span><b>' + total + '</b></div>'
-    + '<div class="sp-rank" id="sp-rank">' + (L ? "Classement du jour : chargement…" : "Today's rank: loading…") + '</div>';
-  el("authModal").hidden = false;
-  Auth.myRankToday().then(r => {
-    const box = el("sp-rank"); if (!box) return;
-    box.innerHTML = r
-      ? (L ? `Classement du jour : <b>#${r.rank}</b> sur ${r.players} joueur${r.players > 1 ? "s" : ""}`
-           : `Today's rank: <b>#${r.rank}</b> of ${r.players} player${r.players > 1 ? "s" : ""}`)
-      : (L ? "Classement indisponible." : "Ranking unavailable.");
-  });
+    + '<div class="sp-rank" id="sp-rank">' + spLocalRank(L, total) + '</div>';
+  el("authModal").querySelector(".modal-card").classList.remove("wide");
+  openModalShell();
 }
-// ── Classement local (palmarès des séries terminées) ─────────────────────
-// Site statique : pas de serveur, donc pas de classement partagé entre
-// visiteurs. On garde un palmarès LOCAL à ce navigateur — les meilleures
-// séries (total d'essais le plus faible), une entrée par jour (la meilleure).
+// Rang de la série du jour parmi les séries enregistrées sur CE navigateur
+// (site statique : pas de classement partagé entre visiteurs).
+function spLocalRank(L, total){
+  const scores = scoreRead();
+  if (!scores.length) return L ? "Première série enregistrée." : "First series recorded.";
+  const better = scores.filter(s => s.total < total).length;
+  const rank = better + 1;
+  if (scores.length === 1) return L ? "Première série enregistrée." : "First series recorded.";
+  if (rank === 1) return L ? "<b>Meilleure série</b> à ce jour !" : "<b>Best series</b> so far!";
+  return L ? `Ta <b>#${rank}</b> meilleure série sur ${scores.length}.`
+           : `Your <b>#${rank}</b> best series out of ${scores.length}.`;
+}
+// ── Historique local des séries terminées ────────────────────────────────
+// Le classement affiché a été retiré ; on conserve l'historique local (une
+// entrée par jour, la meilleure) car la pop-up de fin de série y situe la
+// partie du jour (« ta 3ᵉ meilleure série sur 7 »). Rien ne quitte l'appareil.
 const scoreRead = () => { try { const a = JSON.parse(localStorage.getItem("atlas-scores") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
 const scoreWrite = (a) => { try { localStorage.setItem("atlas-scores", JSON.stringify(a.slice(0, 50))); } catch {} };
 function serieRecord(){
@@ -3961,32 +3774,6 @@ function serieRecord(){
   else scores.push({ date: day, total });
   scores.sort((a, b) => a.total - b.total || (a.date < b.date ? -1 : 1));
   scoreWrite(scores);
-}
-function renderLeaderboard(L){
-  // Connecté à Supabase → classement DU JOUR partagé (rempli en async par Auth).
-  if (Auth.isLoggedIn()){
-    setTimeout(() => Auth.fillLeaderboard(L), 0);
-    return `<div class="lb-card" id="lbCard">
-      <div class="lb-h">${L ? "Classement du jour" : "Today's leaderboard"}</div>
-      <div class="lb-sub">${L ? "Le moins d'essais gagne · une seule tentative." : "Fewest guesses wins · one attempt."}</div>
-      <div class="lb-load">${L ? "Chargement…" : "Loading…"}</div></div>`;
-  }
-  // Sinon : palmarès LOCAL à ce navigateur.
-  const scores = scoreRead().slice().sort((a, b) => a.total - b.total || (a.date < b.date ? -1 : 1)).slice(0, 8);
-  const fmtDay = (iso) => { try { return new Date(iso + "T00:00:00").toLocaleDateString(L ? "fr-BE" : "en-GB", { day: "numeric", month: "short" }); } catch { return iso; } };
-  const rows = scores.length
-    ? scores.map((s, i) => `<tr><td class="lb-rk">${i + 1}</td><td class="lb-dt">${esc(fmtDay(s.date))}</td><td class="lb-sc">${s.total}</td></tr>`).join("")
-    : `<tr><td colspan="3" class="lb-empty">${L ? "Termine une série pour apparaître ici." : "Finish a series to appear here."}</td></tr>`;
-  const cta = Auth.configured()
-    ? `<div class="lb-note">${L ? "Connecte-toi pour le classement du jour partagé." : "Log in for the shared daily leaderboard."}</div>`
-    : `<div class="lb-note">${L ? "Palmarès local à ce navigateur (site statique, sans serveur)." : "Ranking local to this browser (static site, no server)."}</div>`;
-  return `<div class="lb-card" id="lbCard">
-    <div class="lb-h">${L ? "Classement" : "Leaderboard"}</div>
-    <div class="lb-sub">${L ? "Tes meilleures séries — le moins d'essais gagne." : "Your best series — fewest guesses wins."}</div>
-    <table class="lb"><thead><tr><th>#</th><th>${L ? "Jour" : "Day"}</th><th title="${L ? "Total d'essais" : "Total guesses"}">${L ? "Essais" : "Guesses"}</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    ${cta}
-  </div>`;
 }
 const gName = (iso) => (lang === "en" && NAME_EN[iso]) ? NAME_EN[iso] : macro.countries?.[iso]?.name || iso;
 const gDensity = (iso) => { const d = ident[iso]; return d && d.pop != null && d.area ? d.pop / d.area : null; };
@@ -4173,13 +3960,12 @@ function renderGameHub(){
         <div class="serie-badge">${L ? "Série quotidienne · " : "Daily series · "}${esc(dateStr)}</div>
         <div class="serie-t">${L ? "La Super Série" : "The Super Series"}</div>
         <p class="serie-d">${L
-          ? "Une série, pas un menu : quatre manches dans l'ordre, une fois par jour — le même défi pour tout le monde. Le total d'essais fait ton score au classement."
-          : "A series, not a menu: four rounds in order, once a day — the same challenge for everyone. Your total guesses set your leaderboard score."}</p>
+          ? "Une série, pas un menu : quatre manches dans l'ordre, une fois par jour — le même défi pour tout le monde. Le total d'essais fait ton score du jour."
+          : "A series, not a menu: four rounds in order, once a day — the same challenge for everyone. Your total guesses make up your daily score."}</p>
         <div class="serie-prog">${doneN} / ${SERIE.length} ${L ? "manches" : "rounds"}</div>
         <div class="serie-steps">${steps}</div>
         <div class="serie-cta">${cta}</div>
       </div>
-      ${renderLeaderboard(L)}
     </div>
     <p class="serie-free">${L ? "Ou joue librement, hors série (parties illimitées) :" : "Or play freely, outside the series (unlimited games):"}</p>
     <div class="g-grid">
@@ -4326,14 +4112,9 @@ function gSuggest(qRaw, exclude = gGuesses){
     }).slice(0, 6);
 }
 function gGuess(iso){
-  // Manche de la Super Série : la connexion est exigée à CHAQUE instant.
-  // Déconnecté (session fermée ou expirée) → la proposition est refusée
-  // et on revient à la salle de jeux.
-  if (gDaily && Auth.configured() && !Auth.isLoggedIn()){
-    gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
   if (gWon || gGuesses.includes(iso)) return;
   gGuesses.push(iso);
-  if (iso === gTarget){ gWon = true; if (gDaily){ serieSave("country", gGuesses.length); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate(); } }
+  if (iso === gTarget){ gWon = true; if (gDaily){ serieSave("country", gGuesses.length); serieRecord(); serieMaybeCelebrate(); } }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !gWon) inp.focus();
@@ -4354,12 +4135,9 @@ function fNew(daily){
   fGuesses.length = 0; fWon = false;
 }
 function fGuess(iso){
-  // Même garde que le jeu 1 : en manche de série, déconnecté = kick au hub.
-  if (fDaily && Auth.configured() && !Auth.isLoggedIn()){
-    gScreen = "hub"; el("view-games").innerHTML = renderGames(); return; }
   if (fWon || fGuesses.includes(iso)) return;
   fGuesses.push(iso);
-  if (iso === fTarget){ fWon = true; if (fDaily){ serieSave("flag", fGuesses.length); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate(); } }
+  if (iso === fTarget){ fWon = true; if (fDaily){ serieSave("flag", fGuesses.length); serieRecord(); serieMaybeCelebrate(); } }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !fWon) inp.focus();
@@ -4538,7 +4316,7 @@ function dValidate(){
   if (dRevealAll || dPicks.some(p => !p)) return;
   dCorrect = dQ.reduce((n, q, i) => n + (dPicks[i] === q.win ? 1 : 0), 0);
   dRevealAll = true; dWon = true;
-  serieSave("duel", D_LEN - dCorrect); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate();
+  serieSave("duel", D_LEN - dCorrect); serieRecord(); serieMaybeCelebrate();
   el("view-games").innerHTML = renderGames();
   el("view-games").querySelector(".g-page")?.scrollTo({ top: 0 });
 }
@@ -4654,7 +4432,7 @@ function pGuess(iso){
   const r = pTop.indexOf(iso);
   if (r >= 0){ pFound[iso] = r;
     if (Object.keys(pFound).length === 3){ pWon = true;
-      if (pDaily){ serieSave("podium", pTries); serieRecord(); Auth.onSeriesComplete(); serieMaybeCelebrate(); } } }
+      if (pDaily){ serieSave("podium", pTries); serieRecord(); serieMaybeCelebrate(); } } }
   el("view-games").innerHTML = renderGames();
   const inp = el("view-games").querySelector(".g-in");
   if (inp && !pWon) inp.focus();
@@ -4711,7 +4489,6 @@ function renderPodiumGame(){
 
 async function boot(){
   renderTabs();
-  maybeShowMobileNote();
   // Reflète la langue et la devise restaurées (localStorage) sur les bascules
   // du bandeau et sur les métadonnées du document. Sans cela, l'état interne
   // et l'interface divergeraient au premier rendu.
@@ -4741,6 +4518,9 @@ async function boot(){
       view: /^[a-z]+$/.test(p.get("view") || "") ? p.get("view") : "home",
       c: /^[A-Z]{2}$/.test(p.get("c") || "") ? p.get("c") : null,
       t: ["identity", "economics", "analysis"].includes(p.get("t")) ? p.get("t") : null,
+      m: ["table", "chart"].includes(p.get("m")) ? p.get("m") : null,
+      i: CHART_INDS.includes(p.get("i")) ? p.get("i") : null,
+      p: (p.get("p") || "").split(",").filter(x => /^[A-Z]{2}$/.test(x)),
     };
   };
   const viewFromHash = () => parseHash().view;
@@ -4760,28 +4540,10 @@ async function boot(){
   });
   // Remplit le menu mobile dédié (#navMenu) avec les mêmes entrées que la
   // capsule desktop. Rappelé au changement de langue.
-  // Section « compte » du menu mobile. Lit l'état via l'API publique du module
-  // Auth (isLoggedIn/configured/displayName), qui vit dans une IIFE séparée.
-  // try/catch : renderNavMenu est appelé au boot, avant l'init d'Auth (const
-  // déclarée plus bas → zone morte temporelle) ; on rend alors une section vide.
-  const navAuthHTML = () => {
-    try {
-      if (!Auth.configured()) return "";
-      const L = lang === "fr";
-      if (Auth.isLoggedIn()){
-        return '<div class="nav-auth"><div class="nav-who">👤 <b>' + esc(Auth.displayName()) + '</b></div>'
-          + '<button type="button" class="nav-auth-logout" data-auth="logout">' + (L ? "Déconnexion" : "Log out") + '</button></div>';
-      }
-      return '<div class="nav-auth">'
-        + '<button type="button" class="nav-auth-login" data-auth="login-open">' + (L ? "Se connecter" : "Log in") + '</button>'
-        + '<button type="button" class="nav-auth-signup" data-auth="signup-open">' + (L ? "S'inscrire" : "Sign up") + '</button></div>';
-    } catch { return ""; }
-  };
   const renderNavMenu = () => {
     const nm = el("navMenu"); if (!nm) return;
     nm.innerHTML = VIEW_ORDER.map(v =>
-      `<button data-view="${v}"${v === view ? ' class="on"' : ""}>${esc(NAV_LABELS[v][lang])}</button>`).join("")
-      + navAuthHTML();
+      `<button data-view="${v}"${v === view ? ' class="on"' : ""}>${esc(NAV_LABELS[v][lang])}</button>`).join("");
   };
   renderNavMenu();
   const closeNav = () => {
@@ -4796,11 +4558,7 @@ async function boot(){
   });
   el("navMenu").addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
-    if (b){ setView(b.dataset.view); closeNav(); return; }
-    // Actions compte (login/signup/logout) : l'ouverture de modale / la
-    // déconnexion sont gérées par le délégué global sur [data-auth] ; ici on se
-    // contente de refermer le menu.
-    if (e.target.closest("[data-auth]")) closeNav();
+    if (b){ setView(b.dataset.view); closeNav(); }
   });
   const burger = el("navBurger");
   if (burger){
@@ -4909,7 +4667,7 @@ async function boot(){
         if (!g){ pushGameScreen("hub"); return; }
         serieLaunch(g);
       };
-      Auth.promptSeries(launch);             // connexion exigée, puis joue
+      launch();                              // plus de connexion : on joue direct
       return; }
     const nb = e.target.closest("[data-gnew]");
     if (nb){
@@ -4940,12 +4698,6 @@ async function boot(){
     if (md){ const from = dbMode; dbMode = md.dataset.dbmode; drawDb(from); return; }
     const cin = e.target.closest("[data-cind]");
     if (cin){ const fromInd = dbChartInd; dbChartInd = cin.dataset.cind; drawDb(null, fromInd); return; }
-    const sca = e.target.closest("[data-scaxis]");
-    if (sca){
-      const ax = sca.dataset.scaxis, fromK = ax === "x" ? scXInd : scYInd;
-      if (ax === "x") scXInd = sca.dataset.k; else scYInd = sca.dataset.k;
-      drawDb(null, null, ax, fromK); return;
-    }
     const up = e.target.closest("[data-unpin]");
     if (up){
       dbPicked.delete(up.dataset.unpin);
@@ -4958,6 +4710,7 @@ async function boot(){
     }
     const cre = e.target.closest("[data-cmpreset]");
     if (cre){ dbPicked.clear(); dbPickQuery = ""; drawDb(); return; }
+    if (e.target.closest("[data-dbcsv]")){ exportDbCsv(); return; }
     const rst = e.target.closest("[data-dbreset]");
     if (rst){
       dbQuery = ""; dbPicked.clear(); dbSort = "name"; dbDir = 1;
@@ -4988,8 +4741,6 @@ async function boot(){
   el("view-benchmark").addEventListener("input", (e) => {
     const cb = e.target.closest("input[data-col]");
     if (cb) return;   // les cases passent par l'écouteur change
-    const scs = e.target.closest(".sc-search");
-    if (scs){ scQuery = scs.value; applyScSearch(); return; }   // pas de re-rendu
     const ps = e.target.closest(".cmp-pick-search");
     if (ps){
       dbPickQuery = ps.value;
@@ -5057,24 +4808,6 @@ async function boot(){
     if (tip) tip.style.display = "none";
   };
   el("view-benchmark").addEventListener("pointermove", (e) => {
-    // — Nuage : même infobulle que la carte (#tip suit le curseur : ISO + nom).
-    const sdot = e.target.closest(".sc-dot");
-    {
-      const gtip = el("tip");
-      const prev = el("view-benchmark").querySelector(".sc-dot.hov");
-      if (prev && prev !== sdot) prev.classList.remove("hov");
-      if (sdot && gtip){
-        sdot.classList.add("hov");
-        gtip.style.display = "flex";
-        gtip.style.left = e.clientX + "px";
-        gtip.style.top  = e.clientY + "px";
-        gtip.querySelector("b").textContent = sdot.dataset.iso || "··";
-        gtip.querySelector("span").textContent = sdot.dataset.name || "";
-      } else if (gtip && el("view-benchmark").querySelector(".sc-wrap")){
-        if (gtip.dataset.pinned) applyScSearch();   // ré-épingle sur le résultat
-        else gtip.style.display = "none";
-      }
-    }
     const plot = e.target.closest(".compare-plot");
     if (!plot){ cmpHideTip(); return; }
     const wrap = plot.closest(".cmp-wrap");
@@ -5105,9 +4838,6 @@ async function boot(){
   });
   el("view-benchmark").addEventListener("pointerleave", () => {
     cmpHideTip();
-    const h = el("view-benchmark").querySelector(".sc-dot.hov"); if (h) h.classList.remove("hov");
-    const gt = el("tip");
-    if (gt && !gt.dataset.pinned && el("view-benchmark").querySelector(".sc-wrap")) gt.style.display = "none";
   });
 
   // Données locales chargées EN PARALLÈLE (elles sont indépendantes) :
@@ -5135,6 +4865,18 @@ async function boot(){
   // Les données sont chargées : on restaure l'onglet mémorisé dans l'URL en
   // dotant l'entrée d'historique initiale du bon état (sans créer de doublon).
   const v0 = viewFromHash();
+  // Restaure l'état du comparateur AVANT le premier rendu : sinon drawDb()
+  // dessinerait le tableau par défaut puis réécrirait l'URL, perdant le lien.
+  {
+    const h = parseHash();
+    if (h.view === "benchmark"){
+      if (h.m) dbMode = h.m;
+      if (h.i) dbChartInd = h.i;
+      for (const iso of h.p){
+        if (macro.countries?.[iso] && dbPicked.size < MAX_PICK) dbPicked.add(iso);
+      }
+    }
+  }
   history.replaceState({ view: v0, gScreen: "hub" }, "", location.hash || location.pathname + location.search);
   applyView(v0);
   hubWorldBg();   // fond pointillé global (se relance seul quand les données sont prêtes)
@@ -5302,10 +5044,21 @@ async function boot(){
   // le pays réellement sous le point via elementFromPoint. Marche souris + tactile.
   {
     const mapNode = svg.node();
-    mapNode.addEventListener("pointerdown", (e) => {
+    // IMPORTANT : les écouteurs sont posés sur `document`, pas sur le <svg>.
+    // Raison : d3-zoom attache SES PROPRES écouteurs pointerdown/pointerup sur
+    // le <svg> (via svg.call(zoom), exécuté avant ce code). Sur un même nœud,
+    // les écouteurs s'exécutent dans l'ORDRE D'ENREGISTREMENT, peu importe le
+    // paramètre "capture" — donc un écouteur posé ensuite sur le svg s'exécute
+    // TOUJOURS après celui de d3-zoom, qui peut couper la propagation avant que
+    // le nôtre ne se déclenche. Sur mobile, ce blocage était systématique : le
+    // tap ne marchait pas tant qu'un premier zoom n'avait pas changé l'état
+    // interne de d3-zoom. En posant nos écouteurs sur `document` en phase
+    // capture, ils s'exécutent AVANT que l'événement n'atteigne le svg.
+    document.addEventListener("pointerdown", (e) => {
+      if (!mapNode.contains(e.target)) return;
       tapDown = { x: e.clientX, y: e.clientY, t: Date.now() };
-    }, true);   // capture : passe avant le handler bubble de d3-zoom
-    mapNode.addEventListener("pointerup", (e) => {
+    }, true);
+    document.addEventListener("pointerup", (e) => {
       if (!tapDown) return;
       const moved = Math.hypot(e.clientX - tapDown.x, e.clientY - tapDown.y);
       const dt = Date.now() - tapDown.t;
@@ -5315,7 +5068,10 @@ async function boot(){
       const pathEl = hit && hit.closest ? hit.closest("path.country") : null;
       const d = pathEl && pathEl.__data__;
       if (d) selectCountry(isoOf(d), mapName(d), d);
-    });
+    }, true);
+    // Filet de sécurité : si le navigateur annule le geste (ex. il croit à un
+    // scroll de page), on efface l'état pour ne pas fausser le tap suivant.
+    document.addEventListener("pointercancel", () => { tapDown = null; }, true);
   }
 
   // Sélection d'un pays — partagée par le clic ET la recherche. Indépendante du
@@ -5685,6 +5441,90 @@ function heroMagnet(){ /* désactivé : le déplacement des boutons n'était pas
 // (art. 13 RGPD). Pas de bandeau cookies : Atlas n'utilise ni cookies tiers
 // ni traceurs — seulement du localStorage strictement nécessaire (préférences,
 // session, parties), exempté de consentement.
+// ── Validation du modèle : score maison vs notation d'agence ─────────────
+// Répond à « ce score vaut quoi ? ». On confronte les deux classements sur les
+// pays à la fois notés et scorés, via une corrélation de rang (Spearman) —
+// adaptée car une notation est ordinale, pas numérique.
+function riskVsRating(){
+  const pts = [];
+  for (const iso of Object.keys(macro.countries || {})){
+    const r = sovereignRisk(iso); if (!r) continue;
+    const rt = ratings.countries?.[iso]; if (!rt) continue;
+    const grade = rt.sp != null ? RANK_SPF[rt.sp]
+      : rt.fitch != null ? RANK_SPF[rt.fitch]
+      : rt.moody != null ? RANK_MOODY[rt.moody] : null;
+    if (grade == null) continue;
+    pts.push({ iso, score: r.score, grade });
+  }
+  return pts;
+}
+// Rangs moyens (gestion des ex æquo), nécessaires pour Spearman.
+function avgRanks(vals){
+  const idx = vals.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const out = new Array(vals.length);
+  let i = 0;
+  while (i < idx.length){
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+    const avg = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) out[idx[k][1]] = avg;
+    i = j + 1;
+  }
+  return out;
+}
+function spearman(pts){
+  const n = pts.length;
+  if (n < 3) return null;
+  const rs = avgRanks(pts.map(p => p.score)), rg = avgRanks(pts.map(p => p.grade));
+  const m = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const ms = m(rs), mg = m(rg);
+  let num = 0, ds = 0, dg = 0;
+  for (let i = 0; i < n; i++){
+    num += (rs[i] - ms) * (rg[i] - mg);
+    ds += (rs[i] - ms) ** 2; dg += (rg[i] - mg) ** 2;
+  }
+  return (ds && dg) ? num / Math.sqrt(ds * dg) : null;
+}
+// Nuage score (axe Y) × notation (axe X) + droite de lecture des bandes.
+function riskValidationHTML(L){
+  const pts = riskVsRating();
+  const rho = spearman(pts);
+  if (!pts.length || rho == null) return "";
+  const W = 560, H = 300, mL = 44, mR = 14, mT = 12, mB = 40;
+  const pw = W - mL - mR, ph = H - mT - mB;
+  const sx = g => mL + (g - 1) / 20 * pw;            // notation : 1 (D) → 21 (AAA)
+  const sy = v => mT + (1 - v / 100) * ph;           // score : 0 en bas, 100 en haut
+  const yt = [0, 25, 45, 65, 100];
+  const grid = yt.map(v => `<line class="mv-grid" x1="${mL}" y1="${sy(v).toFixed(1)}" x2="${W - mR}" y2="${sy(v).toFixed(1)}"/>`
+    + `<text class="mv-lab" x="${mL - 8}" y="${sy(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${v}</text>`).join("");
+  const notches = [[3,"CCC-"],[7,"B"],[10,"BB"],[13,"BBB"],[16,"A"],[19,"AA"],[21,"AAA"]];
+  const xlabs = notches.map(([g, lab]) =>
+    `<text class="mv-lab" x="${sx(g).toFixed(1)}" y="${H - mB + 16}" text-anchor="middle">${lab}</text>`).join("");
+  // Frontière investment grade (BBB−/Baa3 = rang 12) : repère de lecture.
+  const igX = sx(11.5).toFixed(1);
+  const igLine = `<line class="mv-ig" x1="${igX}" y1="${mT}" x2="${igX}" y2="${H - mB}"/>`
+    + `<text class="mv-iglab" x="${(+igX + 5).toFixed(1)}" y="${mT + 11}">${L ? "investment grade →" : "investment grade →"}</text>`;
+  const dots = pts.map(p => {
+    const col = p.grade >= 12 ? "#2E9E5B" : "#D6503E";
+    return `<circle class="mv-dot" cx="${sx(p.grade).toFixed(1)}" cy="${sy(p.score).toFixed(1)}" r="3.1" style="fill:${col}"><title>${esc(p.iso)} · ${p.score}/100</title></circle>`;
+  }).join("");
+  const axes = `<line class="mv-axis" x1="${mL}" y1="${mT}" x2="${mL}" y2="${H - mB}"/>`
+    + `<line class="mv-axis" x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}"/>`;
+  const r2 = (rho * rho * 100).toFixed(0);
+  const rhoTxt = (L ? rho.toFixed(2).replace(".", ",") : rho.toFixed(2));
+  return '<h4>' + (L ? "Validation du modèle" : "Model validation") + '</h4>'
+    + `<p>${L
+      ? `Confrontation du score aux notations d'agence sur les <b>${pts.length} pays</b> à la fois notés et scorés. Corrélation de rang de Spearman : <b>ρ = ${rhoTxt}</b> — négative, comme attendu : plus le score est élevé, moins la notation est bonne.`
+      : `The score is compared with agency ratings across the <b>${pts.length} countries</b> that are both rated and scored. Spearman rank correlation: <b>ρ = ${rhoTxt}</b> — negative, as expected: the higher the score, the weaker the rating.`}</p>`
+    + `<div class="mv-wrap"><svg class="mv-plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${L ? "Score de risque contre notation souveraine" : "Risk score against sovereign rating"}">`
+    + `${grid}${igLine}${axes}${dots}${xlabs}`
+    + `<text class="mv-ax" x="${mL - 8}" y="${mT - 2}" text-anchor="end">${L ? "score" : "score"}</text>`
+    + `<text class="mv-ax" x="${((mL + W - mR) / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${L ? "notation (meilleure agence disponible)" : "rating (best available agency)"}</text>`
+    + `</svg></div>`
+    + `<p>${L
+      ? `La relation est nette mais partielle (environ ${r2} % de variance de rang commune) : c'est attendu. Le score ne lit que des fondamentaux macro, là où une agence intègre aussi la gouvernance, l'historique de défaut et le risque politique. Les points éloignés de la tendance sont précisément les cas intéressants — un pays bien noté aux fondamentaux tendus, ou l'inverse.`
+      : `The relationship is clear but partial (about ${r2}% of shared rank variance), which is expected. The score reads macro fundamentals only, whereas an agency also weighs governance, default history and political risk. Points far from the trend are precisely the interesting cases — a well-rated country with strained fundamentals, or the reverse.`}</p>`;
+}
 function legalHTML(kind, L){
   if (kind === "method"){
     return L
@@ -5708,6 +5548,7 @@ function legalHTML(kind, L){
         + '<p>Si l\'un des fondamentaux requis manque pour un pays, aucun score n\'est affiché — pour éviter une note trompeuse fondée sur des données partielles.</p>'
         + '<h4>Signal de divergence</h4>'
         + '<p>Quand le score est faible ou modéré mais que la notation d\'agence (S&amp;P, Moody\'s, Fitch) est spéculative ou pire, un avertissement s\'affiche : le score, purement macro, ne capte pas le risque politique et institutionnel (sanctions, gouvernance, convertibilité).</p>'
+        + riskValidationHTML(true)
         + '<h4>Portée</h4>'
         + '<p>Score indicatif et pédagogique, indépendant des agences, fondé sur la dernière projection du FMI. Ce n\'est pas un conseil en investissement.</p>'
         + '</div>'
@@ -5731,6 +5572,7 @@ function legalHTML(kind, L){
         + '<p>If any required fundamental is missing for a country, no score is shown — to avoid a misleading rating based on partial data.</p>'
         + '<h4>Divergence signal</h4>'
         + '<p>When the score is low or moderate but the agency rating (S&amp;P, Moody\'s, Fitch) is speculative or worse, a warning appears: the purely macro score does not capture political and institutional risk (sanctions, governance, convertibility).</p>'
+        + riskValidationHTML(false)
         + '<h4>Scope</h4>'
         + '<p>Indicative, educational score, independent of agencies, based on the latest IMF projection. This is not investment advice.</p>'
         + '</div>';
@@ -5739,13 +5581,13 @@ function legalHTML(kind, L){
     return L
       ? '<div class="m-h">Mentions légales</div><div class="m-legal">'
         + '<h4>Éditeur</h4><p>Atlas est un projet personnel et éducatif édité par Tim Hensenne, étudiant (M. Sc. Financial Economics, Université de Maastricht). Contact : timhensenne@gmail.com.</p>'
-        + '<h4>Hébergement</h4><p>Site statique hébergé par GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (États-Unis). Les données de comptes sont hébergées par Supabase, région Union européenne (Francfort).</p>'
+        + '<h4>Hébergement</h4><p>Site statique hébergé par GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (États-Unis). Atlas ne dispose d\'aucun serveur ni base de données propre.</p>'
         + '<h4>Données affichées</h4><p>FMI (World Economic Outlook), OCDE via FRED, Banque mondiale, Wikipédia (notations, CC BY-SA), exchange-api (taux de change), world-countries. Les données sont fournies à titre informatif et pédagogique ; elles peuvent comporter des erreurs ou des délais.</p>'
         + '<h4>Avertissement</h4><p>Atlas ne fournit aucun conseil en investissement, juridique ou fiscal. Aucune décision financière ne doit être fondée sur ce site.</p>'
         + '</div>'
       : '<div class="m-h">Legal notice</div><div class="m-legal">'
         + '<h4>Publisher</h4><p>Atlas is a personal, educational project by Tim Hensenne, student (M. Sc. Financial Economics, Maastricht University). Contact: timhensenne@gmail.com.</p>'
-        + '<h4>Hosting</h4><p>Static site hosted on GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (USA). Account data is hosted by Supabase, European Union region (Frankfurt).</p>'
+        + '<h4>Hosting</h4><p>Static site hosted on GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr. St., San Francisco (USA). Atlas runs no server and no database of its own.</p>'
         + '<h4>Displayed data</h4><p>IMF (World Economic Outlook), OECD via FRED, World Bank, Wikipedia (ratings, CC BY-SA), exchange-api (FX rates), world-countries. Data is provided for information and education; it may contain errors or delays.</p>'
         + '<h4>Disclaimer</h4><p>Atlas provides no investment, legal or tax advice. No financial decision should rely on this site.</p>'
         + '</div>';
@@ -5753,32 +5595,36 @@ function legalHTML(kind, L){
   // kind === "privacy" — politique de confidentialité complète (RGPD art. 13)
   return L
     ? '<div class="m-h">Confidentialité</div><div class="m-legal">'
-      + '<p>Cette politique explique quelles données Atlas traite, pourquoi, et tes droits (RGPD).</p>'
+      + '<p>Atlas est un site statique sans compte : en usage normal, aucune donnée personnelle n\'est collectée. Cette politique explique le peu qui est traité, pourquoi, et tes droits (RGPD).</p>'
       + '<h4>Responsable du traitement</h4><p>Tim Hensenne — contact : timhensenne@gmail.com.</p>'
-      + '<h4>Données collectées</h4><p>Compte (obligatoire) : pseudo, email, mot de passe (haché par Supabase, jamais lisible). Profil (facultatif, uniquement avec ton consentement) : prénom, année de naissance, sexe, pays. Jeu : scores quotidiens de la Super Série. Aucune adresse postale, aucune donnée sensible (santé, opinions, etc.).</p>'
-      + '<h4>Finalités et bases légales</h4><p>Créer ton compte, te connecter et afficher le classement (exécution du service demandé) ; champs facultatifs (consentement, retirable à tout moment).</p>'
-      + '<h4>Cookies et stockage local</h4><p>Atlas n\'utilise ni cookies publicitaires ni traceurs d\'audience. Le navigateur conserve localement des éléments strictement nécessaires : préférences (thème, langue, devise), parties en cours, et jeton de session Supabase si tu te connectes. Ce stockage nécessaire est exempté de bandeau de consentement.</p>'
-      + '<h4>Destinataires et hébergement</h4><p>Données de compte stockées chez Supabase (Union européenne, Francfort), transport chiffré (HTTPS). Le classement public n\'affiche que ton pseudo et ton score. Aucune vente ni partage de données.</p>'
-      + '<h4>Durées de conservation</h4><p>Jusqu\'à la suppression de ton compte ; les scores quotidiens peuvent être purgés périodiquement.</p>'
+      + '<h4>Aucun compte, aucune inscription</h4><p>Atlas ne propose ni compte ni inscription et ne demande aucune donnée pour être utilisé. Tu peux consulter la carte, la base de données, le convertisseur et les jeux sans rien fournir.</p>'
+      + '<h4>Données collectées</h4><p>Aucune, sauf si tu envoies volontairement le formulaire de contact : dans ce cas, le nom et l\'adresse e-mail que tu saisis (facultatifs) et ton message me sont transmis pour te répondre. Aucune donnée sensible n\'est demandée.</p>'
+      + '<h4>Finalités et bases légales</h4><p>Répondre à ton message (consentement, donné en envoyant le formulaire). Aucun profilage, aucune publicité, aucune revente.</p>'
+      + '<h4>Cookies et stockage local</h4><p>Atlas n\'utilise ni cookies publicitaires ni traceurs d\'audience. Le navigateur conserve localement des éléments strictement nécessaires : préférences (thème, langue, devise), parties de jeu en cours et palmarès local. Ces éléments restent sur ton appareil, ne sont jamais transmis, et disparaissent si tu effaces les données du site. Ce stockage nécessaire est exempté de bandeau de consentement.</p>'
+      + '<h4>Destinataires et services tiers</h4><p>Le formulaire de contact transite par FormSubmit (acheminement de l\'e-mail). Le site charge par ailleurs des ressources techniques depuis GitHub Pages (hébergement), jsDelivr (bibliothèques, drapeaux, taux de change) et Google Fonts (polices). Comme pour toute visite d\'un site web, ces prestataires peuvent voir ton adresse IP dans leurs journaux techniques ; Atlas n\'y a pas accès et n\'en conserve aucune copie.</p>'
+      + '<h4>Durées de conservation</h4><p>Les messages de contact sont conservés le temps d\'y répondre, puis supprimés. Le stockage local reste sur ton appareil jusqu\'à ce que tu l\'effaces.</p>'
       + '<h4>Tes droits</h4><p>Accès, rectification, effacement, portabilité, limitation et opposition : écris à timhensenne@gmail.com. Tu peux aussi introduire une réclamation auprès de l\'Autorité de protection des données (autoriteprotectiondonnees.be).</p>'
       + '</div>'
     : '<div class="m-h">Privacy</div><div class="m-legal">'
-      + '<p>This policy explains what data Atlas processes, why, and your rights (GDPR).</p>'
+      + '<p>Atlas is a static site with no accounts: in normal use, no personal data is collected. This policy explains the little that is processed, why, and your rights (GDPR).</p>'
       + '<h4>Controller</h4><p>Tim Hensenne — contact: timhensenne@gmail.com.</p>'
-      + '<h4>Data collected</h4><p>Account (required): pseudonym, email, password (hashed by Supabase, never readable). Profile (optional, only with your consent): first name, birth year, sex, country. Play: daily Super Series scores. No postal address, no sensitive data.</p>'
-      + '<h4>Purposes and legal bases</h4><p>Create your account, log you in and show the leaderboard (performance of the requested service); optional fields (consent, withdrawable anytime).</p>'
-      + '<h4>Cookies and local storage</h4><p>Atlas uses no advertising cookies and no analytics trackers. The browser locally stores strictly necessary items: preferences (theme, language, currency), games in progress, and the Supabase session token if you log in. Such necessary storage is exempt from consent banners.</p>'
-      + '<h4>Recipients and hosting</h4><p>Account data is stored with Supabase (European Union, Frankfurt), encrypted in transit (HTTPS). The public leaderboard shows only your pseudonym and score. No selling or sharing of data.</p>'
-      + '<h4>Retention</h4><p>Until you delete your account; daily scores may be purged periodically.</p>'
+      + '<h4>No account, no sign-up</h4><p>Atlas offers no account and no registration, and asks for nothing in order to be used. You can browse the map, the database, the converter and the games without providing anything.</p>'
+      + '<h4>Data collected</h4><p>None, unless you choose to send the contact form: in that case the name and email address you enter (both optional) and your message are sent to me so I can reply. No sensitive data is requested.</p>'
+      + '<h4>Purposes and legal bases</h4><p>Replying to your message (consent, given by submitting the form). No profiling, no advertising, no resale.</p>'
+      + '<h4>Cookies and local storage</h4><p>Atlas uses no advertising cookies and no analytics trackers. The browser locally stores strictly necessary items: preferences (theme, language, currency), games in progress and your local ranking. These stay on your device, are never transmitted, and disappear if you clear the site data. Such necessary storage is exempt from consent banners.</p>'
+      + '<h4>Recipients and third-party services</h4><p>The contact form is routed through FormSubmit (email delivery). The site also loads technical resources from GitHub Pages (hosting), jsDelivr (libraries, flags, exchange rates) and Google Fonts. As with any website visit, these providers may see your IP address in their technical logs; Atlas has no access to them and keeps no copy.</p>'
+      + '<h4>Retention</h4><p>Contact messages are kept only as long as needed to reply, then deleted. Local storage stays on your device until you clear it.</p>'
       + '<h4>Your rights</h4><p>Access, rectification, erasure, portability, restriction and objection: write to timhensenne@gmail.com. You may also lodge a complaint with your data protection authority.</p>'
       + '</div>';
 }
-// Ouvre une page légale dans la modale commune (fermeture gérée par Auth.bindOnce).
+// Ouvre une page légale dans la modale commune.
 function openLegal(kind){
   const card = el("authModal").querySelector(".modal-card");
+  // La méthodologie embarque un nuage de points : elle a besoin de largeur.
+  card.classList.toggle("wide", kind === "method");
   card.innerHTML = '<button class="m-close" data-auth="close" aria-label="Fermer">×</button>'
     + legalHTML(kind, lang === "fr");
-  el("authModal").hidden = false;
+  openModalShell();
 }
 // Bandeau bas de page, présent sous toutes les fenêtres.
 function paintFoot(){
@@ -5795,324 +5641,50 @@ function paintFoot(){
     + '</span>';
 }
 
-// ═══ Comptes & classement partagé (Supabase) ══════════════════════════════
-// Entièrement isolé : si atlas-config.js n'est pas renseigné, cfgOK() est faux
-// et TOUT reste en mode local (aucun bouton, palmarès local). Chaque appel
-// réseau est en try/catch : la moindre erreur retombe proprement en local.
-const Auth = (() => {
-  let supa = null, user = null, profile = null, ready = false;
-  let pendingAfter = null, busy = false, pendingNote = "";
-
-  const cfgOK = () => { const c = window.ATLAS_SUPABASE;
-    return !!(c && c.url && c.anon && !/VOTRE-PROJET|VOTRE_CLE/.test(String(c.url) + String(c.anon))); };
-  const isLoggedIn = () => !!(ready && user);
-
-  async function init(){
-    bindOnce();
-    if (!cfgOK()){ paintBar(); return; }                 // mode local
-    try {
-      const mod = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
-      supa = mod.createClient(window.ATLAS_SUPABASE.url, window.ATLAS_SUPABASE.anon,
-        { auth: { persistSession: true, autoRefreshToken: true } });
-      ready = true;
-      const { data } = await supa.auth.getSession();
-      if (data && data.session && data.session.user){ user = data.session.user; await ensureProfile(); }
-      supa.auth.onAuthStateChange(async (_e, session) => {
-        user = (session && session.user) || null;
-        if (user) await ensureProfile(); else { profile = null; kickFromSerie(); }
-        paintBar(); refreshHub();
-      });
-      paintBar();
-    } catch { ready = false; supa = null; paintBar(); }   // échec de chargement → local
+// ═══ Modale commune ════════════════════════════════════════════════════════
+// Sert aux pages légales (Confidentialité / Mentions légales / Méthodologie) et
+// à la pop de fin de Super Série. Fermeture : bouton ×, clic sur le fond, Échap.
+// Accessibilité : le focus entre dans la modale à l'ouverture, y reste tant
+// qu'elle est ouverte (piège à Tab) et revient à l'élément déclencheur à la
+// fermeture — sinon le clavier continue de naviguer la page derrière.
+let modalLastFocus = null;
+const MODAL_FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+function openModalShell(){
+  const m = el("authModal"); if (!m) return;
+  modalLastFocus = document.activeElement;
+  m.hidden = false;
+  const card = m.querySelector(".modal-card");
+  const first = card && card.querySelector(MODAL_FOCUSABLE);
+  (first || card)?.focus();
+}
+function closeModal(){
+  const m = el("authModal"); if (!m || m.hidden) return;
+  m.hidden = true;
+  // Le déclencheur peut avoir disparu du DOM entre-temps (vue re-rendue).
+  if (modalLastFocus && document.contains(modalLastFocus)) modalLastFocus.focus();
+  modalLastFocus = null;
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest('[data-auth="close"]')) closeModal();
+});
+document.addEventListener("mousedown", (e) => {
+  if (e.target && e.target.id === "authModal") closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  const m = el("authModal");
+  if (!m || m.hidden) return;
+  if (e.key === "Escape"){ closeModal(); return; }
+  if (e.key !== "Tab") return;
+  const card = m.querySelector(".modal-card"); if (!card) return;
+  const items = [...card.querySelectorAll(MODAL_FOCUSABLE)].filter(x => x.offsetParent !== null);
+  if (!items.length){ e.preventDefault(); card.focus(); return; }
+  const firstEl = items[0], lastEl = items[items.length - 1];
+  // Boucle : Tab sur le dernier revient au premier, Maj+Tab fait l'inverse.
+  if (!e.shiftKey && document.activeElement === lastEl){ e.preventDefault(); firstEl.focus(); }
+  else if (e.shiftKey && (document.activeElement === firstEl || document.activeElement === card)){
+    e.preventDefault(); lastEl.focus();
   }
-
-  async function ensureProfile(){
-    if (!supa || !user) return;
-    try {
-      let { data: p } = await supa.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      if (!p){
-        let prof = null;
-        try { const pend = JSON.parse(localStorage.getItem("atlas-pending-profile") || "null");
-          if (pend && pend.id === user.id) prof = pend; } catch {}
-        if (!prof){ const base = (user.email || "joueur").split("@")[0].replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20) || "joueur";
-          prof = { id: user.id, pseudo: base, consent_optional: false }; }
-        await supa.from("profiles").upsert(prof);
-        localStorage.removeItem("atlas-pending-profile");
-        const r = await supa.from("profiles").select("*").eq("id", user.id).maybeSingle();
-        p = r.data;
-      }
-      profile = p || null;
-    } catch { profile = null; }
-  }
-
-  function collectSignup(){
-    const g = (id) => (el(id) ? el(id).value.trim() : "");
-    const consent = !!(el("su-consent") && el("su-consent").checked);
-    const yearRaw = g("su-year");
-    const prof = { pseudo: g("su-pseudo") };
-    if (consent){
-      if (g("su-first")) prof.first_name = g("su-first");
-      if (yearRaw && /^\d{4}$/.test(yearRaw)) prof.birth_year = parseInt(yearRaw, 10);
-      if (el("su-sex") && el("su-sex").value) prof.sex = el("su-sex").value;
-      if (g("su-country")) prof.country = g("su-country");
-    }
-    prof.consent_optional = consent;
-    return { email: g("su-email"), password: g("su-pw"), prof };
-  }
-
-  async function doSignup(){
-    if (busy) return; const L = lang === "fr";
-    const { email, password, prof } = collectSignup();
-    if (prof.pseudo.length < 2) return setMsg("err", L ? "Choisis un pseudo (2 caractères min.)." : "Pick a pseudonym (2+ chars).");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setMsg("err", L ? "Adresse email invalide." : "Invalid email address.");
-    if (password.length < 6) return setMsg("err", L ? "Mot de passe : 6 caractères minimum." : "Password: 6 characters minimum.");
-    const pw2 = el("su-pw2") ? el("su-pw2").value : "";
-    if (password !== pw2) return setMsg("err", L ? "Les deux mots de passe ne correspondent pas." : "The two passwords don't match.");
-    setBusy(true);
-    try {
-      const { data, error } = await supa.auth.signUp({ email, password });
-      if (error) throw error;
-      const row = Object.assign({ id: data.user.id }, prof);
-      if (data.session){                                  // confirmation email désactivée → session directe
-        user = data.user;
-        const up = await supa.from("profiles").upsert(row);
-        if (up.error) throw up.error;
-        await ensureProfile(); paintBar(); refreshHub();
-        finishAuth(L ? "Compte créé, te voilà connecté !" : "Account created — you're in!");
-      } else {                                            // confirmation email activée
-        try { localStorage.setItem("atlas-pending-profile", JSON.stringify(row)); } catch {}
-        setBusy(false);
-        setMsg("ok", L ? "Compte créé. Confirme via l'email reçu, puis connecte-toi." : "Account created. Confirm via email, then log in.");
-      }
-    } catch (e){
-      setBusy(false);
-      const m = String(e && e.message || e);
-      if (/duplicate|unique|already/i.test(m)) setMsg("err", L ? "Ce pseudo ou cet email est déjà pris." : "That pseudonym or email is taken.");
-      else setMsg("err", (L ? "Échec : " : "Failed: ") + m);
-    }
-  }
-
-  async function doLogin(){
-    if (busy) return; const L = lang === "fr";
-    const idRaw = el("au-id") ? el("au-id").value.trim() : "";
-    const password = el("au-pw") ? el("au-pw").value : "";
-    if (!idRaw || !password) return setMsg("err", L ? "Email et mot de passe requis." : "Email and password required.");
-    if (!idRaw.includes("@")) return setMsg("err", L ? "Connecte-toi avec ton email." : "Log in with your email.");
-    setBusy(true);
-    try {
-      const { error } = await supa.auth.signInWithPassword({ email: idRaw, password });
-      if (error) throw error;
-      await ensureProfile(); paintBar(); refreshHub();
-      finishAuth(L ? "Connecté." : "Logged in.");
-    } catch (e){
-      setBusy(false);
-      setMsg("err", (lang === "fr" ? "Connexion impossible : " : "Login failed: ") + String(e && e.message || e));
-    }
-  }
-
-  async function logout(){
-    kickFromSerie();                     // redirection IMMÉDIATE si on est dans la série,
-    try { await supa.auth.signOut(); } catch {}   // avant même l'appel réseau
-    user = null; profile = null; paintBar(); kickFromSerie(); refreshHub();
-  }
-
-  // ── Score du jour : une insertion (la RLS + clé primaire garantissent 1×/jour)
-  async function onSeriesComplete(){
-    if (!isLoggedIn()) return;
-    let games; try { games = serieRead(); } catch { return; }
-    if (SERIE.some(g => !games[g])) return;               // série incomplète
-    const total = SERIE.reduce((s, g) => s + ((games[g] && games[g].tries) || 0), 0);
-    const day = todayKey();
-    if (sessionStorage.getItem("atlas-sent-" + day)) { fillLeaderboard(lang === "fr"); return; }
-    try {
-      const row = { user_id: user.id, total,
-        country_tries: games.country ? games.country.tries : null,
-        flag_tries: games.flag ? games.flag.tries : null };
-      const { error } = await supa.from("daily_scores").insert(row);
-      // 23505 = déjà une ligne aujourd'hui : normal (une tentative), on ignore.
-      if (error && !/duplicate|23505|unique/i.test(String(error.message))) throw error;
-      try { sessionStorage.setItem("atlas-sent-" + day, "1"); } catch {}
-    } catch {}
-    fillLeaderboard(lang === "fr");
-  }
-
-  async function fillLeaderboard(L){
-    const card = el("lbCard"); if (!card || !supa) return;
-    const head = '<div class="lb-h">' + (L ? "Classement du jour" : "Today's leaderboard") + '</div>'
-      + '<div class="lb-sub">' + (L ? "Le moins d'essais gagne · une seule tentative." : "Fewest guesses wins · one attempt.") + '</div>';
-    try {
-      const { data, error } = await supa.from("leaderboard_today").select("pseudo,total").order("total", { ascending: true }).limit(20);
-      if (error) throw error;
-      const mine = profile && profile.pseudo;
-      const rows = (data && data.length)
-        ? data.map((r, i) => '<tr class="' + (r.pseudo === mine ? "me" : "") + '"><td class="lb-rk">' + (i + 1) + '</td><td class="lb-dt">' + esc(r.pseudo) + '</td><td class="lb-sc">' + r.total + '</td></tr>').join("")
-        : '<tr><td colspan="3" class="lb-empty">' + (L ? "Personne n'a encore terminé aujourd'hui." : "No one has finished today yet.") + '</td></tr>';
-      card.innerHTML = head
-        + '<table class="lb"><thead><tr><th>#</th><th>' + (L ? "Joueur" : "Player") + '</th><th>' + (L ? "Essais" : "Guesses") + '</th></tr></thead><tbody>' + rows + '</tbody></table>'
-        + '<div class="lb-note">' + (L ? "Classement partagé, remis à zéro chaque jour." : "Shared ranking, reset daily.") + '</div>';
-    } catch {
-      card.innerHTML = head + '<div class="lb-note">' + (L ? "Classement indisponible pour le moment." : "Leaderboard unavailable right now.") + '</div>';
-    }
-  }
-
-  // ── Barre supérieure ────────────────────────────────────────────────────
-  function paintBar(){
-    const bar = el("authbar"); if (!bar) return;
-    if (!cfgOK()){ bar.hidden = true; bar.innerHTML = ""; return; }
-    const L = lang === "fr";
-    bar.hidden = false;
-    if (isLoggedIn()){
-      const who = profile && profile.pseudo ? profile.pseudo : (user.email || "").split("@")[0];
-      bar.innerHTML = '<span class="who">👤 <b>' + esc(who) + '</b></span>'
-        + '<button type="button" data-auth="logout">' + (L ? "Déconnexion" : "Log out") + '</button>';
-    } else {
-      bar.innerHTML = '<button type="button" data-auth="login-open">' + (L ? "Se connecter" : "Log in") + '</button>'
-        + '<button type="button" class="pri" data-auth="signup-open">' + (L ? "S'inscrire" : "Sign up") + '</button>';
-    }
-  }
-  function refreshHub(){ if (view === "games" && gScreen === "hub"){ el("view-games").innerHTML = renderGames(); } }
-  // Déconnecté en pleine manche de la Super Série → retour au hub
-  // (la série exige un compte ; le jeu libre, lui, reste accessible).
-  function kickFromSerie(){
-    if (view !== "games") return;
-    const inDaily = (gScreen === "country" && gDaily) || (gScreen === "flag" && fDaily)
-      || (gScreen === "duel" && dDaily) || (gScreen === "podium" && pDaily);
-    if (!inDaily) return;
-    gScreen = "hub";
-    el("view-games").innerHTML = renderGames();
-  }
-
-  // ── Modale ──────────────────────────────────────────────────────────────
-  const EYE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
-  const EYE_OFF = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.1-6M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2m-6.7-1.1a3 3 0 1 1-4.2-4.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-  // Champ mot de passe avec œil afficher/masquer.
-  function pwField(id, label, ac){
-    return '<div class="m-field"><label>' + label + ' <span class="req">*</span></label>'
-      + '<div class="pw-wrap"><input class="m-in" id="' + id + '" type="password" autocomplete="' + ac + '">'
-      + '<button type="button" class="pw-eye" data-auth="toggle-pw" aria-label="Afficher / masquer">' + EYE + '</button></div></div>';
-  }
-  function fieldLogin(L){
-    return '<div class="m-field"><label>' + (L ? "Email" : "Email") + ' <span class="req">*</span></label><input class="m-in" id="au-id" type="email" autocomplete="email"></div>'
-      + pwField("au-pw", L ? "Mot de passe" : "Password", "current-password")
-      + '<button class="m-go" data-auth="submit-login">' + (L ? "Se connecter" : "Log in") + '</button>'
-      + '<div class="m-alt"><button data-auth="tab-signup">' + (L ? "Pas encore de compte ? S'inscrire" : "No account? Sign up") + '</button></div>';
-  }
-  function fieldSignup(L){
-    const opt = L ? "facultatif" : "optional";
-    return '<div class="m-field"><label>' + (L ? "Pseudo" : "Pseudonym") + ' <span class="req">*</span></label><input class="m-in" id="su-pseudo" maxlength="24" autocomplete="nickname"></div>'
-      + '<div class="m-field"><label>Email <span class="req">*</span></label><input class="m-in" id="su-email" type="email" autocomplete="email"></div>'
-      + pwField("su-pw", L ? "Mot de passe" : "Password", "new-password")
-      + pwField("su-pw2", L ? "Confirmer le mot de passe" : "Confirm password", "new-password")
-      + '<div class="m-opth">' + (L ? "Infos facultatives" : "Optional info") + '</div>'
-      + '<div class="m-field"><label>' + (L ? "Prénom" : "First name") + ' (' + opt + ')</label><input class="m-in" id="su-first"></div>'
-      + '<div class="m-row"><div class="m-field"><label>' + (L ? "Année de naissance" : "Birth year") + '</label><input class="m-in" id="su-year" inputmode="numeric" maxlength="4" placeholder="1999"></div>'
-      + '<div class="m-field"><label>' + (L ? "Sexe" : "Sex") + '</label><select class="m-sel" id="su-sex"><option value="">—</option><option value="F">' + (L ? "Femme" : "Female") + '</option><option value="M">' + (L ? "Homme" : "Male") + '</option><option value="X">' + (L ? "Autre" : "Other") + '</option></select></div></div>'
-      + '<div class="m-field"><label>' + (L ? "Pays" : "Country") + ' (' + opt + ')</label><input class="m-in" id="su-country"></div>'
-      + '<label class="m-consent"><input type="checkbox" id="su-consent"><span>' + (L
-          ? "J'accepte que mes infos facultatives soient conservées. "
-          : "I agree to store my optional info. ") + '<a data-auth="privacy">' + (L ? "Confidentialité" : "Privacy") + '</a></span></label>'
-      + '<button class="m-go" data-auth="submit-signup">' + (L ? "S'inscrire" : "Sign up") + '</button>'
-      + '<div class="m-alt"><button data-auth="tab-login">' + (L ? "Déjà un compte ? Se connecter" : "Have an account? Log in") + '</button></div>';
-  }
-  function privacyHTML(L){
-    return legalHTML("privacy", L)
-      + '<button class="m-go" data-auth="back">' + (L ? "Retour" : "Back") + '</button>';
-  }
-  function renderModal(tab){
-    const L = lang === "fr";
-    const card = el("authModal").querySelector(".modal-card");
-    let body;
-    if (tab === "privacy") body = privacyHTML(L);
-    else {
-      const tabs = '<div class="m-tabs"><button data-auth="tab-login" class="' + (tab === "login" ? "on" : "") + '">' + (L ? "Connexion" : "Log in")
-        + '</button><button data-auth="tab-signup" class="' + (tab === "signup" ? "on" : "") + '">' + (L ? "Inscription" : "Sign up") + '</button></div>';
-      const note = pendingNote
-        ? '<div class="m-msg ok" style="margin:0 0 12px">' + esc(pendingNote) + '</div>' : "";
-      const intro = tab === "signup"
-        ? '<div class="m-sub">' + (L ? "Un pseudo, un email, un mot de passe — c'est tout ce qu'il faut pour figurer au classement." : "A pseudonym, an email, a password — all you need to join the leaderboard.") + '</div>'
-        : '<div class="m-sub">' + (L ? "Ravi de te revoir." : "Welcome back.") + '</div>';
-      body = tabs + note + intro + (tab === "signup" ? fieldSignup(L) : fieldLogin(L)) + '<div class="m-msg" id="m-msg" hidden></div>';
-    }
-    card.innerHTML = '<button class="m-close" data-auth="close" aria-label="Fermer">×</button>' + body;
-  }
-  function openModal(tab, after, note){ pendingAfter = after || null; pendingNote = note || "";
-    renderModal(tab || "login"); el("authModal").hidden = false; }
-  function runPending(){ const after = pendingAfter; pendingAfter = null; pendingNote = "";
-    if (typeof after === "function") after(); }
-  // Fermer sans se connecter = ANNULER l'action en attente (ne pas la lancer).
-  function closeModal(){ const m = el("authModal"); if (m) m.hidden = true; busy = false;
-    pendingAfter = null; pendingNote = ""; }
-  // Connexion / inscription réussie = fermer PUIS lancer l'action en attente.
-  function finishAuth(){ const m = el("authModal"); if (m) m.hidden = true; busy = false; runPending(); }
-  function setMsg(kind, text){ const m = el("m-msg"); if (!m){ return; } m.hidden = false; m.className = "m-msg " + kind; m.textContent = text; setBusy(false); }
-  function setBusy(v){ busy = v; const cards = el("authModal"); if (!cards) return;
-    cards.querySelectorAll(".m-go").forEach(b => { b.disabled = v; }); }
-
-  // La Super Série exige un compte (classement du jour, une tentative) :
-  // sans connexion, on ouvre la modale et on NE lance PAS la manche.
-  // En mode local (Supabase non configuré), pas de comptes → pas de blocage.
-  function promptSeries(launch){
-    if (!cfgOK() || isLoggedIn()){ launch(); return; }
-    openModal("signup", launch, lang === "fr"
-      ? "La Super Série demande un compte : une tentative par jour, et ton pseudo au classement."
-      : "The Super Series needs an account: one attempt a day, and your pseudonym on the leaderboard.");
-  }
-
-  let bound = false;
-  function bindOnce(){
-    if (bound) return; bound = true;
-    document.addEventListener("click", (e) => {
-      const a = e.target.closest("[data-auth]"); if (!a) return;
-      const act = a.dataset.auth;
-      if (act === "login-open") openModal("login", null);
-      else if (act === "signup-open") openModal("signup", null);
-      else if (act === "logout") logout();
-      else if (act === "tab-login") renderModal("login");
-      else if (act === "tab-signup") renderModal("signup");
-      else if (act === "privacy") renderModal("privacy");
-      else if (act === "back") renderModal("signup");
-      else if (act === "close") closeModal();
-      else if (act === "submit-login") doLogin();
-      else if (act === "submit-signup") doSignup();
-      else if (act === "toggle-pw"){
-        const inp = a.parentElement && a.parentElement.querySelector("input");
-        if (inp){ const show = inp.type === "password"; inp.type = show ? "text" : "password"; a.innerHTML = show ? EYE_OFF : EYE; }
-      }
-    });
-    // Clic sur le fond → fermer.
-    document.addEventListener("mousedown", (e) => {
-      if (e.target && e.target.id === "authModal") closeModal();
-    });
-    // Entrée dans un champ de la modale = clic sur le bouton du formulaire.
-    document.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      const modal = el("authModal");
-      if (!modal || modal.hidden) return;                 // modale fermée → on ignore
-      if (!e.target || e.target.tagName !== "INPUT") return;
-      e.preventDefault();
-      if (el("su-pseudo")) doSignup(); else if (el("au-id")) doLogin();
-    });
-  }
-
-  // Rang du joueur dans le classement du jour (null si indisponible).
-  async function myRankToday(){
-    if (!isLoggedIn() || !supa || !profile || !profile.pseudo) return null;
-    try {
-      const { data, error } = await supa.from("leaderboard_today")
-        .select("pseudo,total").order("total", { ascending: true }).limit(500);
-      if (error || !data) return null;
-      const i = data.findIndex(r => r.pseudo === profile.pseudo);
-      if (i < 0) return null;
-      return { rank: i + 1, total: data[i].total, players: data.length };
-    } catch { return null; }
-  }
-
-  // Nom affiché du compte (pseudo, sinon partie locale de l'email) — pour la
-  // section « compte » du menu mobile, qui vit hors du module Auth.
-  const displayName = () => profile && profile.pseudo ? profile.pseudo : (user && user.email ? user.email.split("@")[0] : "");
-
-  return { init, isLoggedIn, configured: cfgOK, displayName, onSeriesComplete, fillLeaderboard, promptSeries, myRankToday };
-})();
+});
 
 // L'accueil est statique : on le peint tout de suite (avant les données),
 // pour éviter une page blanche pendant le chargement.
@@ -6123,7 +5695,6 @@ el("foot").addEventListener("click", (e) => {
   if (b) openLegal(b.dataset.legal);
 });
 boot();
-Auth.init();
 </script>
 </body>
 </html>
