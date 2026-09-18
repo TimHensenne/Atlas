@@ -21,6 +21,8 @@ const ok = (cond, label) => {
 const section = (t) => console.log("\n" + t);
 
 // ── Extraction de fonctions depuis le module (comptage d'accolades) ──
+// Les marqueurs s'arrêtent à la parenthèse ouvrante : ajouter un paramètre
+// (ex. `sovereignRisk(iso, year)`) ne doit pas casser l'extraction.
 function extract(startMarker){
   const i = html.indexOf(startMarker);
   if (i < 0) return null;
@@ -34,12 +36,22 @@ function extract(startMarker){
 }
 const parts = {
   fmtMoney:       extract("const fmtMoney = (usd, unit) =>"),
-  indRank:        extract("function indRank(iso, key)"),
-  sovereignRisk:  extract("function sovereignRisk(iso)"),
-  ratingCat:      extract("function ratingCat(r)"),
-  worstRatingCat: extract("function worstRatingCat(iso)"),
-  niceTicks:      extract("function niceTicks(min, max, n)"),
-  yAxisUnit:      extract("function yAxisUnit(fmt, ticks)"),
+  indRank:        extract("function indRank("),
+  valAt:          extract("const valAt = ("),
+  histUpTo:       extract("const histUpTo = ("),
+  gpcYearCache:   extract("const gpcYearCache ="),
+  allGpcAt:       extract("function allGpcAt("),
+  sovereignRisk:  extract("function sovereignRisk("),
+  riskSeries:     extract("function riskSeries("),
+  ratingCat:      extract("function ratingCat("),
+  worstRatingCat: extract("function worstRatingCat("),
+  niceTicks:      extract("function niceTicks("),
+  yAxisUnit:      extract("function yAxisUnit("),
+  RANK_SPF:       extract("const RANK_SPF ="),
+  RANK_MOODY:     extract("const RANK_MOODY ="),
+  riskVsRating:   extract("function riskVsRating("),
+  avgRanks:       extract("function avgRanks("),
+  spearman:       extract("function spearman("),
 };
 
 section("Extraction du code livré");
@@ -51,12 +63,23 @@ const build = (langV, curV) => new Function(
   `let lang=${JSON.stringify(langV)}, currency=${JSON.stringify(curV)};
    ${parts.fmtMoney};
    ${parts.indRank}
+   ${parts.valAt};
+   ${parts.histUpTo};
+   ${parts.gpcYearCache};
+   ${parts.allGpcAt}
    ${parts.sovereignRisk}
+   ${parts.riskSeries}
    ${parts.ratingCat}
    ${parts.worstRatingCat}
    ${parts.niceTicks}
    ${parts.yAxisUnit}
-   return { fmtMoney, indRank, sovereignRisk, ratingCat, worstRatingCat, niceTicks, yAxisUnit };`
+   ${parts.RANK_SPF};
+   ${parts.RANK_MOODY};
+   ${parts.riskVsRating}
+   ${parts.avgRanks}
+   ${parts.spearman}
+   return { fmtMoney, indRank, sovereignRisk, riskSeries, ratingCat, worstRatingCat,
+            niceTicks, yAxisUnit, riskVsRating, spearman };`
 )(macro, ident, ratings);
 const FR = build("fr", "USD"), EN = build("en", "USD");
 
@@ -82,13 +105,50 @@ const sCH = FR.sovereignRisk("CH")?.score, sEG = FR.sovereignRisk("EG")?.score;
 ok(sCH != null && sCH < 35, `ancre : Suisse en zone basse (${sCH})`);
 ok(sEG != null && sEG > 40, `ancre : Égypte en zone haute (${sEG})`);
 
+// ── 1 bis. Trajectoire historique : même modèle, années passées ──
+// Le paramètre `year` ne doit rien changer au score courant : c'est la garantie
+// que la courbe et le chiffre affiché sortent bien du même modèle.
+section("Trajectoire du score (historique)");
+let trajBad = [], withTraj = 0, nonMonotone = 0;
+for (const iso of Object.keys(macro.countries)){
+  const s = FR.riskSeries(iso);
+  if (!s) continue;
+  withTraj++;
+  const yearsOk = s.years.every((y, i) => i === 0 || y > s.years[i - 1]);
+  const scoresOk = s.scores.every(v => Number.isInteger(v) && v >= 0 && v <= 100);
+  if (!yearsOk) nonMonotone++;
+  if (!scoresOk || s.scores.length !== s.years.length) trajBad.push(iso);
+}
+ok(trajBad.length === 0, `séries valides (scores entiers 0-100, longueurs alignées) pour ${withTraj} pays${trajBad.length ? " — KO: " + trajBad.slice(0,5) : ""}`);
+ok(nonMonotone === 0, "années strictement croissantes dans chaque trajectoire");
+ok(withTraj > 100, `couverture des trajectoires (${withTraj} pays)`);
+// `year = null` (valeur courante) doit être identique au comportement d'origine.
+let driftMax = 0;
+for (const iso of ["US", "DE", "FR", "GR", "JP", "BR"]){
+  const cur = FR.sovereignRisk(iso), s = FR.riskSeries(iso);
+  if (!cur || !s) continue;
+  driftMax = Math.max(driftMax, Math.abs(cur.score - s.scores[s.scores.length - 1]));
+}
+ok(driftMax <= 3, `dernier point de la courbe cohérent avec le score affiché (écart max ${driftMax})`);
+
+// ── 1 ter. Validation du modèle vs notations d'agence ──
+section("Validation (score vs notation)");
+const vpts = FR.riskVsRating();
+const rho = FR.spearman(vpts);
+ok(vpts.length > 100, `échantillon de validation suffisant (${vpts.length} pays notés ET scorés)`);
+ok(rho != null && rho >= -1 && rho <= 1, `corrélation de Spearman dans [-1, 1] (${rho && rho.toFixed(3)})`);
+ok(rho != null && rho < -0.2,
+   `sens attendu : score élevé ↔ notation faible (ρ = ${rho && rho.toFixed(3)})`);
+
 // ── 2. Cohérence code ↔ carte ↔ modale ──
 section("Cohérence carte & modale");
-const card = extract("function renderRiskCard(iso)") || "";
+const card = extract("function renderRiskCard(") || "";
 ok(card.includes(".disp") || card.includes("p.disp"), "la carte lit p.disp (format actuel du modèle)");
 ok(!/fp\(p\.val\)|p\.val\b/.test(card), "la carte ne référence plus p.val (ancien format)");
 ok(html.includes("Les six piliers") && html.includes("The six pillars"),
    "la modale décrit bien SIX piliers (FR et EN), comme le modèle");
+ok(html.includes("riskValidationHTML(true)") && html.includes("riskValidationHTML(false)"),
+   "la validation du modèle est branchée dans la modale (FR et EN)");
 
 // ── 3. Rangs mondiaux/régionaux ──
 section("Rangs (indRank)");
@@ -145,7 +205,24 @@ const missLab = indKeys.filter(k => !indLabels.includes(`"${k}"`));
 ok(missDef.length === 0, "chaque indicateur du comparateur a sa définition (MET_DEF)" + (missDef.length ? " — manquent: " + missDef : ""));
 ok(missLab.length === 0, "chaque indicateur a son libellé FR/EN (IND_LABELS)" + (missLab.length ? " — manquent: " + missLab : ""));
 
-// ── 8. Équilibre CSS ──
+// ── 8. Partage & export ──
+// Deux promesses faites à l'utilisateur : une URL copiable pour le comparateur,
+// un export du tableau. On vérifie que le câblage existe toujours.
+section("Partage & export");
+ok(/hashFor[\s\S]{0,600}v === "benchmark"/.test(html),
+   "hashFor embarque l'état du comparateur (permalien)");
+ok(html.includes('data-dbcsv') && html.includes("function exportDbCsv("),
+   "bouton et fonction d'export CSV présents");
+ok(html.includes('m: ["table", "chart"]') && html.includes('CHART_INDS.includes(p.get("i"))'),
+   "parseHash relit le mode et l'indicateur du permalien");
+
+// ── 9. Accessibilité de la modale ──
+section("Accessibilité");
+ok(html.includes("function openModalShell(") && html.includes("modalLastFocus"),
+   "la modale gère le focus (entrée + restauration)");
+ok(/aria-modal="true" tabindex="-1"/.test(html), "la carte de modale est focusable (tabindex=-1)");
+
+// ── 10. Équilibre CSS ──
 section("CSS");
 const css = (html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "";
 const oB = (css.match(/{/g) || []).length, cB = (css.match(/}/g) || []).length;
